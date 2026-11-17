@@ -44,7 +44,7 @@ export default function Connection() {
       <Screen top={false} gap={18}>
         <Text style={u.h1}>{first ? 'connect to ares' : 'ares'}</Text>
         <Text style={[u.soft, { color: c.muted }]}>
-          the athena api runs on ares and is reached over tailscale. the token lives in /srv/config/athena/api.env on ares and is kept in this iphone&apos;s keychain.
+          the calliope api runs on ares and is reached over tailscale. the token lives in /srv/config/calliope/api.env on ares and is kept in this iphone&apos;s keychain.
         </Text>
         <View style={{ gap: 8 }}>
           <Eyebrow>api address</Eyebrow>

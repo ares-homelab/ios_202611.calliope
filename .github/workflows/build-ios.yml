@@ -31,18 +31,18 @@ jobs:
           APP=$(ls -d Payload/*.app | head -1)
           find "$APP" \( -name "*.framework" -o -name "*.dylib" \) -print0 | xargs -0 -I{} codesign -f -s - {}
           codesign -f -s - "$APP"
-          zip -qr Athena.ipa Payload
+          zip -qr Calliope.ipa Payload
       - name: Keep the test build
         if: github.ref != 'refs/heads/main' && !startsWith(github.ref, 'refs/tags/v')
         uses: actions/upload-artifact@v4
         with:
-          name: Athena-${{ github.run_number }}
-          path: Athena.ipa
+          name: Calliope-${{ github.run_number }}
+          path: Calliope.ipa
       - name: Publish release
         if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release delete latest --yes --cleanup-tag || true
-          gh release create latest Athena.ipa --title "Athena (build ${{ github.run_number }})" \
-            --notes "Unsigned build. ares downloads Athena.ipa and installs it with marsign."
+          gh release create latest Calliope.ipa --title "Calliope (build ${{ github.run_number }})" \
+            --notes "Unsigned build. ares downloads Calliope.ipa and installs it with marsign."

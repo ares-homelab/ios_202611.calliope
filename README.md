@@ -1,6 +1,6 @@
-# athena
+# calliope
 
-iPhone companion for athena, Mars's reading system on ares: what's being read on the Kindle (live kosync progress), reading paths and sections, stats, Kindle highlights and New Yorker issues. Status changes, pins and send-to-kindle go back to calibre on ares through the athena api. Built with Expo (SDK 57, Expo Router), iOS only.
+iPhone companion for calliope, Mars's reading system on ares: what's being read on the Kindle (live kosync progress), reading paths and sections, stats, Kindle highlights and New Yorker issues. Status changes, pins and send-to-kindle go back to calibre on ares through the calliope api. Built with Expo (SDK 57, Expo Router), iOS only.
 
 ## screens
 
@@ -15,14 +15,14 @@ Offline, the app shows the last saved copy; changes made meanwhile wait and sync
 
 ## api address and token
 
-On first launch the app opens "connect to ares": the api address (default `http://ares:8087`, reached over Tailscale) and the bearer token (`TOKEN=` in `/srv/config/athena/api.env` on ares). "test connection" calls `/hello`. Both are stored in the iPhone keychain (expo-secure-store); change them later in settings → connection. Plain http is allowed for `ares`, `*.ts.net` and local hosts (App Transport Security exceptions in `app.json`).
+On first launch the app opens "connect to ares": the api address (default `http://ares:8087`, reached over Tailscale) and the bearer token (`TOKEN=` in `/srv/config/calliope/api.env` on ares). "test connection" calls `/hello`. Both are stored in the iPhone keychain (expo-secure-store); change them later in settings → connection. Plain http is allowed for `ares`, `*.ts.net` and local hosts (App Transport Security exceptions in `app.json`).
 
 ## build and install
 
-The GitHub workflow `build-ios.yml` (manual run or a `v*` tag) builds an unsigned `Athena.ipa` on macos and publishes it as the release `latest`. ares downloads that .ipa and installs it with marsign, which signs it with the free Apple ID and re-signs it daily:
+The GitHub workflow `build-ios.yml` (manual run or a `v*` tag) builds an unsigned `Calliope.ipa` on macos and publishes it as the release `latest`. ares downloads that .ipa and installs it with marsign, which signs it with the free Apple ID and re-signs it daily:
 
 ```bash
-cd ~/marsign && MARSIGN_DATA=/srv/config/marsign .venv/bin/python marsign.py install <path to Athena.ipa>
+cd ~/marsign && MARSIGN_DATA=/srv/config/marsign .venv/bin/python marsign.py install <path to Calliope.ipa>
 ```
 
 ## development

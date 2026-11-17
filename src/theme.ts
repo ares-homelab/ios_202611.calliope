@@ -101,7 +101,7 @@ export const PALETTES = [
   },
   {
     id: 'olive',
-    note: "athena's tree",
+    note: "calliope's tree",
     dark: dark({ bg: '#12140F', panel: '#1C1F17', text: '#E6EAD9', muted: '#9DA38C', track: '#353A2C', accent: '#AFC28A', on: '#12140F' }),
     light: light({ bg: '#F3F4EC', panel: '#E5E8D8', text: '#1B1E15', muted: '#5E6450', track: '#CDD3BC', accent: '#9DB377', on: '#1B1E15', link: '#4E6A2E' }),
   },

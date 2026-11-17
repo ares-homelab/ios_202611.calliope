@@ -1,15 +1,15 @@
 {
   "expo": {
-    "name": "Athena",
-    "slug": "athena",
+    "name": "calliope",
+    "slug": "calliope",
     "version": "0.2.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "scheme": "athena",
+    "scheme": "calliope",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.giovlnv.athena",
+      "bundleIdentifier": "com.giovlnv.calliope",
       "icon": {
         "light": "./assets/icon.png",
         "dark": "./assets/icon-dark.png"

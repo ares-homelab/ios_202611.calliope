@@ -58,7 +58,7 @@ export default function IssuesScreen() {
             </Pressable>
           ))}
           <Text style={[u.soft, { color: c.muted, marginTop: 10, lineHeight: fs(20) }]}>
-            older issues show here as they arrive. the oldest is removed when a {keep === 4 ? 'fifth' : 'new one'} comes in. issues don&apos;t count toward athena stats.
+            older issues show here as they arrive. the oldest is removed when a {keep === 4 ? 'fifth' : 'new one'} comes in. issues don&apos;t count toward calliope stats.
           </Text>
         </View>
       ) : null}

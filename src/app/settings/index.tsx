@@ -84,7 +84,7 @@ export default function Settings() {
             icon="wrench"
             title="development"
             sub={`version ${Constants.expoConfig?.version ?? '?'}`}
-            onPress={() => Alert.alert('athena', `version ${Constants.expoConfig?.version ?? '?'}\napi ${cfg.url}\ninstalled and re-signed by marsign on ares`)}
+            onPress={() => Alert.alert('calliope', `version ${Constants.expoConfig?.version ?? '?'}\napi ${cfg.url}\ninstalled and re-signed by marsign on ares`)}
           />
         </Group>
       </Screen>

@@ -40,11 +40,11 @@ Docs: https://docs.expo.dev/eas/index.md
 - Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
 - Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md
 
-## Athena
+## Calliope
 
-- iPhone companion for Mars's reading system on ares. All data comes from the athena api (`http://ares:8087`, FastAPI, code in `services/athena/api/` of the ares repo); every request sends `Authorization: Bearer <token>`. No book files on the phone.
+- iPhone companion for Mars's reading system on ares. All data comes from the calliope api (`http://ares:8087`, FastAPI, code in `services/calliope/api/` of the ares repo); every request sends `Authorization: Bearer <token>`. No book files on the phone.
 - `src/api.ts` mirrors the api's pydantic models; keep optional fields optional so an older or newer api doesn't break the app.
 - `src/store.ts` caches every response as json in the document dir (offline copy) and queues status, pin and send changes made while ares is unreachable (`outbox.json`), flushed on refresh or when the app becomes active.
-- Styling lives in `src/theme.ts` (six palettes × dark/light, fonts, spacing) and `src/components/ui.tsx`; screens use `useStyles`/`useTheme`, never hard-coded colors. The design reference is the claude.ai canvas "athena app".
+- Styling lives in `src/theme.ts` (six palettes × dark/light, fonts, spacing) and `src/components/ui.tsx`; screens use `useStyles`/`useTheme`, never hard-coded colors. The design reference is the claude.ai canvas "calliope app".
 - Installed with marsign on ares (free Apple ID): no app extensions or widgets, each needs another App ID and the free account is at its limit.
 - Names are lowercase (files, folders, commit subjects) unless a tool requires otherwise; code lean, few comments.

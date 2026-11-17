@@ -35,7 +35,7 @@ export default function StatsScreen() {
 
   return (
     <Screen refreshing={stats.loading && !!s} onRefresh={stats.refresh} gap={22}>
-      <TitleRow title="stats" right={<Text style={[u.soft, { color: c.muted, marginBottom: 4 }]}>{s?.year ?? new Date().getFullYear()} · athena only</Text>} />
+      <TitleRow title="stats" right={<Text style={[u.soft, { color: c.muted, marginBottom: 4 }]}>{s?.year ?? new Date().getFullYear()} · calliope only</Text>} />
       {stats.error ? <ErrorBox error={stats.error} onRetry={stats.refresh} stale={!!s} /> : null}
       {!s ? (
         <Empty>{stats.loading ? 'loading…' : ''}</Empty>

@@ -31,7 +31,7 @@ export default function Home() {
       <View style={[u.row, { justifyContent: 'space-between', alignItems: 'flex-end' }]}>
         <View style={{ gap: 2 }}>
           <Text style={[u.soft, { color: c.muted }]}>{today()}</Text>
-          <Text style={{ fontFamily: F.serifMediumItalic, fontSize: fs(40), lineHeight: fs(46), letterSpacing: 0.5, color: c.text }}>athena</Text>
+          <Text style={{ fontFamily: F.serifMediumItalic, fontSize: fs(40), lineHeight: fs(46), letterSpacing: 0.5, color: c.text }}>calliope</Text>
         </View>
         <View style={[u.row, { gap: 6, marginRight: -10 }]}>
           <View style={[u.row, { gap: 6 }]}>

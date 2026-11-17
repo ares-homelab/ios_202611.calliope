@@ -6,7 +6,7 @@ import { F } from '../../theme';
 function Sample({ c }: { c: Colors }) {
   return (
     <View style={{ flex: 1, backgroundColor: c.bg, borderRadius: 12, padding: 12, gap: 8, borderWidth: 1, borderColor: c.line }}>
-      <Text style={{ fontFamily: F.serifMediumItalic, fontSize: fs(20), color: c.text }}>athena</Text>
+      <Text style={{ fontFamily: F.serifMediumItalic, fontSize: fs(20), color: c.text }}>calliope</Text>
       <View style={{ backgroundColor: c.panel, borderRadius: 9, padding: 9, gap: 6 }}>
         <Text style={{ fontFamily: F.serifBold, fontSize: fs(15), color: c.text }}>brazil&apos;s spirits</Text>
         <View style={{ height: 3, borderRadius: 2, backgroundColor: c.track }}>
