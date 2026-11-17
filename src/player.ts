@@ -1,4 +1,4 @@
-import { createAudioPlayer, setAudioModeAsync, type AudioStatus } from 'expo-audio';
+import { createAudioPlayer, setAudioModeAsync, type AudioPlayer, type AudioStatus } from 'expo-audio';
 import { File, Paths } from 'expo-file-system';
 import { useSyncExternalStore } from 'react';
 import * as Network from 'expo-network';
@@ -98,7 +98,10 @@ export const usePlayer = () =>
   );
 export const current = (s = state): Track | undefined => s.queue[s.index];
 
-const player = createAudioPlayer(null, { updateInterval: 500 });
+const players = [createAudioPlayer(null, { updateInterval: 500 }), createAudioPlayer(null, { updateInterval: 500 })];
+let player = players[0];
+let fade: { from: AudioPlayer; timer: ReturnType<typeof setInterval> } | null = null;
+let userVolume = 1;
 let loadedKey: string | null = null;
 let pendingSeek: number | null = null;
 let playWhenReady = false;
@@ -173,9 +176,55 @@ function saveBook(force = false) {
   perform(p).catch(() => {});
 }
 
+function endFade() {
+  if (!fade) return;
+  clearInterval(fade.timer);
+  fade.from.pause();
+  fade.from.volume = userVolume;
+  fade = null;
+  player.volume = userVolume;
+}
+
+/** spotify-style crossfade: only on automatic song-to-song changes, never for books or manual skips */
+function crossfade(index: number, seconds: number) {
+  const t = state.queue[index];
+  const from = player;
+  const to = players[0] === player ? players[1] : players[0];
+  logPlay();
+  startedAt = new Date().toISOString();
+  set({ index, time: 0, duration: t.duration, buffering: true });
+  loadedKey = t.key;
+  pendingSeek = null;
+  scrobbled = false;
+  to.volume = 0;
+  to.replace(source(t));
+  to.setPlaybackRate(1);
+  to.play();
+  player = to;
+  lockScreen(t);
+  nd.scrobble(t.song!.id, false);
+  persist();
+  const start = Date.now();
+  fade = {
+    from,
+    timer: setInterval(() => {
+      const k = Math.min(1, (Date.now() - start) / (seconds * 1000));
+      from.volume = userVolume * (1 - k);
+      to.volume = userVolume * k;
+      if (k >= 1) endFade();
+    }, 100),
+  };
+}
+
+function nextIndex() {
+  if (state.index + 1 < state.queue.length) return state.index + 1;
+  return state.repeat && state.queue.length ? 0 : null;
+}
+
 function load(index: number, at: number, play: boolean) {
   const t = state.queue[index];
   if (!t) return;
+  endFade();
   if (current()?.kind === 'book' && loadedKey) saveBook(true);
   if (loadedKey) logPlay();
   startedAt = new Date().toISOString();
@@ -214,6 +263,13 @@ function onStatus(s: AudioStatus) {
   }
   if (s.playing) saveBook();
   const sl = state.sleep;
+  const cf = getPrefs().crossfade;
+  const ni = nextIndex();
+  const dur = s.duration || t.duration;
+  if (cf && !fade && s.playing && t.kind === 'song' && ni != null && state.queue[ni]?.kind === 'song' && !(sl && 'endOfTrack' in sl) && dur > cf * 2 && dur - s.currentTime <= cf) {
+    crossfade(ni, cf);
+    return;
+  }
   if (sl && 'until' in sl && now >= sl.until) {
     set({ sleep: null });
     pause();
@@ -228,7 +284,7 @@ function onStatus(s: AudioStatus) {
     next(true);
   }
 }
-player.addListener('playbackStatusUpdate', onStatus);
+for (const p of players) p.addListener('playbackStatusUpdate', (s: AudioStatus) => p === player && onStatus(s));
 
 AppState.addEventListener('change', (a) => {
   if (a !== 'active') {
@@ -251,6 +307,7 @@ export function play() {
 }
 
 export function pause() {
+  endFade();
   player.pause();
   saveBook(true);
   persist();
@@ -377,7 +434,8 @@ export const bookTracks = (b: { id: number; title: string; authors: string[]; so
 export const remaining = (s = state) => s.queue.slice(s.index).reduce((a, t, i) => a + (i === 0 ? Math.max(0, (s.duration || t.duration) - s.time) : t.duration), 0);
 
 export function setVolume(v: number) {
-  player.volume = Math.max(0, Math.min(1, v));
+  userVolume = Math.max(0, Math.min(1, v));
+  if (!fade) player.volume = userVolume;
   set({});
 }
-export const getVolume = () => player.volume;
+export const getVolume = () => userVolume;

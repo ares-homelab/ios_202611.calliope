@@ -99,7 +99,7 @@ export default function Reading() {
           <Text style={u.muted}>{home.data?.last_sync ? `kindle synced ${clock(home.data.last_sync)}` : 'library'}</Text>
         </Pressable>
       </View>
-      <Chips items={[...VIEWS]} value={view} onChange={setView} />
+      <Chips items={[...VIEWS, 'library']} value={view} onChange={(v) => (v === 'library' ? router.push('/library') : setView(v as View_))} />
       {view === 'now' ? <Now /> : view === 'paths' ? <PathsBody /> : view === 'stats' ? <StatsBody /> : view === 'highlights' ? <HighlightsBody /> : <IssuesBody />}
     </Screen>
   );

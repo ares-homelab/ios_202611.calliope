@@ -52,6 +52,7 @@ const QUALITY: [Quality, string][] = [
   ['192', '192 kbps'],
   ['128', '128 kbps'],
 ];
+const CROSSFADE: [string, string][] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((n) => [String(n), n ? `${n} s` : 'off']);
 const qLabel = (q: Quality) => (q === 'original' ? 'lossless' : `${q} kbps`);
 const gb = (b: number) => (b > 1e9 ? `${(b / 1e9).toFixed(1)} GB` : `${Math.round(b / 1e6)} MB`);
 
@@ -113,6 +114,7 @@ export default function Settings() {
           { label: 'quality on wi-fi', value: qLabel(prefs.wifi), onPress: () => pick('quality on wi-fi', QUALITY, (wifi) => setPrefs({ wifi })) },
           { label: 'quality on cellular', value: qLabel(prefs.cellular), onPress: () => pick('quality on cellular', QUALITY, (cellular) => setPrefs({ cellular })) },
           { label: 'lyrics', value: prefs.lrclib ? 'tags, then LRCLIB' : 'tags only', onPress: () => setPrefs({ lrclib: !prefs.lrclib }) },
+          { label: 'crossfade', value: prefs.crossfade ? `${prefs.crossfade} s` : 'off', onPress: () => pick('crossfade', CROSSFADE, (v) => setPrefs({ crossfade: Number(v) })) },
         ])}
         {section('appearance', [
           {
