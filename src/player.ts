@@ -106,6 +106,26 @@ let listened = 0;
 let lastTick = 0;
 let lastSave = 0;
 let scrobbled = false;
+let heard = 0;
+let startedAt = '';
+
+let unsent = readJson<{ id: string; at: string; seconds: number; title?: string; artist?: string; album?: string }[]>('plays.json', []);
+function logPlay() {
+  const t = current();
+  if (t?.kind === 'song' && heard >= 30) {
+    unsent = [...unsent, { id: t.song!.id, at: startedAt || new Date().toISOString(), seconds: Math.round(heard), title: t.title, artist: t.artist, album: t.album }];
+    writeJson('plays.json', unsent);
+    const batch = unsent;
+    api
+      .played(batch)
+      .then(() => {
+        unsent = unsent.filter((x) => !batch.includes(x));
+        writeJson('plays.json', unsent);
+      })
+      .catch(() => {});
+  }
+  heard = 0;
+}
 
 setAudioModeAsync({ playsInSilentMode: true, shouldPlayInBackground: true, interruptionMode: 'doNotMix' }).catch(() => {});
 
@@ -157,6 +177,8 @@ function load(index: number, at: number, play: boolean) {
   const t = state.queue[index];
   if (!t) return;
   if (current()?.kind === 'book' && loadedKey) saveBook(true);
+  if (loadedKey) logPlay();
+  startedAt = new Date().toISOString();
   set({ index, time: at, duration: t.duration, buffering: true });
   loadedKey = t.key;
   pendingSeek = at > 0 ? at : null;
@@ -174,7 +196,11 @@ function onStatus(s: AudioStatus) {
   const t = current();
   if (!t) return;
   const now = Date.now();
-  if (s.playing && lastTick) listened += Math.min((now - lastTick) / 1000, 2) * (t.kind === 'book' ? 1 : 0);
+  if (s.playing && lastTick) {
+    const d = Math.min((now - lastTick) / 1000, 2);
+    if (t.kind === 'book') listened += d;
+    else heard += d;
+  }
   lastTick = s.playing ? now : 0;
   if (s.isLoaded && pendingSeek != null) {
     const at = pendingSeek;
@@ -193,6 +219,7 @@ function onStatus(s: AudioStatus) {
     pause();
   }
   if (s.didJustFinish) {
+    logPlay();
     if (sl && 'endOfTrack' in sl) {
       set({ sleep: null });
       if (state.index + 1 < state.queue.length) load(state.index + 1, 0, false);

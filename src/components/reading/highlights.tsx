@@ -3,16 +3,16 @@ import { Pressable, Share, Text, TextInput, View } from 'react-native';
 import type { AnyHighlight } from '../../api';
 import { openBook } from '../bits';
 import { Icon } from '../icon';
-import { Chip, Empty, ErrorBox, useUi } from '../ui';
+import { Chips, Empty, ErrorBox, useUi } from '../ui';
 import { useHighlights } from '../../data';
 import { F, useTheme, fs } from '../../theme';
 
-type View_ = 'recent' | 'book' | 'notes';
+type View_ = 'recent' | 'book' | 'kindle' | 'heard' | 'notes';
 
 function Item({ h, last, showBook }: { h: AnyHighlight; last: boolean; showBook: boolean }) {
   const u = useUi();
   const { c } = useTheme();
-  const meta = [showBook ? h.book_title : null, showBook ? h.authors : null, h.chapter, h.page && !h.chapter ? `p. ${h.page}` : null].filter(Boolean).join(' · ');
+  const meta = [h.kind === 'heard' ? 'heard' : null, showBook ? h.book_title : null, showBook ? h.authors : null, h.chapter, h.page && !h.chapter ? `p. ${h.page}` : null].filter(Boolean).join(' · ');
   return (
     <View style={[{ gap: 10, paddingTop: 6, paddingBottom: 18 }, !last && u.line]}>
       {h.text ? (
@@ -50,7 +50,7 @@ export function HighlightsBody() {
   const all = useMemo(() => (res.data?.highlights ?? []).filter((h) => h.kind !== 'bookmark'), [res.data]);
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase();
-    let out = all.filter((h) => (view !== 'notes' || h.note) && (!q || [h.text, h.note, h.book_title, h.authors].some((x) => x?.toLowerCase().includes(q))));
+    let out = all.filter((h) => (view !== 'notes' || h.note) && (view !== 'heard' || h.kind === 'heard') && (view !== 'kindle' || h.kind !== 'heard') && (!q || [h.text, h.note, h.book_title, h.authors].some((x) => x?.toLowerCase().includes(q))));
     out = [...out].sort((a, b) =>
       view === 'book' ? (a.book_title ?? '').localeCompare(b.book_title ?? '') || (a.page ?? 0) - (b.page ?? 0) : (b.created ?? '').localeCompare(a.created ?? ''),
     );
@@ -71,11 +71,11 @@ export function HighlightsBody() {
           style={{ flex: 1, fontFamily: F.sans, fontSize: fs(15), color: c.text }}
         />
       </View>
-      <View style={{ flexDirection: 'row', gap: 8 }}>
-        <Chip label="recent" on={view === 'recent'} onPress={() => setView('recent')} />
-        <Chip label="by book" on={view === 'book'} onPress={() => setView('book')} />
-        <Chip label="with notes" on={view === 'notes'} onPress={() => setView('notes')} />
-      </View>
+      <Chips<View_>
+        items={[['recent', 'all'], 'kindle', 'heard', ['notes', 'with notes'], ['book', 'by book']]}
+        value={view}
+        onChange={setView}
+      />
       {res.error ? <ErrorBox error={res.error} onRetry={res.refresh} stale={!!res.data} /> : null}
       <View>
         {shown.map((h, i) => {

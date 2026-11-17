@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { openPath, openSection } from '../bits';
-import { Empty, ErrorBox, Segmented, useUi } from '../ui';
-import { usePaths, useSections } from '../../data';
+import { openBook, openPath, openSection } from '../bits';
+import { Cover, Empty, ErrorBox, Segmented, useUi } from '../ui';
+import { useAudiobooks, usePaths, useRecap, useSections } from '../../data';
+import type { Path } from '../../api';
 import { roman } from '../../format';
 import { F, useTheme, fs } from '../../theme';
 
@@ -30,6 +31,70 @@ function Row({ mark, title, about, counts, pinned, onPress, last }: { mark?: str
   );
 }
 
+function Pinned({ p }: { p: Path }) {
+  const u = useUi();
+  const { c } = useTheme();
+  const recap = useRecap();
+  const audio = new Set((useAudiobooks().data ?? []).map((b) => b.id));
+  const entries = p.entries ?? [];
+  const total = entries.length || p.books.length;
+  const share = total ? p.read / total : 0;
+  const nextAt = entries.findIndex((e) => e.status !== 'read' && e.status !== 'dnf');
+  const rail = entries.slice(Math.max(0, nextAt - 1), Math.max(0, nextAt - 1) + 5);
+  const eta = recap.data?.path?.name === p.name ? recap.data.path.eta : null;
+  return (
+    <Pressable onPress={() => openPath(p.number)} style={{ gap: 14 }}>
+      <View style={[u.row, { justifyContent: 'space-between', alignItems: 'baseline' }]}>
+        <Text style={u.h2}>{p.name}</Text>
+        <Text style={u.muted}>
+          {p.pinned ? 'pinned · ' : ''}
+          {p.read} of {total} read
+        </Text>
+      </View>
+      <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+        {rail.map((e, i) => {
+          const now = entries.indexOf(e) === nextAt;
+          const w = now ? 92 : 56;
+          return (
+            <Pressable key={e.n} onPress={() => openBook(e.calibre_id)} style={{ alignItems: 'center', gap: 8, opacity: e.calibre_id ? 1 : 0.55 }}>
+              <View style={now ? { borderRadius: 8, borderWidth: 3, borderColor: c.accent } : undefined}>
+                <Cover id={e.calibre_id} title={e.title} hasCover={e.has_cover} width={w} height={w * 1.48} radius={6} plain={!now} />
+              </View>
+              <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: e.status === 'read' || now ? c.accent : c.track }} />
+            </Pressable>
+          );
+        })}
+        {i_pad(rail.length)}
+      </View>
+      <View style={[u.row, { borderRadius: 18, backgroundColor: c.panel, padding: 14, gap: 14 }]}>
+        <View style={{ width: 60, height: 60, borderRadius: 30, borderWidth: 7, borderColor: c.track, alignItems: 'center', justifyContent: 'center' }}>
+          <View style={{ position: 'absolute', left: -7, right: -7, top: -7, bottom: -7, borderRadius: 30, borderWidth: 7, borderColor: c.accent, borderRightColor: share > 0.25 ? c.accent : 'transparent', borderBottomColor: share > 0.5 ? c.accent : 'transparent', borderLeftColor: share > 0.75 ? c.accent : 'transparent', opacity: share > 0 ? 1 : 0 }} />
+          <Text style={{ fontFamily: F.black, fontSize: 14, color: c.text }}>{Math.round(share * 100)}%</Text>
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontFamily: F.heavy, fontSize: fs(15), color: c.text }}>{eta ? `at your pace, done around ${eta}` : `${total - p.read} books to go`}</Text>
+          <Text style={u.muted}>reading and listening both count</Text>
+        </View>
+      </View>
+      <View>
+        {entries.slice(Math.max(0, nextAt - 1), Math.max(0, nextAt - 1) + 4).map((e) => (
+          <Pressable key={e.n} disabled={!e.calibre_id} onPress={() => openBook(e.calibre_id)} style={[u.row, u.line, { gap: 12, paddingVertical: 8, alignItems: 'flex-start' }]}>
+            <Text style={{ width: 54, fontFamily: F.heavy, fontSize: 12, color: e.status === 'read' || entries.indexOf(e) === nextAt ? c.accent : c.muted }}>
+              {e.status === 'read' ? 'read' : entries.indexOf(e) === nextAt ? 'now' : 'next'}
+            </Text>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontFamily: F.sansBold, fontSize: fs(14), color: c.text }}>{e.title}</Text>
+              <Text style={u.muted}>{[e.author, e.calibre_id ? (audio.has(e.calibre_id) ? 'audio ready' : 'on kindle') : 'to find'].filter(Boolean).join(' · ')}</Text>
+            </View>
+          </Pressable>
+        ))}
+      </View>
+    </Pressable>
+  );
+}
+
+const i_pad = (n: number) => (n < 5 ? Array.from({ length: 5 - n }, (_, i) => <View key={`pad${i}`} style={{ width: 56 }} />) : null);
+
 export function PathsBody() {
   const paths = usePaths();
   const sections = useSections();
@@ -37,8 +102,10 @@ export function PathsBody() {
   const cross = (paths.data ?? []).filter((p) => p.number != null).sort((a, b) => (a.number ?? 0) - (b.number ?? 0));
   const secs = sections.data ?? [];
   const current = view === 'paths' ? paths : sections;
+  const pinned = cross.find((p) => p.pinned) ?? cross.find((p) => p.up_next);
   return (
     <>
+      {pinned ? <Pinned p={pinned} /> : null}
       <Segmented
         value={view}
         onChange={setView}

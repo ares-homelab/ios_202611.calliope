@@ -5,7 +5,9 @@ import { WORKFLOWS, type Workflow } from '../../api';
 import { openPath, openSection } from '../../components/bits';
 import { Icon } from '../../components/icon';
 import { BackBar, Button, Cover, Empty, ErrorBox, Eyebrow, IconButton, RowLink, Screen, Segmented, Tag, Tile, Tiles, useUi } from '../../components/ui';
-import { useBook, useBookHighlights, usePins } from '../../data';
+import { useAudiobooks, useBook, useBookHighlights, usePins } from '../../data';
+import { api } from '../../api';
+import { listen } from '../../play';
 import { authors, dayMonth, LANGS, plainText, roman, seconds, statusOf } from '../../format';
 import { perform, useOutbox } from '../../store';
 import { F, useTheme, fs } from '../../theme';
@@ -16,6 +18,7 @@ export default function BookScreen() {
   const u = useUi();
   const { c } = useTheme();
   const book = useBook(id);
+  const audio = (useAudiobooks().data ?? []).find((x) => x.id === Number(id));
   const hl = useBookHighlights(id);
   const pins = usePins();
   const outbox = useOutbox();
@@ -113,6 +116,17 @@ export default function BookScreen() {
             <Button label="send to kindle" icon="send" onPress={send} busy={busy === 'send'} style={{ height: 52, borderRadius: 14 }} />
             <Text style={[u.muted, { textAlign: 'center' }]}>ares copies it the next time the kindle is on wi-fi</Text>
           </View>
+        )}
+
+        {audio ? (
+          <Button label={audio.source === 'kokoro' && !audio.complete ? 'listen · more chapters tonight' : 'listen'} icon="play" onPress={() => listen(audio.id)} style={{ height: 52, borderRadius: 14 }} />
+        ) : (
+          <Button
+            label="voice it tonight on ares"
+            icon="moon"
+            kind="outline"
+            onPress={() => api.queueBook(Number(id)).then((r) => Alert.alert('ticked for tonight', `number ${r.position} of ${r.of} in the audio queue.`), (e: Error) => Alert.alert("can't reach ares", e.message))}
+          />
         )}
 
         <View style={{ gap: 10 }}>
