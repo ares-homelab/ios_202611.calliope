@@ -48,7 +48,7 @@
       [
         "expo-audio",
         {
-          "microphonePermission": false,
+          "microphonePermission": "calliope records voice notes on the books you listen to.",
           "enableBackgroundPlayback": true
         }
       ]

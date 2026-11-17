@@ -130,7 +130,10 @@ function logPlay() {
   heard = 0;
 }
 
-setAudioModeAsync({ playsInSilentMode: true, shouldPlayInBackground: true, interruptionMode: 'doNotMix' }).catch(() => {});
+/** playback mode; voice notes switch recording on and call this when they stop */
+export const playbackMode = () =>
+  setAudioModeAsync({ playsInSilentMode: true, shouldPlayInBackground: true, interruptionMode: 'doNotMix', allowsRecording: false }).catch(() => {});
+playbackMode();
 
 function source(t: Track) {
   const local = localFile(t.key);

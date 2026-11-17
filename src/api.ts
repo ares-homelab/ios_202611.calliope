@@ -280,7 +280,8 @@ export const api = {
   mix: (id: string) => request<Mix>(`/mixes/${encodeURIComponent(id)}`),
   played: (songs: { id: string; at: string; seconds: number; title?: string; artist?: string; album?: string }[]) => request<{ ok: boolean }>('/plays', { method: 'POST', body: JSON.stringify(songs) }),
   wanted: () => request<Wanted>('/wanted'),
-  note: (n: { book_id: number; track: number; seconds: number; text: string; quote: string }) => request<{ path: string }>('/notes', { method: 'POST', body: JSON.stringify(n) }),
+  note: (n: { book_id: number; track: number; seconds: number; text: string; quote: string; voice?: boolean }) => request<{ id: string }>('/notes', { method: 'POST', body: JSON.stringify(n) }),
+  voiceState: (id: string) => request<{ state: 'pending' | 'done' | 'failed'; text: string; language?: string }>(`/notes/${id}/voice`),
   queueBook: (id: number) => request<{ queued: boolean; position: number; of: number }>(`/audiobooks/${id}/queue`, { method: 'POST' }),
 };
 

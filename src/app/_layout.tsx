@@ -13,6 +13,7 @@ import { StatusBar } from 'expo-status-bar';
 import * as SystemUI from 'expo-system-ui';
 import { useEffect } from 'react';
 import { AppState } from 'react-native';
+import { flushVoice } from '../voice';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { getConfig } from '../config';
 import '../player';
@@ -42,6 +43,7 @@ export default function RootLayout() {
     const sub = AppState.addEventListener('change', (s) => {
       if (s === 'active') {
         flush();
+        flushVoice();
         fetchUpdate();
       }
       if (s === 'background' && pending) Updates.reloadAsync().catch(() => {});
