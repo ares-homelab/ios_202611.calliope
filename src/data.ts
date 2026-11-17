@@ -1,4 +1,5 @@
 import { api } from './api';
+import { nd } from './navidrome';
 import { useResource } from './store';
 
 export const useHome = () => useResource('home', api.home);
@@ -13,3 +14,18 @@ export const useSends = () => useResource('sends', api.sends);
 export const useBookHighlights = (id: number) => useResource(`highlights/${id}`, () => api.bookHighlights(id));
 export const useHighlights = () => useResource('highlights', () => api.highlights());
 export const useIssues = () => useResource('issues', api.issues);
+export const useAudiobooks = () => useResource('audiobooks', api.audiobooks);
+export const useAudiobook = (id: number) => useResource(`audiobook/${id}`, () => api.audiobook(id));
+export const useAudioQueue = () => useResource('audioqueue', api.audioQueue);
+export const useRecap = (month?: string) => useResource(`recap/${month ?? ''}`, () => api.recap(month));
+export const useMixes = () => useResource('mixes', api.mixes);
+export const useMix = (id: string) => useResource(`mix/${id}`, () => api.mix(id));
+export const useWanted = () => useResource('wanted', api.wanted);
+export const useAlbums = (type: Parameters<typeof nd.albums>[0], size = 40) => useResource(`nd/albums/${type}/${size}`, () => nd.albums(type, size));
+export const useAlbum = (id: string) => useResource(`nd/album/${id}`, () => nd.album(id));
+export const useArtists = () => useResource('nd/artists', nd.artists);
+export const useArtist = (id: string) => useResource(`nd/artist/${id}`, () => nd.artist(id));
+export const usePlaylists = () => useResource('nd/playlists', nd.playlists);
+export const usePlaylist = (id: string) => useResource(`nd/playlist/${id}`, () => nd.playlist(id));
+export const useStarred = () => useResource('nd/starred', nd.starred);
+export const useSongs = () => useResource('nd/songs', () => nd.songs(2000));

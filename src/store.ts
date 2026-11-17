@@ -95,7 +95,8 @@ export const useNet = () => useSyncExternalStore(onNet, () => netSnap);
 export type Pending =
   | { kind: 'status'; book_id: number; title: string; workflow: Workflow }
   | { kind: 'pins'; pins: Pins; label: string }
-  | { kind: 'send'; book_id: number; title: string };
+  | { kind: 'send'; book_id: number; title: string }
+  | { kind: 'position'; book_id: number; title: string; track: number; seconds: number; listened: number };
 
 let outbox: Pending[] = readJson<Pending[]>('outbox.json', []);
 const outboxListeners = new Set<() => void>();
@@ -120,12 +121,19 @@ const same = (a: Pending, b: Pending) =>
   a.kind === b.kind && (a.kind === 'pins' || ('book_id' in a && 'book_id' in b && a.book_id === b.book_id));
 
 const run = (p: Pending): Promise<unknown> =>
-  p.kind === 'status' ? api.setStatus(p.book_id, p.workflow) : p.kind === 'pins' ? api.setPins(p.pins) : api.send(p.book_id);
+  p.kind === 'status'
+    ? api.setStatus(p.book_id, p.workflow)
+    : p.kind === 'pins'
+      ? api.setPins(p.pins)
+      : p.kind === 'position'
+        ? api.position(p.book_id, { track: p.track, seconds: p.seconds, listened: p.listened })
+        : api.send(p.book_id);
 
 const AFTER: Record<Pending['kind'], (p: Pending) => string[]> = {
   status: (p) => ['books', 'paths', 'sections', 'home', 'reading', 'stats/', `book/${'book_id' in p ? p.book_id : ''}`],
   pins: () => ['pins', 'paths', 'sections', 'home'],
   send: (p) => ['sends', `book/${'book_id' in p ? p.book_id : ''}`],
+  position: () => [],
 };
 
 type Pinnable = { section?: string; name: string; pinned?: boolean };
@@ -167,7 +175,9 @@ export async function perform(p: Pending): Promise<'done' | 'queued'> {
     return 'done';
   } catch (e) {
     if (!(e instanceof OfflineError)) throw e;
-    saveOutbox([...outbox.filter((x) => !same(x, p)), p]);
+    const old = outbox.find((x) => same(x, p));
+    const merged = p.kind === 'position' && old?.kind === 'position' ? { ...p, listened: p.listened + old.listened } : p;
+    saveOutbox([...outbox.filter((x) => !same(x, p)), merged]);
     return 'queued';
   }
 }

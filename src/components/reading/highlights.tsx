@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
 import { Pressable, Share, Text, TextInput, View } from 'react-native';
-import type { AnyHighlight } from '../../../api';
-import { openBook } from '../../../components/bits';
-import { Icon } from '../../../components/icon';
-import { Chip, Empty, ErrorBox, Screen, TitleRow, useUi } from '../../../components/ui';
-import { useHighlights } from '../../../data';
-import { F, useTheme, fs } from '../../../theme';
+import type { AnyHighlight } from '../../api';
+import { openBook } from '../bits';
+import { Icon } from '../icon';
+import { Chip, Empty, ErrorBox, useUi } from '../ui';
+import { useHighlights } from '../../data';
+import { F, useTheme, fs } from '../../theme';
 
 type View_ = 'recent' | 'book' | 'notes';
 
@@ -41,7 +41,7 @@ function Item({ h, last, showBook }: { h: AnyHighlight; last: boolean; showBook:
   );
 }
 
-export default function Highlights() {
+export function HighlightsBody() {
   const u = useUi();
   const { c } = useTheme();
   const res = useHighlights();
@@ -56,20 +56,9 @@ export default function Highlights() {
     );
     return out;
   }, [all, view, query]);
-  const books = new Set(all.map((h) => h.calibre_id ?? h.book_title)).size;
 
   return (
-    <Screen refreshing={res.loading && !!res.data} onRefresh={res.refresh} gap={18}>
-      <TitleRow
-        title="highlights"
-        right={
-          res.data ? (
-            <Text style={[u.soft, { color: c.muted, marginBottom: 4 }]}>
-              {res.data.total ?? all.length} from {res.data.books ?? books} {books === 1 ? 'book' : 'books'}
-            </Text>
-          ) : null
-        }
-      />
+    <>
       <View style={[u.row, { gap: 10, height: 44, paddingHorizontal: 14, backgroundColor: c.panel, borderRadius: 12 }]}>
         <Icon name="search" size={18} color={c.muted} />
         <TextInput
@@ -100,6 +89,6 @@ export default function Highlights() {
         })}
         {!shown.length ? <Empty>{res.loading && !res.data ? 'loading…' : query ? 'nothing matches.' : 'no highlights yet.'}</Empty> : null}
       </View>
-    </Screen>
+    </>
   );
 }

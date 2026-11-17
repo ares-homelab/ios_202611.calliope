@@ -4,10 +4,10 @@ import { useTheme } from '../../../theme';
 export const unstable_settings = {
   anchor: 'index',
   home: { anchor: 'index' },
-  paths: { anchor: 'paths' },
-  stats: { anchor: 'stats' },
-  highlights: { anchor: 'highlights' },
-  issues: { anchor: 'issues' },
+  music: { anchor: 'music' },
+  audiobooks: { anchor: 'audiobooks' },
+  reading: { anchor: 'reading' },
+  search: { anchor: 'search' },
 };
 
 export default function TabStack() {

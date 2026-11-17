@@ -1,13 +1,59 @@
 import Constants from 'expo-constants';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import { Alert, Text, View } from 'react-native';
-import { BackBar, Divider, Group, RowLink, Screen, Segmented, useUi } from '../../components/ui';
+import { Fragment, type ReactNode } from 'react';
+import { Alert, Pressable, Text, View } from 'react-native';
+import { Avatar, BackBar, Screen, useUi } from '../../components/ui';
 import { useConfig } from '../../config';
-import { usePaths, useSections, useSends } from '../../data';
+import { useAudioQueue, useHome, useMixes, useSends, useWanted } from '../../data';
+import { totalBytes, useDownloads } from '../../downloads';
 import { clock } from '../../format';
+import { nd } from '../../navidrome';
 import { clearCache, refreshAll, useNet } from '../../store';
-import { PALETTES, setPrefs, usePrefs, useTheme, type Mode } from '../../theme';
+import { F, fs, setPrefs, usePrefs, useTheme, type Mode, type Quality } from '../../theme';
+import { Icon } from '../../components/icon';
+
+type Row = { label: string; value?: string; dot?: 'ok' | 'off'; onPress?: () => void };
+
+function Group({ title, rows }: { title: string; rows: Row[] }) {
+  const { c } = useTheme();
+  return (
+    <View style={{ gap: 8 }}>
+      <Text style={{ marginTop: 6, fontFamily: F.heavy, fontSize: 12, letterSpacing: 0.7, color: c.muted }}>{title.toUpperCase()}</Text>
+      <View style={{ borderRadius: 14, backgroundColor: c.panel, paddingHorizontal: 14 }}>
+        {rows.map((r, i) => (
+          <Fragment key={r.label}>
+            <Pressable onPress={r.onPress} disabled={!r.onPress} style={({ pressed }) => ({ minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, opacity: pressed ? 0.6 : 1 })}>
+              <Text style={{ fontFamily: F.sans, fontSize: fs(15), color: c.text }}>{r.label}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1 }}>
+                {r.dot ? <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: r.dot === 'ok' ? c.ok : c.warn }} /> : null}
+                {r.value ? (
+                  <Text numberOfLines={1} style={{ fontFamily: F.sans, fontSize: fs(14), color: c.muted, flexShrink: 1 }}>
+                    {r.value}
+                  </Text>
+                ) : null}
+                {r.onPress ? <Icon name="next" size={18} color={c.muted} /> : null}
+              </View>
+            </Pressable>
+            {i < rows.length - 1 ? <View style={{ height: 1, backgroundColor: c.line }} /> : null}
+          </Fragment>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+const pick = <T extends string>(title: string, options: [T, string][], onPick: (v: T) => void) =>
+  Alert.alert(title, undefined, [...options.map(([v, label]) => ({ text: label, onPress: () => onPick(v) })), { text: 'cancel', style: 'cancel' as const }]);
+
+const QUALITY: [Quality, string][] = [
+  ['original', 'lossless (original file)'],
+  ['320', '320 kbps'],
+  ['192', '192 kbps'],
+  ['128', '128 kbps'],
+];
+const qLabel = (q: Quality) => (q === 'original' ? 'lossless' : `${q} kbps`);
+const gb = (b: number) => (b > 1e9 ? `${(b / 1e9).toFixed(1)} GB` : `${Math.round(b / 1e6)} MB`);
 
 export default function Settings() {
   const u = useUi();
@@ -15,17 +61,17 @@ export default function Settings() {
   const prefs = usePrefs();
   const cfg = useConfig();
   const net = useNet();
-  const paths = usePaths();
-  const sections = useSections();
+  const home = useHome();
   const sends = useSends();
-  const pinned = [
-    ...(paths.data ?? []).filter((p) => p.pinned).map((p) => p.name),
-    ...(sections.data ?? []).filter((s) => s.pinned).map((s) => s.title),
-  ];
+  const queue = useAudioQueue();
+  const wanted = useWanted();
+  const mixes = useMixes();
+  const dl = useDownloads();
   const waiting = (sends.data ?? []).filter((s) => !s.sent).length;
-  const host = cfg.url.replace(/^https?:\/\//, '');
+  const tonight = (queue.data ?? []).filter((q) => q.kind === 'listening' || q.kind === 'tapped').length;
+  const cotd = (mixes.data ?? []).some((m) => m.kind === 'cotd');
   const clear = () =>
-    Alert.alert('clear the offline copy?', 'saved lists and covers on this iphone are removed and fetched again from ares.', [
+    Alert.alert('clear the offline copy?', 'saved lists and covers on this iphone are fetched again from ares. downloads stay.', [
       { text: 'cancel', style: 'cancel' },
       {
         text: 'clear',
@@ -37,56 +83,54 @@ export default function Settings() {
         },
       },
     ]);
+  const modeLabel: Record<Mode, string> = { system: 'follows iphone', dark: 'dark', light: 'light' };
+  const section = (title: string, rows: Row[]): ReactNode => <Group title={title} rows={rows} />;
+
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
-      <BackBar label="home" />
-      <Screen top={false} gap={10}>
-        <Text style={[u.h1, { marginHorizontal: 4, marginBottom: 6 }]}>settings</Text>
-
-        <Group label="appearance">
-          <View style={{ paddingVertical: 8, gap: 4 }}>
-            <Segmented<Mode>
-              strong
-              value={prefs.mode}
-              onChange={(mode) => setPrefs({ mode })}
-              style={{ backgroundColor: c.bg, padding: 3, borderRadius: 10 }}
-              icons={{ dark: 'moon', light: 'sun', system: 'phone' }}
-              options={[
-                { value: 'dark', label: 'dark' },
-                { value: 'light', label: 'light' },
-                { value: 'system', label: 'system' },
-              ]}
-            />
-            <RowLink icon="palette" title="palette" sub={`${prefs.palette} · ${PALETTES.length} to choose from`} onPress={() => router.push('/settings/palette')} />
+      <BackBar label="" right={<Text pointerEvents="none" style={[u.body, { fontFamily: F.heavy, position: 'absolute', left: 0, right: 0, textAlign: 'center' }]}>account</Text>} />
+      <Screen top={false} gap={12}>
+        <View style={[u.row, { gap: 14, marginBottom: 4 }]}>
+          <Avatar size={64} />
+          <View>
+            <Text style={{ fontFamily: F.black, fontSize: fs(20), color: c.text }}>{prefs.name}</Text>
+            <Text style={u.muted}>calliope · music, audiobooks, reading</Text>
           </View>
-        </Group>
-
-        <Group label="library">
-          <RowLink icon="paths" title="reading paths" sub={pinned.length ? `pinned: ${pinned.join(', ')}` : 'nothing pinned'} onPress={() => router.navigate('/paths')} />
-          <Divider />
-          <RowLink icon="stats" title="stats" sub="fanfic and new yorker left out" onPress={() => router.navigate('/stats')} />
-        </Group>
-
-        <Group label="kindle">
-          <RowLink icon="queue" title="send queue" sub={waiting ? `${waiting} waiting for wi-fi` : 'books go over wi-fi · harvest hourly'} onPress={() => router.push('/settings/sends')} />
-        </Group>
-
-        <Group label="connection">
-          <RowLink icon="server" title="ares" sub={`${host} · ${net.online === false ? 'not reachable' : 'home network · tailscale away'}`} onPress={() => router.push('/settings/connection')} />
-          <Divider />
-          <RowLink icon="key" title="login" sub={cfg.token ? 'token saved on this iphone' : 'no token yet'} onPress={() => router.push('/settings/connection')} />
-        </Group>
-
-        <Group label="app">
-          <RowLink icon="database" title="offline copy" sub={`${net.syncedAt ? `saved ${clock(net.syncedAt)}` : 'saved copy'} · covers on this iphone`} onPress={clear} />
-          <Divider />
-          <RowLink
-            icon="wrench"
-            title="development"
-            sub={`version ${Constants.expoConfig?.version ?? '?'}`}
-            onPress={() => Alert.alert('calliope', `version ${Constants.expoConfig?.version ?? '?'}\napi ${cfg.url}\ninstalled and re-signed by marsign on ares`)}
-          />
-        </Group>
+        </View>
+        {section('connections', [
+          { label: 'ares', value: net.online === false ? 'not reachable' : cfg.token ? 'connected' : 'no token yet', dot: net.online === false || !cfg.token ? 'off' : 'ok', onPress: () => router.push('/settings/connection') },
+          { label: 'navidrome', value: nd.ready() ? `${cfg.nd.user} · music` : 'not signed in', dot: nd.ready() ? 'ok' : 'off', onPress: () => router.push('/settings/connection') },
+          { label: 'kindle', value: home.data?.last_sync ? `synced ${clock(home.data.last_sync)}` : 'not synced yet', dot: home.data?.last_sync ? 'ok' : 'off', onPress: () => router.push('/settings/sends') },
+          { label: 'familiar', value: cotd ? 'card of the day on' : 'card of the day off', onPress: () => router.push({ pathname: '/mix/[id]', params: { id: 'cotd' } }) },
+        ])}
+        {section('library', [
+          { label: 'wanted from spotify & apple music', value: wanted.data ? `${wanted.data.total} songs` : undefined, onPress: () => router.push('/wanted') },
+          { label: 'tonight on ares', value: tonight ? `${tonight} ${tonight === 1 ? 'book' : 'books'} ticked` : 'nothing ticked', onPress: () => router.push('/tonight') },
+          { label: 'downloads', value: `${gb(totalBytes(dl))} on this iphone`, onPress: () => router.push('/settings/downloads') },
+          { label: 'send queue', value: waiting ? `${waiting} waiting for wi-fi` : 'empty', onPress: () => router.push('/settings/sends') },
+        ])}
+        {section('playback', [
+          { label: 'quality on wi-fi', value: qLabel(prefs.wifi), onPress: () => pick('quality on wi-fi', QUALITY, (wifi) => setPrefs({ wifi })) },
+          { label: 'quality on cellular', value: qLabel(prefs.cellular), onPress: () => pick('quality on cellular', QUALITY, (cellular) => setPrefs({ cellular })) },
+          { label: 'lyrics', value: prefs.lrclib ? 'tags, then LRCLIB' : 'tags only', onPress: () => setPrefs({ lrclib: !prefs.lrclib }) },
+        ])}
+        {section('appearance', [
+          {
+            label: 'theme',
+            value: modeLabel[prefs.mode],
+            onPress: () =>
+              pick<Mode>('theme', [
+                ['system', 'follows iphone'],
+                ['dark', 'dark'],
+                ['light', 'light'],
+              ], (mode) => setPrefs({ mode })),
+          },
+          { label: 'palette', value: prefs.palette, onPress: () => router.push('/settings/palette') },
+        ])}
+        {section('app', [
+          { label: 'offline copy', value: net.syncedAt ? `saved ${clock(net.syncedAt)}` : 'saved copy', onPress: clear },
+          { label: 'version', value: `${Constants.expoConfig?.version ?? '?'} · marsign` },
+        ])}
       </Screen>
     </View>
   );

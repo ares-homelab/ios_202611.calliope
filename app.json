@@ -2,7 +2,7 @@
   "expo": {
     "name": "calliope",
     "slug": "calliope",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "calliope",
@@ -42,10 +42,16 @@
           "image": "./assets/splash.png",
           "imageWidth": 160,
           "resizeMode": "contain",
-          "backgroundColor": "#15140F"
+          "backgroundColor": "#0D0D0F"
         }
       ],
-      "expo-audio"
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false,
+          "enableBackgroundPlayback": true
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

@@ -3,9 +3,12 @@ import { useState } from 'react';
 import { Text, TextInput, View } from 'react-native';
 import { api } from '../../api';
 import { BackBar, Button, Eyebrow, Screen, useUi } from '../../components/ui';
-import { DEFAULT_URL, saveConfig, useConfig } from '../../config';
+import { DEFAULT_ND, DEFAULT_URL, ndLogin, saveConfig, saveNd, useConfig } from '../../config';
+import { nd } from '../../navidrome';
 import { refreshAll } from '../../store';
-import { F, useTheme, fs } from '../../theme';
+import { F, fs, useTheme } from '../../theme';
+
+type Result = { ok: boolean; text: string } | null;
 
 export default function Connection() {
   const u = useUi();
@@ -13,50 +16,78 @@ export default function Connection() {
   const cfg = useConfig();
   const [url, setUrl] = useState(cfg.url);
   const [token, setToken] = useState(cfg.token);
-  const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
+  const [ndUrl, setNdUrl] = useState(cfg.nd.url);
+  const [ndUser, setNdUser] = useState(cfg.nd.user);
+  const [ndPass, setNdPass] = useState('');
+  const [apiResult, setApiResult] = useState<Result>(null);
+  const [ndResult, setNdResult] = useState<Result>(null);
   const [busy, setBusy] = useState(false);
   const first = !cfg.token;
   const clean = () => ({ url: url.trim().replace(/\/+$/, '') || DEFAULT_URL, token: token.trim() });
 
-  const test = async () => {
+  const testApi = async () => {
     setBusy(true);
-    setResult(null);
+    setApiResult(null);
     try {
       const r = await api.hello(clean());
-      setResult({ ok: true, text: `connected: ${r.hello} answered` });
+      setApiResult({ ok: true, text: `connected: ${r.hello} answered` });
     } catch (e) {
-      setResult({ ok: false, text: (e as Error).message });
+      setApiResult({ ok: false, text: (e as Error).message });
     } finally {
       setBusy(false);
     }
   };
-  const save = async () => {
+  const saveApi = async () => {
     await saveConfig(clean());
     refreshAll();
-    if (router.canGoBack()) router.back();
-    else router.replace('/');
+    if (first) router.replace('/');
+  };
+  const signIn = async () => {
+    setBusy(true);
+    setNdResult(null);
+    try {
+      const login = await ndLogin(ndUrl || DEFAULT_ND, ndUser, ndPass);
+      const r = await nd.ping(login);
+      await saveNd(login);
+      setNdPass('');
+      setNdResult({ ok: true, text: `signed in · navidrome ${r.serverVersion ?? ''}`.trim() });
+      refreshAll();
+    } catch (e) {
+      setNdResult({ ok: false, text: (e as Error).message });
+    } finally {
+      setBusy(false);
+    }
   };
   const input = { height: 48, borderRadius: 12, paddingHorizontal: 14, backgroundColor: c.panel, color: c.text, fontFamily: F.sans, fontSize: fs(15) };
+  const field = (label: string, value: string, set: (v: string) => void, placeholder: string, secure = false) => (
+    <View style={{ gap: 8 }}>
+      <Eyebrow>{label}</Eyebrow>
+      <TextInput value={value} onChangeText={set} placeholder={placeholder} placeholderTextColor={c.muted} autoCapitalize="none" autoCorrect={false} secureTextEntry={secure} style={input} />
+    </View>
+  );
 
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
-      {first ? <View style={{ height: 54 }} /> : <BackBar label="settings" />}
-      <Screen top={false} gap={18}>
-        <Text style={u.h1}>{first ? 'connect to ares' : 'ares'}</Text>
-        <Text style={[u.soft, { color: c.muted }]}>
-          the calliope api runs on ares and is reached over tailscale. the token lives in /srv/config/calliope/api.env on ares and is kept in this iphone&apos;s keychain.
-        </Text>
-        <View style={{ gap: 8 }}>
-          <Eyebrow>api address</Eyebrow>
-          <TextInput value={url} onChangeText={setUrl} placeholder={DEFAULT_URL} placeholderTextColor={c.muted} autoCapitalize="none" autoCorrect={false} keyboardType="url" style={input} />
+      {first ? <View style={{ height: 54 }} /> : <BackBar label="account" />}
+      <Screen top={false} gap={16}>
+        <Text style={u.h1}>{first ? 'connect to ares' : 'connections'}</Text>
+        <Text style={u.h2}>calliope api</Text>
+        <Text style={[u.soft, { color: c.muted }]}>books, audiobooks, stats. reached over tailscale; the token is in /srv/config/calliope/api.env on ares and kept in this iphone&apos;s keychain.</Text>
+        {field('api address', url, setUrl, DEFAULT_URL)}
+        {field('token', token, setToken, 'bearer token', true)}
+        <View style={[u.row, { gap: 10 }]}>
+          <Button label="test" kind="outline" onPress={testApi} busy={busy} />
+          <Button label="save" onPress={saveApi} busy={!token.trim()} style={{ flex: 1 }} />
         </View>
-        <View style={{ gap: 8 }}>
-          <Eyebrow>token</Eyebrow>
-          <TextInput value={token} onChangeText={setToken} placeholder="bearer token" placeholderTextColor={c.muted} autoCapitalize="none" autoCorrect={false} secureTextEntry style={input} />
-        </View>
-        <Button label="test connection" kind="outline" onPress={test} busy={busy} style={{ alignSelf: 'flex-start' }} />
-        {result ? <Text style={[u.soft, { color: result.ok ? c.ok : c.warn }]}>{result.text}</Text> : null}
-        <Button label="save" onPress={save} busy={!token.trim()} />
+        {apiResult ? <Text style={[u.soft, { color: apiResult.ok ? c.ok : c.warn }]}>{apiResult.text}</Text> : null}
+
+        <Text style={[u.h2, { marginTop: 12 }]}>navidrome</Text>
+        <Text style={[u.soft, { color: c.muted }]}>music. only a salted token is kept on this iphone, never the password.{nd.ready() ? ` signed in as ${cfg.nd.user}.` : ''}</Text>
+        {field('address', ndUrl, setNdUrl, DEFAULT_ND)}
+        {field('user', ndUser, setNdUser, 'mars')}
+        {field('password', ndPass, setNdPass, 'navidrome password', true)}
+        <Button label={nd.ready() ? 'sign in again' : 'sign in'} onPress={signIn} busy={busy || !ndPass} />
+        {ndResult ? <Text style={[u.soft, { color: ndResult.ok ? c.ok : c.warn }]}>{ndResult.text}</Text> : null}
       </Screen>
     </View>
   );

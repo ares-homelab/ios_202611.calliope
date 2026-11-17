@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import type { Entry, Path, Reading } from '../api';
+import type { Audiobook, Entry, Path, Reading } from '../api';
 import { dayMonth, percent } from '../format';
 import { F, useTheme } from '../theme';
 import { Bar, Cover, Segments, useUi } from './ui';
@@ -53,3 +53,8 @@ export function PathCard({ path }: { path: Path }) {
     </Pressable>
   );
 }
+
+export const voiceOf = (b: Audiobook) =>
+  b.source === 'kokoro' ? 'ares voice' : `human voice${b.readers?.length ? ` · ${b.readers.join(', ')}` : ''}${b.source === 'librivox' ? ' · LibriVox' : b.source === 'archive' ? ' · Internet Archive' : ''}`;
+
+export const openAudiobook = (id: number) => router.push({ pathname: '/audiobook/[id]', params: { id: String(id) } });

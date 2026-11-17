@@ -1,132 +1,171 @@
 import { router } from 'expo-router';
-import { Pressable, Text, View } from 'react-native';
-import { PathCard, ReadingCards } from '../../../components/bits';
+import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Art, swatch } from '../../../components/art';
 import { Icon } from '../../../components/icon';
-import { Button, Cover, Empty, ErrorBox, IconButton, Screen, Tile, Tiles, useUi } from '../../../components/ui';
-import { useHome } from '../../../data';
-import { clock, dayMonth, hm, today, weekday } from '../../../format';
+import { Avatar, Button, Cover, ErrorBox, Screen, SectionHead, useUi } from '../../../components/ui';
+import { useAudiobooks, useHome, useMixes, useRecap } from '../../../data';
+import { clock, hm } from '../../../format';
+import { listen, openContext } from '../../../play';
+import { current, remaining, useHistory, usePlayer, type Context } from '../../../player';
 import { refreshAll, useNet, useOutbox, type Pending } from '../../../store';
-import { F, useTheme, fs } from '../../../theme';
+import { F, fs, S, useTheme } from '../../../theme';
+
+const MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
 
 const pendingLabel = (p: Pending) =>
-  p.kind === 'status' ? `${p.title} → ${p.workflow.toLowerCase()}` : p.kind === 'send' ? `send ${p.title} to the kindle` : p.label;
+  p.kind === 'status'
+    ? `${p.title} → ${p.workflow.toLowerCase()}`
+    : p.kind === 'send'
+      ? `send ${p.title} to the kindle`
+      : p.kind === 'position'
+        ? `listening position in ${p.title}`
+        : p.label;
+
+export function PickCard({ eyebrow, title, sub, color, onPress, width = 165 }: { eyebrow: string; title: string; sub: string; color: string; onPress: () => void; width?: number }) {
+  return (
+    <Pressable onPress={onPress} style={({ pressed }) => ({ width, height: 150, borderRadius: 14, backgroundColor: color, padding: 12, justifyContent: 'space-between', opacity: pressed ? 0.85 : 1 })}>
+      <Text style={{ fontFamily: F.heavy, fontSize: 11, letterSpacing: 0.7, color: 'rgba(255,255,255,0.8)' }}>{eyebrow.toUpperCase()}</Text>
+      <View>
+        <Text numberOfLines={3} style={{ fontFamily: F.black, fontSize: fs(17), lineHeight: fs(19), color: '#FFFFFF' }}>
+          {title}
+        </Text>
+        <Text numberOfLines={2} style={{ marginTop: 6, fontFamily: F.sansBold, fontSize: fs(12), color: 'rgba(255,255,255,0.85)' }}>
+          {sub}
+        </Text>
+      </View>
+    </Pressable>
+  );
+}
+
+function Recent({ h }: { h: Context }) {
+  const { c } = useTheme();
+  return (
+    <Pressable onPress={() => openContext(h)} style={{ width: 108, gap: 6 }}>
+      {h.kind === 'book' ? <Cover id={h.bookId} title={h.title} width={108} height={108} radius={10} plain /> : <Art id={h.coverArt} seed={h.id} size={108} radius={10} />}
+      <Text numberOfLines={2} style={{ fontFamily: F.sansMedium, fontSize: fs(13), color: c.text }}>
+        {h.title}
+      </Text>
+    </Pressable>
+  );
+}
 
 export default function Home() {
   const u = useUi();
   const { c } = useTheme();
   const home = useHome();
+  const recap = useRecap();
+  const mixes = useMixes();
+  const books = useAudiobooks();
+  const history = useHistory();
+  const player = usePlayer();
   const net = useNet();
   const outbox = useOutbox();
-  const h = home.data;
   const offline = net.online === false;
-  const savedAt = home.at ? clock(home.at) : null;
-  const reading = h?.reading ?? [];
-  const issue = h?.latest_issue;
-  const refresh = () => {
-    refreshAll();
-  };
+  const h = home.data;
+  const r = recap.data;
+  const month = MONTHS[new Date().getMonth()];
+  const t = current(player);
+  const lastBook = t?.kind === 'book' ? t : null;
+  const ongoing = (books.data ?? []).find((b) => b.id !== lastBook?.bookId && b.resume && b.resume.progress > 0);
+
+  const picks: { key: string; eyebrow: string; title: string; sub: string; color: string; onPress: () => void }[] = [];
+  if (lastBook)
+    picks.push({
+      key: 'book',
+      eyebrow: 'continue · audiobook',
+      title: lastBook.album ?? lastBook.title,
+      sub: `${hm(remaining(player) / 3600)} left · ${lastBook.title}`,
+      color: swatch(String(lastBook.bookId)),
+      onPress: () => listen(lastBook.bookId!),
+    });
+  else if (ongoing)
+    picks.push({
+      key: 'book',
+      eyebrow: 'continue · audiobook',
+      title: ongoing.title,
+      sub: `${Math.round((ongoing.resume?.progress ?? 0) * 100)}% on the kindle`,
+      color: swatch(String(ongoing.id)),
+      onPress: () => listen(ongoing.id),
+    });
+  (mixes.data ?? []).forEach((m) =>
+    picks.push({
+      key: m.id,
+      eyebrow: m.kind === 'daylist' ? 'daylist' : m.kind === 'cotd' ? 'card of the day' : 'made for you',
+      title: m.title,
+      sub: m.sub,
+      color: m.color ?? swatch(m.id),
+      onPress: () => router.push({ pathname: '/mix/[id]', params: { id: m.id } }),
+    }),
+  );
+
+  const listening = r ? hm((r.music_seconds + r.audiobook_seconds) / 3600) : null;
+  const reading = r ? hm(r.reading_seconds / 3600) : null;
+  const top = r?.top.find((x) => x.kind === 'artist');
+  const path = r?.path;
 
   return (
-    <Screen refreshing={home.loading && !!h} onRefresh={refresh}>
-      <View style={[u.row, { justifyContent: 'space-between', alignItems: 'flex-end' }]}>
-        <View style={{ gap: 2 }}>
-          <Text style={[u.soft, { color: c.muted }]}>{today()}</Text>
-          <Text style={{ fontFamily: F.serifMediumItalic, fontSize: fs(40), lineHeight: fs(46), letterSpacing: 0.5, color: c.text }}>calliope</Text>
-        </View>
-        <View style={[u.row, { gap: 6, marginRight: -10 }]}>
-          <View style={[u.row, { gap: 6 }]}>
-            <View
-              style={{
-                width: 7,
-                height: 7,
-                borderRadius: 4,
-                backgroundColor: offline ? 'transparent' : c.ok,
-                borderWidth: offline ? 1.5 : 0,
-                borderColor: c.warn,
-              }}
-            />
-            <Text style={[u.muted, offline && { color: c.warn }]}>
-              {offline ? 'offline' : h?.last_sync ? `synced ${clock(h.last_sync)}` : home.loading ? 'syncing' : ''}
+    <Screen refreshing={home.loading && !!h} onRefresh={() => refreshAll()} gap={22}>
+      <View style={[u.row, { justifyContent: 'space-between' }]}>
+        <Text style={u.h1}>home</Text>
+        <Avatar />
+      </View>
+
+      {offline ? (
+        <View style={{ backgroundColor: c.warnBg, borderColor: c.warnLine, borderWidth: 1, borderRadius: 16, padding: 14, gap: 10 }}>
+          <View style={[u.row, { gap: 12 }]}>
+            <Icon name="offline" size={20} color={c.warn} />
+            <Text style={[u.body, { flex: 1, fontFamily: F.sansBold }]}>
+              can&apos;t reach ares{home.at ? ` · saved ${clock(home.at)}` : ''}
             </Text>
           </View>
-          <IconButton name="gear" label="settings" onPress={() => router.push('/settings')} />
-        </View>
-      </View>
-
-      {offline ? (
-        <View style={{ backgroundColor: c.warnBg, borderColor: c.warnLine, borderWidth: 1, borderRadius: 16, padding: 16, gap: 12 }}>
-          <View style={[u.row, { gap: 12, alignItems: 'flex-start' }]}>
-            <Icon name="offline" size={22} color={c.warn} />
-            <View style={{ flex: 1, gap: 4 }}>
-              <Text style={[u.body, { fontFamily: F.sansBold, fontSize: fs(15) }]}>can&apos;t reach ares</Text>
-              <Text style={u.soft}>
-                {savedAt ? `showing what was saved at ${savedAt}. ` : ''}connect tailscale or come home to sync.
-              </Text>
-            </View>
-          </View>
-          {outbox.length ? (
-            <View style={{ borderTopWidth: 1, borderTopColor: c.warnLine, paddingTop: 12, gap: 8 }}>
-              <Text style={[u.eyebrow, { color: c.warn }]}>WAITING TO SYNC · {outbox.length}</Text>
-              {outbox.map((p, i) => (
-                <Text key={i} style={[u.soft, { color: c.text }]}>
-                  {pendingLabel(p)}
-                </Text>
-              ))}
-            </View>
-          ) : null}
-          <Button label="try again" kind="warn" onPress={refresh} busy={home.loading} />
+          <Text style={u.soft}>downloads still play. connect tailscale or come home to sync.</Text>
+          {outbox.map((p, i) => (
+            <Text key={i} style={u.muted}>
+              waiting: {pendingLabel(p)}
+            </Text>
+          ))}
+          <Button label="try again" kind="warn" onPress={() => refreshAll()} busy={home.loading} />
         </View>
       ) : home.error && !h ? (
-        <ErrorBox error={home.error} onRetry={refresh} />
-      ) : home.error ? (
-        <ErrorBox error={home.error} onRetry={refresh} stale />
+        <ErrorBox error={home.error} onRetry={() => refreshAll()} />
       ) : null}
 
-      <View style={{ gap: 14 }}>
-        <View style={[u.row, { justifyContent: 'space-between', alignItems: 'baseline' }]}>
-          <Text style={u.h2}>reading now</Text>
-          {offline && savedAt ? (
-            <Text style={u.muted}>as of {savedAt}</Text>
-          ) : reading.length ? (
-            <Pressable onPress={() => router.push('/reading')} hitSlop={8}>
-              <Text style={u.link}>all {reading.length}</Text>
-            </Pressable>
+      <Pressable onPress={() => router.push('/recap')} style={({ pressed }) => [u.row, { borderRadius: 16, backgroundColor: c.panel, padding: 14, gap: 14, opacity: pressed ? 0.85 : 1 }]}>
+        <View style={{ width: 46, height: 46, borderRadius: 12, backgroundColor: c.accent, alignItems: 'center', justifyContent: 'center' }}>
+          <Text style={{ fontFamily: F.black, fontSize: 13, color: c.onAccent }}>{month.slice(0, 3)}</Text>
+        </View>
+        <View style={{ flex: 1, gap: 2 }}>
+          <Text style={{ fontFamily: F.heavy, fontSize: fs(15), color: c.text }}>your {month} so far</Text>
+          <Text style={u.soft}>{[listening && `${listening} listening`, reading && `${reading} reading`, top && `top: ${top.name}`].filter(Boolean).join(' · ') || 'listening and reading this month'}</Text>
+          {path ? (
+            <Text style={{ fontFamily: F.sansBold, fontSize: fs(13), color: c.accent, marginTop: 2 }}>
+              {path.name} path · {path.eta ? `done around ${path.eta} at your pace` : `${path.read} of ${path.total} read`}
+            </Text>
           ) : null}
         </View>
-        {reading.length ? <ReadingCards items={reading} dim={offline} /> : <Empty>{h ? 'nothing open on the kindle right now.' : home.loading ? 'loading…' : ''}</Empty>}
-      </View>
+        <Icon name="next" size={20} color={c.muted} />
+      </Pressable>
 
-      {offline ? (
-        <Empty>paths, stats and highlights still open from the saved copy. covers you haven&apos;t viewed yet show as plain titles.</Empty>
-      ) : h ? (
-        <>
-          <Tiles>
-            <Tile value={hm((h.seconds_30 ?? 0) / 3600)} label="last 30 days" />
-            <Tile value={String(h.reading_days ?? 0)} label="reading days" />
-            <Tile value={String(h.books_read ?? 0)} label="books read" />
-          </Tiles>
+      {history.length ? (
+        <View style={{ gap: 10 }}>
+          <SectionHead title="recently played" />
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -S.page }} contentContainerStyle={{ paddingHorizontal: S.page, gap: 12 }}>
+            {history.slice(0, 10).map((x) => (
+              <Recent key={`${x.kind}-${x.id}`} h={x} />
+            ))}
+          </ScrollView>
+        </View>
+      ) : null}
 
-          {h.path ? (
-            <View style={{ gap: 12 }}>
-              <Text style={u.h2}>continue a path</Text>
-              <PathCard path={h.path} />
-            </View>
-          ) : null}
-
-          {issue ? (
-            <Pressable onPress={() => router.navigate('/issues')} style={[u.row, { gap: 14, borderTopWidth: 1, borderTopColor: c.line, paddingTop: 16 }]}>
-              <Cover id={issue.id} title="ny" hasCover={issue.has_cover} width={44} height={58} radius={3} />
-              <View style={{ flex: 1, gap: 2 }}>
-                <Text style={[u.body, { fontFamily: F.sansMedium }]}>the new yorker, {dayMonth(issue.date ?? issue.added)}</Text>
-                <Text style={u.muted}>
-                  {issue.sent ? 'on the kindle' : 'waiting for the kindle'}
-                  {h.next_issue ? ` · next issue ${weekday(h.next_issue).slice(0, 3)} ${dayMonth(h.next_issue)}` : ''}
-                </Text>
-              </View>
-              <Icon name="next" size={18} color={c.muted} />
-            </Pressable>
-          ) : null}
-        </>
+      {picks.length ? (
+        <View style={{ gap: 10 }}>
+          <SectionHead title="top picks for you" />
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -S.page }} contentContainerStyle={{ paddingHorizontal: S.page, gap: 12 }}>
+            {picks.map(({ key, ...p }) => (
+              <PickCard key={key} {...p} />
+            ))}
+          </ScrollView>
+        </View>
       ) : null}
     </Screen>
   );

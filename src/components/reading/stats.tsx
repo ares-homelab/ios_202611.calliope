@@ -1,9 +1,9 @@
 import { Pressable, Text, View } from 'react-native';
-import { openBook } from '../../../components/bits';
-import { Empty, ErrorBox, Screen, TitleRow, useUi } from '../../../components/ui';
-import { useStats } from '../../../data';
-import { dayMonth, hm, monthShort, seconds } from '../../../format';
-import { F, useTheme, fs } from '../../../theme';
+import { openBook } from '../bits';
+import { Empty, ErrorBox, useUi } from '../ui';
+import { useStats } from '../../data';
+import { dayMonth, hm, monthShort, seconds } from '../../format';
+import { F, useTheme, fs } from '../../theme';
 
 const Big = ({ value, label }: { value: string; label: string }) => {
   const u = useUi();
@@ -16,7 +16,7 @@ const Big = ({ value, label }: { value: string; label: string }) => {
   );
 };
 
-export default function StatsScreen() {
+export function StatsBody() {
   const u = useUi();
   const { c } = useTheme();
   const stats = useStats();
@@ -34,8 +34,7 @@ export default function StatsScreen() {
   const libTotal = parts.reduce((a, p) => a + (lib[p.key] ?? 0), 0);
 
   return (
-    <Screen refreshing={stats.loading && !!s} onRefresh={stats.refresh} gap={22}>
-      <TitleRow title="stats" right={<Text style={[u.soft, { color: c.muted, marginBottom: 4 }]}>{s?.year ?? new Date().getFullYear()} · calliope only</Text>} />
+    <>
       {stats.error ? <ErrorBox error={stats.error} onRetry={stats.refresh} stale={!!s} /> : null}
       {!s ? (
         <Empty>{stats.loading ? 'loading…' : ''}</Empty>
@@ -116,6 +115,6 @@ export default function StatsScreen() {
           ) : null}
         </>
       )}
-    </Screen>
+    </>
   );
 }

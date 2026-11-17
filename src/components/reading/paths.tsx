@@ -1,11 +1,10 @@
-import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { openPath, openSection } from '../../../components/bits';
-import { Empty, ErrorBox, IconButton, Screen, Segmented, TitleRow, useUi } from '../../../components/ui';
-import { usePaths, useSections } from '../../../data';
-import { roman } from '../../../format';
-import { F, useTheme, fs } from '../../../theme';
+import { openPath, openSection } from '../bits';
+import { Empty, ErrorBox, Segmented, useUi } from '../ui';
+import { usePaths, useSections } from '../../data';
+import { roman } from '../../format';
+import { F, useTheme, fs } from '../../theme';
 
 function Row({ mark, title, about, counts, pinned, onPress, last }: { mark?: string; title: string; about?: string | null; counts: string; pinned?: boolean; onPress: () => void; last?: boolean }) {
   const u = useUi();
@@ -31,20 +30,15 @@ function Row({ mark, title, about, counts, pinned, onPress, last }: { mark?: str
   );
 }
 
-export default function Paths() {
+export function PathsBody() {
   const paths = usePaths();
   const sections = useSections();
   const [view, setView] = useState<'paths' | 'sections'>('paths');
   const cross = (paths.data ?? []).filter((p) => p.number != null).sort((a, b) => (a.number ?? 0) - (b.number ?? 0));
   const secs = sections.data ?? [];
   const current = view === 'paths' ? paths : sections;
-  const refresh = () => {
-    paths.refresh();
-    sections.refresh();
-  };
   return (
-    <Screen refreshing={(paths.loading && !!paths.data) || (sections.loading && !!sections.data)} onRefresh={refresh} gap={20}>
-      <TitleRow title="reading paths" right={<IconButton name="search" label="search the library" round onPress={() => router.push('/library')} />} />
+    <>
       <Segmented
         value={view}
         onChange={setView}
@@ -81,6 +75,6 @@ export default function Paths() {
             ))}
         {!current.data && current.loading ? <Empty>loading…</Empty> : null}
       </View>
-    </Screen>
+    </>
   );
 }

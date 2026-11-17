@@ -1,14 +1,14 @@
 import { Pressable, Text, View } from 'react-native';
-import { openBook } from '../../../components/bits';
-import { Icon } from '../../../components/icon';
-import { Cover, Empty, ErrorBox, Eyebrow, Screen, TitleRow, useUi } from '../../../components/ui';
-import { useIssues } from '../../../data';
-import { clock, dayMonth, longDate, longDateYear, weekday } from '../../../format';
-import { F, useTheme, fs } from '../../../theme';
+import { openBook } from '../bits';
+import { Icon } from '../icon';
+import { Cover, Empty, ErrorBox, Eyebrow, useUi } from '../ui';
+import { useIssues } from '../../data';
+import { clock, dayMonth, longDate, longDateYear, weekday } from '../../format';
+import { F, useTheme, fs } from '../../theme';
 
 const short = (d: string) => weekday(d).slice(0, 3);
 
-export default function IssuesScreen() {
+export function IssuesBody() {
   const u = useUi();
   const { c } = useTheme();
   const res = useIssues();
@@ -17,8 +17,7 @@ export default function IssuesScreen() {
   const latest = issues[0];
   const next = res.data?.next_issue;
   return (
-    <Screen refreshing={res.loading && !!res.data} onRefresh={res.refresh} gap={22}>
-      <TitleRow title="issues" sub={`the new yorker · read on the kindle · last ${keep} kept`} />
+    <>
       {res.error ? <ErrorBox error={res.error} onRetry={res.refresh} stale={!!res.data} /> : null}
       {latest ? (
         <Pressable onPress={() => openBook(latest.id)} style={{ backgroundColor: c.panel, borderRadius: 18, padding: 18, flexDirection: 'row', gap: 18 }}>
@@ -62,6 +61,6 @@ export default function IssuesScreen() {
           </Text>
         </View>
       ) : null}
-    </Screen>
+    </>
   );
 }

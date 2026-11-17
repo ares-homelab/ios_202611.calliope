@@ -145,6 +145,45 @@ export type Home = {
   next_issue?: string | null;
 };
 
+export type AudioTrack = { n: number; title: string; seconds: number };
+export type Resume = { track: number; seconds: number; progress: number; source: string; updated?: string | null };
+export type Audiobook = {
+  id: number;
+  title: string;
+  authors: string[];
+  source: string;
+  page?: string | null;
+  readers?: string[];
+  complete?: boolean;
+  seconds: number;
+  tracks?: AudioTrack[];
+  resume?: Resume | null;
+  has_cover?: boolean;
+  chapters_total?: number | null;
+  track_count?: number;
+};
+export type QueueItem = { position: number; id: number; title: string | null; kind: string; chapters_ready: number };
+export type Para = { start: number; text: string; p: number; kind?: string };
+export type AudioText = { track: number; title: string; paras: Para[]; exact: boolean };
+export type Position = { track: number; seconds: number; listened: number };
+
+export type RecapTop = { kind: 'artist' | 'author'; name: string; seconds: number; plays?: number; books?: number };
+export type Recap = {
+  month: string;
+  music_seconds: number;
+  audiobook_seconds: number;
+  reading_seconds: number;
+  books_finished: number;
+  streak: number;
+  today?: { reading: number; listening: number };
+  top: RecapTop[];
+  path?: { name: string; number?: number | null; read: number; total: number; eta?: string | null } | null;
+};
+export type MixSong = { id: string; line?: string | null };
+export type MixSection = { title: string; sub?: string; songs: MixSong[] };
+export type Mix = { id: string; kind: string; title: string; sub: string; color?: string; sections: MixSection[]; cards?: { name: string; numeral: string; how: string; meaning: string }[] };
+export type Wanted = { total: number; items: { title: string; artist: string; album?: string | null; plays: number; source: string }[] };
+
 export class ApiError extends Error {
   constructor(
     public status: number,
@@ -173,7 +212,7 @@ const setNet = (online: boolean) => {
 
 export const authHeaders = (): Record<string, string> => ({ Authorization: `Bearer ${getConfig().token}` });
 
-async function request<T>(path: string, init: RequestInit = {}, cfg = getConfig()): Promise<T> {
+async function request<T>(path: string, init: RequestInit = {}, cfg: { url: string; token: string } = getConfig()): Promise<T> {
   const ctl = new AbortController();
   const timer = setTimeout(() => ctl.abort(), 10000);
   let res: Response;
@@ -230,6 +269,19 @@ export const api = {
   highlights: (p: { q?: string; book_id?: number; notes?: boolean } = {}) => request<Highlights>(`/highlights${q(p)}`),
   stats: (year?: number) => request<Stats>(`/stats${q({ year })}`),
   issues: () => request<Issues>('/issues'),
+  audiobooks: () => request<Audiobook[]>('/audiobooks'),
+  audiobook: (id: number) => request<Audiobook>(`/audiobooks/${id}`),
+  audioText: (id: number, n: number) => request<AudioText>(`/audiobooks/${id}/text/${n}`),
+  trackUrl: (id: number, n: number) => `${getConfig().url}/audiobooks/${id}/tracks/${n}`,
+  position: (id: number, p: Position) => put<{ xpointer: string | null; progress: number | null }>(`/audiobooks/${id}/position`, p),
+  audioQueue: () => request<QueueItem[]>('/audioqueue'),
+  recap: (month?: string) => request<Recap>(`/recap${q({ month })}`),
+  mixes: () => request<Mix[]>('/mixes'),
+  mix: (id: string) => request<Mix>(`/mixes/${encodeURIComponent(id)}`),
+  played: (songs: { id: string; at: string; seconds: number }[]) => request<{ ok: boolean }>('/plays', { method: 'POST', body: JSON.stringify(songs) }),
+  wanted: () => request<Wanted>('/wanted'),
+  note: (n: { book_id: number; track: number; seconds: number; text: string; quote: string }) => request<{ path: string }>('/notes', { method: 'POST', body: JSON.stringify(n) }),
+  queueBook: (id: number) => request<{ queued: boolean; position: number; of: number }>(`/audiobooks/${id}/queue`, { method: 'POST' }),
 };
 
 export const pathKey = (p: { section: string; name: string }) => `${p.section}/${p.name}`;

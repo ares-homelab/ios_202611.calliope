@@ -9,9 +9,9 @@ import { Colors, F, S, useStyles, useTheme, fs } from '../theme';
 import { Icon, IconName } from './icon';
 
 const make = (c: Colors) => ({
-  h1: { fontFamily: F.serifBold, fontSize: fs(34), lineHeight: fs(38), color: c.text },
-  h2: { fontFamily: F.serifBold, fontSize: fs(24), lineHeight: fs(28), color: c.text },
-  h3: { fontFamily: F.serifBold, fontSize: fs(22), lineHeight: fs(26), color: c.text },
+  h1: { fontFamily: F.black, fontSize: fs(34), lineHeight: fs(40), letterSpacing: -0.7, color: c.text },
+  h2: { fontFamily: F.heavy, fontSize: fs(20), lineHeight: fs(25), color: c.text },
+  h3: { fontFamily: F.heavy, fontSize: fs(17), lineHeight: fs(21), color: c.text },
   body: { fontFamily: F.sans, fontSize: fs(14), lineHeight: fs(20), color: c.text },
   soft: { fontFamily: F.sans, fontSize: fs(13), lineHeight: fs(18), color: c.soft },
   muted: { fontFamily: F.sans, fontSize: fs(12), lineHeight: fs(16), color: c.muted },
@@ -19,11 +19,11 @@ const make = (c: Colors) => ({
   link: { fontFamily: F.sans, fontSize: fs(13), color: c.link },
   panel: { backgroundColor: c.panel, borderRadius: S.card, padding: S.card },
   tile: { flex: 1, backgroundColor: c.panel, borderRadius: S.radius, paddingVertical: 14, paddingHorizontal: 12, gap: 4 },
-  tileValue: { fontFamily: F.serifBold, fontSize: fs(28), lineHeight: fs(30), color: c.text },
+  tileValue: { fontFamily: F.black, fontSize: fs(22), lineHeight: fs(26), color: c.text },
   seg: { flexDirection: 'row' as const, backgroundColor: c.panel, borderRadius: 12, padding: 4, gap: 4 },
   segItem: { flex: 1, height: 38, borderRadius: 9, alignItems: 'center' as const, justifyContent: 'center' as const, flexDirection: 'row' as const, gap: 6 },
   segText: { fontFamily: F.sansMedium, fontSize: fs(14), color: c.muted },
-  chip: { backgroundColor: c.panel, borderRadius: 14, paddingVertical: 6, paddingHorizontal: 12 },
+  chip: { backgroundColor: c.raised, borderRadius: 14, paddingVertical: 6, paddingHorizontal: 12 },
   pill: { borderRadius: 10, borderWidth: 1, paddingVertical: 3, paddingHorizontal: 8 },
   error: { backgroundColor: c.warnBg, borderColor: c.warnLine, borderWidth: 1, borderRadius: S.radius, padding: 14, gap: 10 },
   button: { height: 44, borderRadius: 12, alignItems: 'center' as const, justifyContent: 'center' as const, flexDirection: 'row' as const, gap: 10, paddingHorizontal: 16 },
@@ -73,6 +73,43 @@ export function TitleRow({ title, right, sub }: { title: string; right?: ReactNo
   );
 }
 
+export function Chips<T extends string>({ items, value, onChange }: { items: (T | [T, string])[]; value: T; onChange: (v: T) => void }) {
+  return (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -S.page, flexGrow: 0 }} contentContainerStyle={{ paddingHorizontal: S.page, gap: 8 }}>
+      {items.map((x) => {
+        const [v, label] = Array.isArray(x) ? x : [x, x];
+        return <Chip key={v} label={label} on={v === value} onPress={() => onChange(v)} />;
+      })}
+    </ScrollView>
+  );
+}
+
+export function Avatar({ size = 38 }: { size?: number }) {
+  return (
+    <Pressable
+      accessibilityLabel="profile and settings"
+      onPress={() => router.push('/settings')}
+      style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: '#5E4A7A', alignItems: 'center', justifyContent: 'center' }}
+    >
+      <Text style={{ fontFamily: F.heavy, fontSize: size * 0.42, color: '#FFFFFF' }}>m</Text>
+    </Pressable>
+  );
+}
+
+export function SectionHead({ title, right, onPress }: { title: string; right?: string; onPress?: () => void }) {
+  const u = useUi();
+  return (
+    <View style={[u.row, { justifyContent: 'space-between', alignItems: 'baseline' }]}>
+      <Text style={u.h2}>{title}</Text>
+      {right ? (
+        <Pressable onPress={onPress} hitSlop={8}>
+          <Text style={u.link}>{right}</Text>
+        </Pressable>
+      ) : null}
+    </View>
+  );
+}
+
 export function BackBar({ label, right }: { label: string; right?: ReactNode }) {
   const { c } = useTheme();
   const inset = useSafeAreaInsets();
@@ -83,8 +120,8 @@ export function BackBar({ label, right }: { label: string; right?: ReactNode }) 
         hitSlop={8}
         style={{ height: 44, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 4 }}
       >
-        <Icon name="back" size={18} color={c.link} width={1.9} />
-        <Text style={{ fontFamily: F.sans, fontSize: fs(15), color: c.link }}>{label}</Text>
+        <Icon name="back" size={22} color={c.text} width={1.9} />
+        {label ? <Text style={{ fontFamily: F.sansBold, fontSize: fs(15), color: c.text }}>{label}</Text> : null}
       </Pressable>
       {right}
     </View>
@@ -194,12 +231,10 @@ export function Chip({ label, on, onPress }: { label: string; on?: boolean; onPr
         paddingHorizontal: 14,
         borderRadius: 17,
         justifyContent: 'center',
-        backgroundColor: on ? c.accent : 'transparent',
-        borderWidth: on ? 0 : 1,
-        borderColor: c.track,
+        backgroundColor: on ? c.accent : c.raised,
       }}
     >
-      <Text style={{ fontFamily: on ? F.sansBold : F.sansMedium, fontSize: fs(13), color: on ? c.onAccent : c.soft }}>{label}</Text>
+      <Text style={{ fontFamily: F.sansBold, fontSize: fs(13), color: on ? c.onAccent : c.text }}>{label}</Text>
     </Pressable>
   );
 }
