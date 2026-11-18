@@ -94,9 +94,9 @@ export const PALETTES = [
 
 export type Mode = 'dark' | 'light' | 'system';
 export type Quality = 'original' | '320' | '192' | '128';
-type Prefs = { mode: Mode; palette: string; v?: number; wifi: Quality; cellular: Quality; lrclib: boolean; name: string; crossfade: number };
+type Prefs = { mode: Mode; palette: string; v?: number; wifi: Quality; cellular: Quality; lrclib: boolean; name: string; crossfade: number; iconFollows: boolean };
 
-const DEFAULTS: Prefs = { mode: 'system', palette: 'coral', v: 2, wifi: 'original', cellular: '192', lrclib: true, name: 'mars', crossfade: 0 };
+const DEFAULTS: Prefs = { mode: 'system', palette: 'coral', v: 2, wifi: 'original', cellular: '192', lrclib: true, name: 'mars', crossfade: 0, iconFollows: true };
 const saved = readJson<Partial<Prefs>>('prefs.json', {});
 let prefs: Prefs = saved.v === 2 ? { ...DEFAULTS, ...saved } : DEFAULTS;
 export const getPrefs = () => prefs;

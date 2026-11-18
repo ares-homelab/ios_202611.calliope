@@ -12,7 +12,8 @@
       "bundleIdentifier": "com.giovlnv.calliope",
       "icon": {
         "light": "./assets/icon.png",
-        "dark": "./assets/icon-dark.png"
+        "dark": "./assets/icon-dark.png",
+        "tinted": "./assets/icon-tinted.png"
       },
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
@@ -51,6 +52,71 @@
           "microphonePermission": "calliope records voice notes on the books you listen to.",
           "enableBackgroundPlayback": true
         }
+      ],
+      [
+        "expo-alternate-app-icons",
+        [
+          {
+            "name": "gold",
+            "ios": {
+              "light": "./assets/icons/gold.png",
+              "dark": "./assets/icons/gold-dark.png",
+              "tinted": "./assets/icons/gold-tinted.png"
+            },
+            "android": {
+              "foregroundImage": "./assets/icons/gold.png",
+              "backgroundColor": "#FFFFFF"
+            }
+          },
+          {
+            "name": "olive",
+            "ios": {
+              "light": "./assets/icons/olive.png",
+              "dark": "./assets/icons/olive-dark.png",
+              "tinted": "./assets/icons/olive-tinted.png"
+            },
+            "android": {
+              "foregroundImage": "./assets/icons/olive.png",
+              "backgroundColor": "#FFFFFF"
+            }
+          },
+          {
+            "name": "aegean",
+            "ios": {
+              "light": "./assets/icons/aegean.png",
+              "dark": "./assets/icons/aegean-dark.png",
+              "tinted": "./assets/icons/aegean-tinted.png"
+            },
+            "android": {
+              "foregroundImage": "./assets/icons/aegean.png",
+              "backgroundColor": "#FFFFFF"
+            }
+          },
+          {
+            "name": "wine",
+            "ios": {
+              "light": "./assets/icons/wine.png",
+              "dark": "./assets/icons/wine-dark.png",
+              "tinted": "./assets/icons/wine-tinted.png"
+            },
+            "android": {
+              "foregroundImage": "./assets/icons/wine.png",
+              "backgroundColor": "#FFFFFF"
+            }
+          },
+          {
+            "name": "bronze",
+            "ios": {
+              "light": "./assets/icons/bronze.png",
+              "dark": "./assets/icons/bronze-dark.png",
+              "tinted": "./assets/icons/bronze-tinted.png"
+            },
+            "android": {
+              "foregroundImage": "./assets/icons/bronze.png",
+              "backgroundColor": "#FFFFFF"
+            }
+          }
+        ]
       ]
     ],
     "experiments": {
