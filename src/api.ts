@@ -181,7 +181,8 @@ export type Recap = {
 };
 export type MixSong = { id: string; line?: string | null };
 export type MixSection = { title: string; sub?: string; songs: MixSong[] };
-export type Mix = { id: string; kind: string; title: string; sub: string; color?: string; sections: MixSection[]; cards?: { name: string; numeral: string; how: string; meaning: string }[] };
+export type MixCard = { id?: string | null; name: string; numeral: string; how: string; meaning: string; reversed?: boolean };
+export type Mix = { id: string; kind: string; title: string; sub: string; color?: string; sections: MixSection[]; cards?: MixCard[]; interpretation?: string | null };
 export type Wanted = { total: number; items: { title: string; artist: string; album?: string | null; plays: number; source: string }[] };
 
 export class ApiError extends Error {
