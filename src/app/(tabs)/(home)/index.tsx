@@ -15,9 +15,7 @@ const MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 
 const pendingLabel = (p: Pending) =>
   p.kind === 'status'
     ? `${p.title} → ${p.workflow.toLowerCase()}`
-    : p.kind === 'send'
-      ? `send ${p.title} to the kindle`
-      : p.kind === 'position'
+    : p.kind === 'position'
         ? `listening position in ${p.title}`
         : p.label;
 

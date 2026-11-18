@@ -40,7 +40,6 @@ export default function BookScreen() {
   const status = statusOf(b);
   const queued = outbox.some((p) => p.kind === 'status' && p.book_id === id);
   const pinned = pins.data?.books.includes(id) ?? false;
-  const pending = b.sent && !b.sent.sent;
   const prog = b.progress;
   const pages = b.pages ?? prog?.pages ?? null;
   const highlights = (hl.data ?? []).filter((h) => h.kind !== 'bookmark');
@@ -58,16 +57,14 @@ export default function BookScreen() {
     }
   };
   const setStatus = (w: Workflow) => w !== status && run('status', () => perform({ kind: 'status', book_id: id, title: b.title, workflow: w }));
-  const send = () => run('send', () => perform({ kind: 'send', book_id: id, title: b.title }));
   const togglePin = () => {
     const cur = pins.data ?? { books: [], paths: [] };
     const books = pinned ? cur.books.filter((x) => x !== id) : [...cur.books, id];
     run('pin', () => perform({ kind: 'pins', pins: { ...cur, books }, label: `${pinned ? 'unpinned' : 'pinned'} ${b.title}` }));
   };
   const actions = () =>
-    ActionSheetIOS.showActionSheetWithOptions({ options: [pinned ? 'unpin book' : 'pin book', 'send to kindle', 'cancel'], cancelButtonIndex: 2 }, (i) => {
+    ActionSheetIOS.showActionSheetWithOptions({ options: [pinned ? 'unpin book' : 'pin book', 'cancel'], cancelButtonIndex: 1 }, (i) => {
       if (i === 0) togglePin();
-      if (i === 1) send();
     });
 
   return (
@@ -96,27 +93,19 @@ export default function BookScreen() {
           </View>
         </View>
 
-        {b.on_kindle || pending ? (
-          <View style={[u.row, { gap: 12, paddingVertical: 12, paddingHorizontal: 14, borderWidth: 1, borderColor: c.track, borderRadius: 14 }]}>
-            <Icon name={pending ? 'send' : 'kindle'} size={20} color={c.ok} />
-            <View style={{ flex: 1, gap: 2 }}>
-              <Text style={[u.body, { fontFamily: F.sansMedium }]}>{pending ? 'waiting for the kindle' : 'on the kindle'}</Text>
-              <Text style={u.muted}>
-                {pending
-                  ? 'ares copies it the next time the kindle is on wi-fi'
-                  : prog?.source === 'kosync'
-                    ? 'progress synced through kosync'
-                    : 'progress from reading sessions'}
-              </Text>
-            </View>
-            {pending ? null : <Button label="send again" kind="outline" onPress={send} busy={busy === 'send'} />}
+        <View style={[u.row, { gap: 12, paddingVertical: 12, paddingHorizontal: 14, borderWidth: 1, borderColor: c.track, borderRadius: 14 }]}>
+          <Icon name="kindle" size={20} color={b.on_kindle ? c.ok : c.muted} />
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text style={[u.body, { fontFamily: F.sansMedium }]}>{b.on_kindle ? 'on the kindle' : 'not on the kindle yet'}</Text>
+            <Text style={u.muted}>
+              {!b.on_kindle
+                ? 'ares copies every book the next time the kindle is on wi-fi'
+                : prog?.source === 'kosync'
+                  ? 'progress synced through kosync'
+                  : 'progress from reading sessions'}
+            </Text>
           </View>
-        ) : (
-          <View style={{ gap: 8 }}>
-            <Button label="send to kindle" icon="send" onPress={send} busy={busy === 'send'} style={{ height: 52, borderRadius: 14 }} />
-            <Text style={[u.muted, { textAlign: 'center' }]}>ares copies it the next time the kindle is on wi-fi</Text>
-          </View>
-        )}
+        </View>
 
         {audio ? (
           <Button label={audio.source === 'kokoro' && !audio.complete ? 'listen · more chapters tonight' : 'listen'} icon="play" onPress={() => listen(audio.id)} style={{ height: 52, borderRadius: 14 }} />

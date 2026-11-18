@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useSyncExternalStore } from 'react';
-import { api, Book, BookFull, Entry as PathEntry, EntryStatus, net, OfflineError, onNet, Path, pathKey, Pins, Section, sectionKey, Send, Workflow } from './api';
+import { api, Book, BookFull, Entry as PathEntry, EntryStatus, net, OfflineError, onNet, Path, pathKey, Pins, Section, sectionKey, Workflow } from './api';
 import { clearDir, readJson, writeJson } from './files';
 
 type Entry = { data?: unknown; at?: number; error?: string; loading: boolean };
@@ -95,10 +95,10 @@ export const useNet = () => useSyncExternalStore(onNet, () => netSnap);
 export type Pending =
   | { kind: 'status'; book_id: number; title: string; workflow: Workflow }
   | { kind: 'pins'; pins: Pins; label: string }
-  | { kind: 'send'; book_id: number; title: string }
   | { kind: 'position'; book_id: number; title: string; track: number; seconds: number; listened: number };
 
-let outbox: Pending[] = readJson<Pending[]>('outbox.json', []);
+// 'send' items queued by 0.4.0 and earlier are dropped: the mirror copies every book
+let outbox: Pending[] = readJson<Pending[]>('outbox.json', []).filter((p) => (p.kind as string) !== 'send');
 const outboxListeners = new Set<() => void>();
 const saveOutbox = (next: Pending[]) => {
   outbox = next;
@@ -127,12 +127,11 @@ const run = (p: Pending): Promise<unknown> =>
       ? api.setPins(p.pins)
       : p.kind === 'position'
         ? api.position(p.book_id, { track: p.track, seconds: p.seconds, listened: p.listened })
-        : api.send(p.book_id);
+        : Promise.resolve();
 
 const AFTER: Record<Pending['kind'], (p: Pending) => string[]> = {
   status: (p) => ['books', 'paths', 'sections', 'home', 'reading', 'stats/', `book/${'book_id' in p ? p.book_id : ''}`],
   pins: () => ['pins', 'paths', 'sections', 'home'],
-  send: (p) => ['sends', `book/${'book_id' in p ? p.book_id : ''}`],
   position: () => [],
 };
 
@@ -158,11 +157,6 @@ function applyLocally(p: Pending) {
     patch<Pins>('pins', () => p.pins);
     patch<Path[]>('paths', (ps) => ps.map((x) => mark(x, pathKey(x))));
     patch<Section[]>('sections', (ss) => ss.map((x) => mark(x, sectionKey(x.name))));
-  }
-  if (p.kind === 'send') {
-    const sent: Send = { book_id: p.book_id, requested: new Date().toISOString(), sent: null };
-    patch<Send[]>('sends', (s) => [...s.filter((x) => x.book_id !== p.book_id || x.sent), sent]);
-    patch<BookFull>(`book/${p.book_id}`, (b) => ({ ...b, sent }));
   }
 }
 

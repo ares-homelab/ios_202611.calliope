@@ -7,7 +7,7 @@ import { Fragment, type ReactNode } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
 import { Avatar, BackBar, Screen, useUi } from '../../components/ui';
 import { useConfig } from '../../config';
-import { useAudioQueue, useHome, useMixes, useSends, useWanted } from '../../data';
+import { useAudioQueue, useHome, useMixes, useWanted } from '../../data';
 import { totalBytes, useDownloads } from '../../downloads';
 import { clock } from '../../format';
 import { nd } from '../../navidrome';
@@ -71,12 +71,10 @@ export default function Settings() {
   const cfg = useConfig();
   const net = useNet();
   const home = useHome();
-  const sends = useSends();
   const queue = useAudioQueue();
   const wanted = useWanted();
   const mixes = useMixes();
   const dl = useDownloads();
-  const waiting = (sends.data ?? []).filter((s) => !s.sent).length;
   const tonight = (queue.data ?? []).filter((q) => q.kind === 'listening' || q.kind === 'tapped').length;
   const cotd = (mixes.data ?? []).some((m) => m.kind === 'cotd');
   const clear = () =>
@@ -109,14 +107,13 @@ export default function Settings() {
         {section('connections', [
           { label: 'ares', value: net.online === false ? 'not reachable' : cfg.token ? 'connected' : 'no token yet', dot: net.online === false || !cfg.token ? 'off' : 'ok', onPress: () => router.push('/settings/connection') },
           { label: 'navidrome', value: nd.ready() ? `${cfg.nd.user} · music` : 'not signed in', dot: nd.ready() ? 'ok' : 'off', onPress: () => router.push('/settings/connection') },
-          { label: 'kindle', value: home.data?.last_sync ? `synced ${clock(home.data.last_sync)}` : 'not synced yet', dot: home.data?.last_sync ? 'ok' : 'off', onPress: () => router.push('/settings/sends') },
+          { label: 'kindle', value: home.data?.last_sync ? `synced ${clock(home.data.last_sync)}` : 'not synced yet', dot: home.data?.last_sync ? 'ok' : 'off' },
           { label: 'familiar', value: cotd ? 'card of the day on' : 'card of the day off', onPress: () => router.push({ pathname: '/mix/[id]', params: { id: 'cotd' } }) },
         ])}
         {section('library', [
           { label: 'wanted from spotify & apple music', value: wanted.data ? `${wanted.data.total} songs` : undefined, onPress: () => router.push('/wanted') },
           { label: 'tonight on ares', value: tonight ? `${tonight} ${tonight === 1 ? 'book' : 'books'} ticked` : 'nothing ticked', onPress: () => router.push('/tonight') },
           { label: 'downloads', value: `${gb(totalBytes(dl))} on this iphone`, onPress: () => router.push('/settings/downloads') },
-          { label: 'send queue', value: waiting ? `${waiting} waiting for wi-fi` : 'empty', onPress: () => router.push('/settings/sends') },
         ])}
         {section('playback', [
           { label: 'quality on wi-fi', value: qLabel(prefs.wifi), onPress: () => pick('quality on wi-fi', QUALITY, (wifi) => setPrefs({ wifi })) },
