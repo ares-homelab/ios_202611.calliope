@@ -10,6 +10,8 @@ export const useSections = () => useResource('sections', api.sections);
 export const usePins = () => useResource('pins', api.pins);
 export const useReading = () => useResource('reading', api.reading);
 export const useStats = (year?: number) => useResource(`stats/${year ?? ''}`, () => api.stats(year));
+export const useInsights = (year?: number) => useResource(`insights/${year ?? ''}`, () => api.insights(year));
+export const useDay = (date: string) => useResource(`day/${date}`, () => api.statsDay(date));
 export const useSends = () => useResource('sends', api.sends);
 export const useBookHighlights = (id: number) => useResource(`highlights/${id}`, () => api.bookHighlights(id));
 export const useHighlights = () => useResource('highlights', () => api.highlights());
