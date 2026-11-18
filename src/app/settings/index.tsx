@@ -1,3 +1,5 @@
+import { reschedule, syncBackground } from '../../notify';
+import type { NotifyPrefs } from '../../notify-defaults';
 import Constants from 'expo-constants';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
@@ -10,7 +12,7 @@ import { totalBytes, useDownloads } from '../../downloads';
 import { clock } from '../../format';
 import { nd } from '../../navidrome';
 import { clearCache, refreshAll, useNet } from '../../store';
-import { F, fs, setPrefs, usePrefs, useTheme, type Mode, type Quality } from '../../theme';
+import { F, fs, getPrefs, setPrefs, usePrefs, useTheme, type Mode, type Quality } from '../../theme';
 import { Icon } from '../../components/icon';
 
 type Row = { label: string; value?: string; dot?: 'ok' | 'off'; onPress?: () => void };
@@ -53,6 +55,12 @@ const QUALITY: [Quality, string][] = [
   ['128', '128 kbps'],
 ];
 const CROSSFADE: [string, string][] = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((n) => [String(n), n ? `${n} s` : 'off']);
+const TIMES = (t: string[]): [string, string][] => [['off', 'off'], ...t.map((x): [string, string] => [x, x])];
+const notify = (next: Partial<NotifyPrefs>) => {
+  setPrefs({ notify: { ...getPrefs().notify, ...next } });
+  reschedule().catch(() => {});
+  syncBackground().catch(() => {});
+};
 const qLabel = (q: Quality) => (q === 'original' ? 'lossless' : `${q} kbps`);
 const gb = (b: number) => (b > 1e9 ? `${(b / 1e9).toFixed(1)} GB` : `${Math.round(b / 1e6)} MB`);
 
@@ -115,6 +123,12 @@ export default function Settings() {
           { label: 'quality on cellular', value: qLabel(prefs.cellular), onPress: () => pick('quality on cellular', QUALITY, (cellular) => setPrefs({ cellular })) },
           { label: 'lyrics', value: prefs.lrclib ? 'tags, then LRCLIB' : 'tags only', onPress: () => setPrefs({ lrclib: !prefs.lrclib }) },
           { label: 'crossfade', value: prefs.crossfade ? `${prefs.crossfade} s` : 'off', onPress: () => pick('crossfade', CROSSFADE, (v) => setPrefs({ crossfade: Number(v) })) },
+        ])}
+        {section('notifications', [
+          { label: 'reading reminder', value: prefs.notify.reading, onPress: () => pick('reading reminder', TIMES(['19:00', '20:00', '21:00', '22:00', '23:00']), (reading) => notify({ reading })) },
+          { label: 'card of the day', value: prefs.notify.card, onPress: () => pick('card of the day', TIMES(['07:00', '08:00', '09:00', '10:00', '12:00']), (card) => notify({ card })) },
+          { label: 'new yorker on mondays', value: prefs.notify.issues ? 'on' : 'off', onPress: () => notify({ issues: !prefs.notify.issues }) },
+          { label: 'audiobook ready', value: prefs.notify.audiobooks ? 'on' : 'off', onPress: () => notify({ audiobooks: !prefs.notify.audiobooks }) },
         ])}
         {section('appearance', [
           {
