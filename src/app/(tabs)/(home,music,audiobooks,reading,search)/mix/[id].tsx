@@ -64,7 +64,7 @@ function Cards({ cards, interpretation }: { cards: MixCard[]; interpretation?: s
       <View style={{ flexDirection: 'row', gap: 10, width: '100%' }}>
         {cards.map((k, i) => (
           <View
-            key={k.name}
+            key={`${k.how}-${k.id ?? k.name}`}
             style={{
               flex: 1,
               borderRadius: 14,
