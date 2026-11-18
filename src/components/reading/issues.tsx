@@ -1,66 +1,68 @@
 import { Pressable, Text, View } from 'react-native';
+import type { Issue } from '../../api';
 import { openBook } from '../bits';
-import { Icon } from '../icon';
-import { Cover, Empty, ErrorBox, Eyebrow, useUi } from '../ui';
+import { Cover, Empty, ErrorBox } from '../ui';
 import { useIssues } from '../../data';
-import { clock, dayMonth, longDate, longDateYear, weekday } from '../../format';
-import { F, useTheme, fs } from '../../theme';
+import { clock, longDate, weekday } from '../../format';
+import { F, fs, useTheme } from '../../theme';
 
-const short = (d: string) => weekday(d).slice(0, 3);
+const OK = '#4E9A5A';
+
+function status(i: Issue, oldest: boolean, keep: number) {
+  if (!i.on_kindle) return 'not on the kindle yet';
+  if (oldest) return `removed next monday · keeps the last ${keep}`;
+  if (i.progress) return `on kindle · read ${Math.round(i.progress * 100)}%`;
+  return `on kindle · ${i.opened ? 'opened' : 'not opened'}`;
+}
+
+function nextLabel(next: string | null | undefined) {
+  if (!next) return '';
+  const h = new Date(next).getHours();
+  return `next issue ${weekday(next).toLowerCase()} ${h < 12 ? 'morning' : h < 18 ? 'afternoon' : 'evening'}`;
+}
 
 export function IssuesBody() {
-  const u = useUi();
   const { c } = useTheme();
   const res = useIssues();
   const issues = res.data?.issues ?? [];
   const keep = res.data?.keep ?? 4;
-  const latest = issues[0];
-  const next = res.data?.next_issue;
+  const [latest, ...older] = issues;
+  if (res.error && !res.data) return <ErrorBox error={res.error} onRetry={res.refresh} />;
+  if (!latest) return <Empty>{res.loading ? 'loading…' : 'no issues yet. the new yorker arrives mondays.'}</Empty>;
   return (
     <>
-      {res.error ? <ErrorBox error={res.error} onRetry={res.refresh} stale={!!res.data} /> : null}
-      {latest ? (
-        <Pressable onPress={() => openBook(latest.id)} style={{ backgroundColor: c.panel, borderRadius: 18, padding: 18, flexDirection: 'row', gap: 18 }}>
-          <Cover id={latest.id} title="the new yorker" author={latest.date ? dayMonth(latest.date) + ` ${latest.date.slice(0, 4)}` : ''} hasCover={latest.has_cover} width={104} height={140} radius={4} />
-          <View style={{ flex: 1, gap: 8 }}>
-            <Eyebrow style={{ color: c.link }}>latest</Eyebrow>
-            <Text style={{ fontFamily: F.serifBold, fontSize: fs(24), lineHeight: fs(27), color: c.text }}>{longDate(latest.date ?? latest.added)}</Text>
-            <Text style={u.soft}>
-              arrived {short(latest.added)} {clock(latest.added)} · {latest.sent ? 'on the kindle' : 'not on the kindle yet'}
+      <Pressable onPress={() => openBook(latest.id)} style={{ borderRadius: 18, backgroundColor: c.panel, padding: 14, flexDirection: 'row', gap: 14 }}>
+        <Cover id={latest.id} title="the new yorker" hasCover={latest.has_cover} width={110} height={146} radius={6} />
+        <View style={{ flex: 1, gap: 6 }}>
+          <Text style={{ fontFamily: F.heavy, fontSize: 12, letterSpacing: 0.7, color: c.muted }}>THIS WEEK</Text>
+          <Text style={{ fontFamily: F.black, fontSize: fs(18), color: c.text }}>the new yorker</Text>
+          <Text style={{ fontFamily: F.sans, fontSize: fs(13), color: c.muted }}>{longDate(latest.date ?? latest.added)}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: latest.on_kindle ? OK : c.muted }} />
+            <Text style={{ fontFamily: F.sans, fontSize: fs(13), color: c.text }}>
+              {latest.on_kindle ? (latest.progress ? `on your kindle · read ${Math.round(latest.progress * 100)}%` : 'on your kindle') : `arrived ${clock(latest.added)}, on the kindle next time it's on wi-fi`}
             </Text>
-            <Text style={[u.soft, { color: c.muted }]}>{latest.opened ? 'opened' : 'not opened yet'}</Text>
           </View>
-        </Pressable>
-      ) : (
-        <Empty>{res.loading && !res.data ? 'loading…' : 'no issues kept right now.'}</Empty>
-      )}
-      {next ? (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 14, paddingHorizontal: 16, borderWidth: 1, borderStyle: 'dashed', borderColor: c.track, borderRadius: 14 }}>
-          <Icon name="clock" size={20} color={c.muted} width={1.7} />
-          <View style={{ gap: 2, flex: 1 }}>
-            <Text style={[u.body, { fontFamily: F.sansMedium }]}>
-              next issue {short(next)} {dayMonth(next)}, {clock(next)}
-            </Text>
-            <Text style={u.muted}>fetched on ares, sent to the kindle on wi-fi</Text>
+          <Text style={{ fontFamily: F.sans, fontSize: fs(12), color: c.muted }}>{nextLabel(res.data?.next_issue)}</Text>
+        </View>
+      </Pressable>
+      {older.length ? (
+        <>
+          <Text style={{ fontFamily: F.heavy, fontSize: fs(20), color: c.text, marginTop: 4 }}>last {older.length} {older.length === 1 ? 'issue' : 'issues'}</Text>
+          <View>
+            {older.map((i, n) => (
+              <Pressable key={i.id} onPress={() => openBook(i.id)} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: c.line }}>
+                <Cover id={i.id} title="the new yorker" hasCover={i.has_cover} width={40} height={54} radius={4} />
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text style={{ fontFamily: F.sansBold, fontSize: fs(15), color: c.text }}>{longDate(i.date ?? i.added)}</Text>
+                  <Text style={{ fontFamily: F.sans, fontSize: fs(12), color: c.muted }}>{status(i, issues.length >= keep && n === older.length - 1, keep)}</Text>
+                </View>
+              </Pressable>
+            ))}
           </View>
-        </View>
+        </>
       ) : null}
-      {issues.length ? (
-        <View style={{ gap: 4 }}>
-          <Text style={[u.h3, { marginBottom: 6 }]}>kept issues</Text>
-          {issues.map((i, n) => (
-            <Pressable key={i.id} onPress={() => openBook(i.id)} style={[u.row, { justifyContent: 'space-between', paddingVertical: 12 }, u.line]}>
-              <Text style={[u.body, { fontSize: fs(15) }]}>{i.date ? longDateYear(i.date) : i.title}</Text>
-              <Text style={u.muted}>
-                {n + 1} of {keep}
-              </Text>
-            </Pressable>
-          ))}
-          <Text style={[u.soft, { color: c.muted, marginTop: 10, lineHeight: fs(20) }]}>
-            older issues show here as they arrive. the oldest is removed when a {keep === 4 ? 'fifth' : 'new one'} comes in. issues don&apos;t count toward calliope stats.
-          </Text>
-        </View>
-      ) : null}
+      <Text style={{ fontFamily: F.sans, fontSize: fs(12), color: c.muted }}>issues stay out of reading stats</Text>
     </>
   );
 }
