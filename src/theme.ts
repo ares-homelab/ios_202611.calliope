@@ -1,6 +1,7 @@
 import { useMemo, useSyncExternalStore } from 'react';
 import { StyleSheet, useColorScheme } from 'react-native';
 import { readJson, writeJson } from './files';
+import { NOTIFY_DEFAULTS, type NotifyPrefs } from './notify-defaults';
 
 export type Colors = {
   bg: string;
@@ -91,8 +92,6 @@ export const PALETTES = [
   palette('wine', 'deep red', '#E0A1B0', '#8A3346'),
   palette('bronze', 'warm copper', '#DDA073', '#8A4F22'),
 ];
-
-import { NOTIFY_DEFAULTS, type NotifyPrefs } from './notify-defaults';
 
 export type Mode = 'dark' | 'light' | 'system';
 export type Quality = 'original' | '320' | '192' | '128';
