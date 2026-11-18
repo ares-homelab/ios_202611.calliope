@@ -24,7 +24,7 @@ function Sample({ c }: { c: Colors }) {
 /** the app icon in the palette's colour; coral is the main icon */
 export function matchIcon(palette: string) {
   if (!supportsAlternateIcons) return;
-  const want = palette === 'coral' ? null : palette;
+  const want = palette === 'coral' ? null : palette[0].toUpperCase() + palette.slice(1); // the icon sets are PascalCase on iOS
   if (getAppIconName() !== want) setAlternateAppIcon(want as Parameters<typeof setAlternateAppIcon>[0]).catch(() => {});
 }
 
