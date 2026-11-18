@@ -130,7 +130,7 @@ export type Stats = {
   recent?: Session[];
 };
 
-export type Issue = { id: number; title: string; date: string | null; added: string; has_cover: boolean; sent: string | null; opened: boolean };
+export type Issue = { id: number; title: string; date: string | null; added: string; has_cover: boolean; sent: string | null; opened: boolean; on_kindle?: boolean; progress?: number | null };
 export type Issues = { issues: Issue[]; next_issue: string | null; keep: number };
 
 export type Home = {
