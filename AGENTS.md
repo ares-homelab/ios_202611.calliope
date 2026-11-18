@@ -48,3 +48,5 @@ Docs: https://docs.expo.dev/eas/index.md
 - Styling lives in `src/theme.ts` (six palettes × dark/light, fonts, spacing) and `src/components/ui.tsx`; screens use `useStyles`/`useTheme`, never hard-coded colors. The design reference is the claude.ai canvas "calliope app".
 - Installed with marsign on ares (free Apple ID): no app extensions or widgets, each needs another App ID and the free account is at its limit.
 - Names are lowercase (files, folders, commit subjects) unless a tool requires otherwise; code lean, few comments.
+- `app.json` keeps `"slug": "athena"`: it must match the Expo project behind `extra.eas.projectId` (created as athena), or `eas update` refuses and no OTA is published. The name on the phone is `name`.
+- `app.json` keeps `"slug": "athena"`: it must match the Expo project behind `extra.eas.projectId` (created as athena), or `eas update` refuses and no OTA is published. The name on the phone is `name`.
