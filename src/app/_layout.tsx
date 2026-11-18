@@ -14,6 +14,7 @@ import * as SystemUI from 'expo-system-ui';
 import { useEffect } from 'react';
 import { AppState } from 'react-native';
 import { flushVoice } from '../voice';
+import { reschedule, startNotifications } from '../notify';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { getConfig } from '../config';
 import '../player';
@@ -32,6 +33,8 @@ export default function RootLayout() {
     if (!loaded) return;
     SplashScreen.hideAsync().catch(() => {});
     if (!getConfig().token) setTimeout(() => router.push('/settings/connection'), 0);
+    let notifySub: { remove: () => void } | undefined;
+    startNotifications().then((x) => (notifySub = x)).catch(() => {});
     let pending = false;
     const fetchUpdate = async () => {
       if (!Updates.isEnabled) return;
@@ -44,11 +47,15 @@ export default function RootLayout() {
       if (s === 'active') {
         flush();
         flushVoice();
+        reschedule().catch(() => {});
         fetchUpdate();
       }
       if (s === 'background' && pending) Updates.reloadAsync().catch(() => {});
     });
-    return () => sub.remove();
+    return () => {
+      sub.remove();
+      notifySub?.remove();
+    };
   }, [loaded]);
   if (!loaded) return null;
   const sheet = { presentation: 'modal' as const, contentStyle: { backgroundColor: c.bg } };

@@ -92,11 +92,13 @@ export const PALETTES = [
   palette('bronze', 'warm copper', '#DDA073', '#8A4F22'),
 ];
 
+import { NOTIFY_DEFAULTS, type NotifyPrefs } from './notify-defaults';
+
 export type Mode = 'dark' | 'light' | 'system';
 export type Quality = 'original' | '320' | '192' | '128';
-type Prefs = { mode: Mode; palette: string; v?: number; wifi: Quality; cellular: Quality; lrclib: boolean; name: string; crossfade: number; iconFollows: boolean };
+type Prefs = { mode: Mode; palette: string; v?: number; wifi: Quality; cellular: Quality; lrclib: boolean; name: string; crossfade: number; iconFollows: boolean; notify: NotifyPrefs };
 
-const DEFAULTS: Prefs = { mode: 'system', palette: 'coral', v: 2, wifi: 'original', cellular: '192', lrclib: true, name: 'mars', crossfade: 0, iconFollows: true };
+const DEFAULTS: Prefs = { mode: 'system', palette: 'coral', v: 2, wifi: 'original', cellular: '192', lrclib: true, name: 'mars', crossfade: 0, iconFollows: true, notify: NOTIFY_DEFAULTS };
 const saved = readJson<Partial<Prefs>>('prefs.json', {});
 let prefs: Prefs = saved.v === 2 ? { ...DEFAULTS, ...saved } : DEFAULTS;
 export const getPrefs = () => prefs;
