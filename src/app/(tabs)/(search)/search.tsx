@@ -6,6 +6,7 @@ import { Art } from '../../../components/art';
 import { openAudiobook, openBook, openPath } from '../../../components/bits';
 import { Icon } from '../../../components/icon';
 import { openAlbum, openArtist, SongRow } from '../../../components/music';
+import { StatsBody } from '../../../components/reading/stats';
 import { Chips, Cover, Empty, Screen, SectionHead, useUi } from '../../../components/ui';
 import { useAudiobooks, useBooks, usePaths } from '../../../data';
 import { statusOf } from '../../../format';
@@ -94,8 +95,7 @@ export default function Search() {
           style={{ flex: 1, color: c.text, fontFamily: F.sans, fontSize: fs(15) }}
         />
       </View>
-      <Chips<K> items={['all', 'music', 'audiobooks', 'books', 'highlights']} value={k} onChange={setK} />
-      {term.length < 2 ? <Empty>music from navidrome, audiobooks and books from calibre, highlights from the kindle.</Empty> : null}
+      {term.length < 2 ? <StatsBody /> : <Chips<K> items={['all', 'music', 'audiobooks', 'books', 'highlights']} value={k} onChange={setK} />}
 
       {show('music') && music ? (
         <>
@@ -162,9 +162,11 @@ export default function Search() {
         </View>
       ) : null}
       {term.length > 1 && !music?.song?.length && !music?.album?.length && !ab.length && !bk.length && !hl?.highlights.length ? <Empty>nothing found for “{q}”.</Empty> : null}
-      <Pressable onPress={() => router.push('/library')} style={{ paddingVertical: 8 }}>
-        <Text style={u.link}>browse the whole library</Text>
-      </Pressable>
+      {term.length > 1 ? (
+        <Pressable onPress={() => router.push('/library')} style={{ paddingVertical: 8 }}>
+          <Text style={u.link}>browse the whole library</Text>
+        </Pressable>
+      ) : null}
     </Screen>
   );
 }

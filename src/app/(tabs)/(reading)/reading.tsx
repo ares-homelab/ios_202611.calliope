@@ -5,7 +5,6 @@ import { openBook } from '../../../components/bits';
 import { HighlightsBody } from '../../../components/reading/highlights';
 import { IssuesBody } from '../../../components/reading/issues';
 import { PathsBody } from '../../../components/reading/paths';
-import { StatsBody } from '../../../components/reading/stats';
 import { swatch } from '../../../components/art';
 import { Bar, Chips, Cover, Empty, ErrorBox, Screen, SectionHead, useUi } from '../../../components/ui';
 import { useAudiobooks, useHome, useRecap } from '../../../data';
@@ -14,7 +13,7 @@ import { listen } from '../../../play';
 import { refreshAll } from '../../../store';
 import { F, fs, S, useTheme } from '../../../theme';
 
-const VIEWS = ['now', 'paths', 'stats', 'highlights', 'issues'] as const;
+const VIEWS = ['now', 'paths', 'highlights', 'issues'] as const;
 type View_ = (typeof VIEWS)[number];
 
 function Now() {
@@ -100,7 +99,7 @@ export default function Reading() {
         </Pressable>
       </View>
       <Chips items={[...VIEWS, 'library']} value={view} onChange={(v) => (v === 'library' ? router.push('/library') : setView(v as View_))} />
-      {view === 'now' ? <Now /> : view === 'paths' ? <PathsBody /> : view === 'stats' ? <StatsBody /> : view === 'highlights' ? <HighlightsBody /> : <IssuesBody />}
+      {view === 'now' ? <Now /> : view === 'paths' ? <PathsBody /> : view === 'highlights' ? <HighlightsBody /> : <IssuesBody />}
     </Screen>
   );
 }
