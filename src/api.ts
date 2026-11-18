@@ -210,6 +210,27 @@ const setNet = (online: boolean) => {
   netListeners.forEach((fn) => fn());
 };
 
+export type DayStat = { date: string; read: number; heard: number; pages: number };
+export type DayBook = { calibre_id: number | null; title: string; read: number; heard: number; pages: number };
+export type Insights = {
+  year: number;
+  days: DayStat[];
+  streak: number;
+  best_streak: number;
+  active_30: number;
+  pages_per_day: number;
+  books: number;
+  pages: number;
+  hours: number;
+  finished: { month: number; calibre_id: number | null; title: string }[];
+  sections: { name: string; books: number }[];
+  hours_of_day: { read: number; heard: number }[];
+  avg_session_min: number;
+  pages_per_hour: number;
+  heard_share: number;
+  pace: { calibre_id: number | null; title: string; kind: 'read' | 'heard'; pages_per_hour: number | null; hours_left: number | null }[];
+};
+
 export const authHeaders = (): Record<string, string> => ({ Authorization: `Bearer ${getConfig().token}` });
 
 async function request<T>(path: string, init: RequestInit = {}, cfg: { url: string; token: string } = getConfig()): Promise<T> {
@@ -268,6 +289,8 @@ export const api = {
   bookHighlights: (id: number) => request<Highlight[]>(`/books/${id}/highlights`),
   highlights: (p: { q?: string; book_id?: number; notes?: boolean } = {}) => request<Highlights>(`/highlights${q(p)}`),
   stats: (year?: number) => request<Stats>(`/stats${q({ year })}`),
+  insights: (year?: number) => request<Insights>(`/stats/insights${q({ year })}`),
+  statsDay: (date: string) => request<DayBook[]>(`/stats/day/${date}`),
   issues: () => request<Issues>('/issues'),
   audiobooks: () => request<Audiobook[]>('/audiobooks'),
   audiobook: (id: number) => request<Audiobook>(`/audiobooks/${id}`),
