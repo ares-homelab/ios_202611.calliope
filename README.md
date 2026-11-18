@@ -1,37 +1,40 @@
 # calliope
 
-iPhone companion for calliope, Mars's reading system on ares: what's being read on the Kindle (live kosync progress), reading paths and sections, stats, Kindle highlights and New Yorker issues. Status changes, pins and send-to-kindle go back to calibre on ares through the calliope api. Built with Expo (SDK 57, Expo Router), iOS only.
+Mars's music, audiobook and reading app, talking to ares: music from navidrome, audiobooks (human recordings and ares's kokoro voice) with read-along text, and the reading system (Kindle progress through kosync, reading paths, stats, highlights, New Yorker issues). Built with Expo (SDK 57, Expo Router), iOS only.
 
-## screens
+## tabs
 
-- home: date, sync state, reading now, last 30 days / reading days / books read, continue a path, latest New Yorker issue; settings behind the gear
-- paths: cross-paths and sections, path/section detail with every book (in library or to find), pin/unpin; library search from the search button
-- stats: this year's hours and days, hours per month, library by status, recent sessions
-- highlights: all Kindle highlights and notes, search, recent / by book / with notes, share
-- issues: kept New Yorker issues and the next delivery
-- book: cover, kindle state and send, status (tbr/ongoing/read/dnf saved to calibre), progress, paths, highlights, tags
+- home: your month so far (recap), recently played, top picks (continue an audiobook, daylist, time-of-day mixes, card of the day); account behind the avatar
+- music: pinned (favorites, mixes, playlists), albums, artists, songs, downloaded; album, artist, playlist and mix pages
+- audiobooks: the current book (kindle and listening progress side by side), ready to listen, tonight on ares (books ticked for the night voice)
+- reading: chips now / paths / highlights / issues / library
+- search: music, audiobooks, books and highlights; stats (calendar, habits, year) while nothing is typed
 
-Offline, the app shows the last saved copy; changes made meanwhile wait and sync on the next refresh.
+Player (one for songs and books, mini player over the tab bar): background audio and lock screen, sleep timer, crossfade for songs, speed for books, smart shuffle, lyrics (tags, then LRCLIB), queue, downloads for offline. The book player shows the text and follows the sentence being read; notes (typed or voice, transcribed on ares) go to the book's vault highlights. Card of the day shows Familiar's calculated card, the card drawn in Familiar and the written interpretation (from Familiar's backup on ares). Local notifications: reading reminder, card of the day, New Yorker mondays, audiobook ready.
 
-## api address and token
+Offline, the app shows the last saved copy; status, pin, position and note changes wait and sync when ares answers.
 
-On first launch the app opens "connect to ares": the api address (default `http://ares:8087`, reached over Tailscale) and the bearer token (`TOKEN=` in `/srv/config/calliope/api.env` on ares). "test connection" calls `/hello`. Both are stored in the iPhone keychain (expo-secure-store); change them later in settings → connection. Plain http is allowed for `ares`, `*.ts.net` and local hosts (App Transport Security exceptions in `app.json`).
+## connections
 
-## build and install
+Account → connections:
 
-The GitHub workflow `build-ios.yml` (manual run or a `v*` tag) builds an unsigned `Calliope.ipa` on macos and publishes it as the release `latest`. ares downloads that .ipa and installs it with marsign, which signs it with the free Apple ID and re-signs it daily:
+- calliope api: address (default `http://ares:8087`, over Tailscale) and the bearer token (`TOKEN=` in `/srv/config/calliope/api.env` on ares)
+- navidrome: address (default `http://ares:4533`), user and password; only a salted token is kept, never the password
 
-```bash
-cd ~/marsign && MARSIGN_DATA=/srv/config/marsign .venv/bin/python marsign.py install <path to Calliope.ipa>
-```
+Both live in the iPhone keychain (expo-secure-store). Plain http is allowed for `ares`, `*.ts.net` and local hosts (App Transport Security exceptions in `app.json`).
+
+## updates, build and install
+
+- JS changes ship over the air: merging to `main` runs `checks.yml`, then `ota.yml` publishes an EAS update on channel `production` (runtimeVersion = app version). The app checks on launch and when it comes to the foreground and applies the update when it goes to the background.
+- Native changes need a new version in `app.json` and a build: `build-ios.yml` (manual run or a `v*` tag) builds an unsigned `Calliope.ipa` and publishes the release `latest`; on ares `~/ares/host/calliope/app-install.sh` downloads it and installs it with marsign (free Apple ID, re-signed daily).
 
 ## development
 
 ```bash
-npm install
-npx expo start          # dev server; needs a development build for native modules
+npm ci
 npx tsc --noEmit
 npx expo lint
+npx expo export --platform ios   # what checks.yml runs
 ```
 
-The app icon (owl, gold palette, light and dark) is rendered from `scripts/icon.js`: `npm i --no-save @resvg/resvg-js && node scripts/icon.js`.
+App icons: the coral lyre (`assets/icon.png`, `icon-dark.png`) and one per palette in `assets/icons/`, recoloured by `scripts/icons.py` (command in its docstring).
