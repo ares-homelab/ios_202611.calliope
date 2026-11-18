@@ -8,7 +8,7 @@ Mars's music, audiobook and reading app, talking to ares: music from navidrome, 
 - music: pinned (favorites, mixes, playlists), albums, artists, songs, downloaded; album, artist, playlist and mix pages
 - audiobooks: the current book (kindle and listening progress side by side), ready to listen, tonight on ares (books ticked for the night voice)
 - reading: chips now / paths / highlights / issues / library
-- search: music, audiobooks, books and highlights; stats (calendar, habits, year) while nothing is typed
+- search: music, audiobooks, books and highlights; stats (week, month, year, habits) while nothing is typed
 
 Player (one for songs and books, mini player over the tab bar): background audio and lock screen, sleep timer, crossfade for songs, speed for books, smart shuffle, lyrics (tags, then LRCLIB), queue, downloads for offline. The book player shows the text and follows the sentence being read; notes (typed or voice, transcribed on ares) go to the book's vault highlights. Card of the day shows Familiar's calculated card, the card drawn in Familiar and the written interpretation (from Familiar's backup on ares). Local notifications: reading reminder, card of the day, New Yorker mondays, audiobook ready.
 
