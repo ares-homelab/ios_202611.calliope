@@ -12,7 +12,22 @@ export type Book = {
   series: string | null;
   series_index: number | null;
   has_cover: boolean;
+  lists?: string[];
 };
+
+export type FanficBook = {
+  id: number;
+  title: string;
+  authors: string[];
+  fandom?: string;
+  series?: string | null;
+  series_index?: number | null;
+  workflow?: string[];
+  lists?: string[];
+  has_cover?: boolean;
+};
+
+export type ListInfo = { name: string; calliope?: number; fanfic?: number };
 
 export type BookDetail = Book & {
   description: string | null;
@@ -79,6 +94,8 @@ export type Path = {
 export type Section = {
   name: string;
   title: string;
+  order?: number | null;
+  summary?: string | null;
   description: string;
   crosses: string[];
   entries: Entry[];
@@ -275,6 +292,8 @@ export const api = {
   hello: (cfg?: { url: string; token: string }) => request<{ hello: string }>('/hello', {}, cfg),
   home: () => request<Home>('/home'),
   books: () => request<Book[]>('/books'),
+  fanficBooks: () => request<FanficBook[]>('/fanfic/books'),
+  lists: () => request<ListInfo[]>('/lists'),
   book: (id: number) => request<BookFull>(`/books/${id}`),
   coverUrl: (id: number) => `${getConfig().url}/books/${id}/cover`,
   setStatus: (id: number, workflow: Workflow) => put<BookFull>(`/books/${id}/status`, { workflow }),

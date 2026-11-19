@@ -1,12 +1,12 @@
 import { router } from 'expo-router';
-import { openAudiobook, voiceOf } from '../../../components/bits';
+import { voiceOf } from '../../../components/bits';
 import { Pressable, Text, View } from 'react-native';
-import type { Audiobook } from '../../../api';
 import { Icon } from '../../../components/icon';
-import { Cover, Empty, ErrorBox, Screen, SectionHead, useUi } from '../../../components/ui';
+import { openShelf, RandomButton, ShelfLink, useLibrary } from '../../../components/shelf';
+import { Chips, Cover, ErrorBox, Screen, SectionHead, useUi } from '../../../components/ui';
 import { useAudiobook, useAudiobooks, useAudioQueue } from '../../../data';
-import { groupState, useDownloads } from '../../../downloads';
-import { hm, percent } from '../../../format';
+import { percent } from '../../../format';
+import { fandoms, find, hasStatus, hint, lists, sectionOf, STATUSES, title, vaultOrder, type Status } from '../../../shelves';
 import { listen } from '../../../play';
 import { current, usePlayer } from '../../../player';
 import { F, fs, useTheme } from '../../../theme';
@@ -52,51 +52,63 @@ function Current({ id }: { id: number }) {
   );
 }
 
-function Row({ b }: { b: Audiobook }) {
-  const u = useUi();
-  const { c } = useTheme();
-  const dl = useDownloads();
-  const keys = Array.from({ length: b.track_count ?? 0 }, (_, i) => `b:${b.id}:${i + 1}`);
-  const saved = Object.keys(dl.saved).some((k) => k.startsWith(`b:${b.id}:`));
-  const state = groupState(dl, String(b.id), keys);
-  const sub =
-    b.source === 'kokoro' && !b.complete
-      ? `ares voice · ${b.chapters_total ? `${b.track_count ?? 0} of ${b.chapters_total} chapters` : hm(b.seconds / 3600)}, more tonight`
-      : `${b.source === 'kokoro' ? 'ares voice' : 'human voice'} · ${hm(b.seconds / 3600)}`;
-  return (
-    <Pressable onPress={() => openAudiobook(b.id)} style={({ pressed }) => [u.row, u.line, { gap: 14, paddingVertical: 10, opacity: pressed ? 0.7 : 1 }]}>
-      <Cover id={b.id} title={b.title} width={44} height={64} radius={4} />
-      <View style={{ flex: 1, gap: 2 }}>
-        <Text style={{ fontFamily: F.sansBold, fontSize: fs(15), color: c.text }}>{b.title}</Text>
-        <Text style={u.muted}>{sub}</Text>
-      </View>
-      {saved || state.all ? <Icon name="downloaded" size={20} color={c.accent} /> : null}
-    </Pressable>
-  );
-}
-
 export default function Audiobooks() {
   const u = useUi();
   const { c } = useTheme();
+  const lib = useLibrary();
   const res = useAudiobooks();
   const queue = useAudioQueue();
   const player = usePlayer();
   const t = current(player);
-  const books = res.data ?? [];
-  const top = t?.kind === 'book' ? t.bookId : books[0]?.id;
+  const top = t?.kind === 'book' ? t.bookId : res.data?.[0]?.id;
   const ticked = (queue.data ?? []).filter((q) => q.kind === 'listening' || q.kind === 'tapped');
+  const calliope = find(lib.root, 'calliope');
+  const sections = calliope ? vaultOrder(calliope.children, lib.sections) : [];
+  const shelves = lib.root.children.filter((n) => n.path !== 'calliope');
+  const fanfic = fandoms(lib.items);
+  const named = lists(lib.items, lib.lists);
+  const count = (s: Status) => lib.items.filter((b) => b.lib === 'calliope' && hasStatus(b, s)).length;
   return (
-    <Screen refreshing={res.loading && !!res.data} onRefresh={() => (res.refresh(), queue.refresh())} gap={18}>
+    <Screen refreshing={lib.loading && !!lib.items.length} onRefresh={lib.refresh} gap={18}>
       <Text style={u.h1}>audiobooks</Text>
-      {res.error && !res.data ? <ErrorBox error={res.error} onRetry={res.refresh} /> : null}
+      {lib.error ? <ErrorBox error={lib.error} onRetry={lib.refresh} /> : null}
       {top ? <Current id={top} /> : null}
+      <RandomButton scope="all" lib={lib} />
+      <Chips items={STATUSES.map((s) => [s, `${title(`status:${s}`)} ${count(s)}`] as [string, string])} value="" onChange={(s) => openShelf(`status:${s}`)} />
       <View>
-        <SectionHead title="ready to listen" />
-        {books.filter((b) => b.id !== top).map((b) => (
-          <Row key={b.id} b={b} />
-        ))}
-        {!books.length ? <Empty>{res.loading ? 'loading…' : 'no audio yet. tick books for tonight and ares voices them overnight.'}</Empty> : null}
+        <ShelfLink label="ready to listen" sub="human voice and ares voice" n={lib.audio.size} onPress={() => openShelf('audio')} />
+        <ShelfLink label="the whole library" n={lib.items.length} onPress={() => openShelf('all')} />
       </View>
+      {sections.length ? (
+        <View>
+          <SectionHead title="sections" />
+          {sections.map((n) => (
+            <ShelfLink key={n.path} label={title(`type:${n.path}`)} sub={sectionOf(n.path, lib.sections)?.summary} n={n.count} onPress={() => openShelf(`type:${n.path}`)} />
+          ))}
+        </View>
+      ) : null}
+      {shelves.length ? (
+        <View>
+          <SectionHead title="shelves" />
+          {shelves.map((n) => (
+            <ShelfLink key={n.path} label={n.name} sub={hint(n)} n={n.count} onPress={() => openShelf(`type:${n.path}`)} />
+          ))}
+        </View>
+      ) : null}
+      <View>
+        <SectionHead title="lists" />
+        {named.map((l) => (
+          <ShelfLink key={l.name} label={l.name} n={l.n} onPress={() => openShelf(`list:${l.name}`)} />
+        ))}
+      </View>
+      {fanfic.length ? (
+        <View>
+          <SectionHead title="fanfic" right="all" onPress={() => openShelf('fanfic')} />
+          {fanfic.map((f) => (
+            <ShelfLink key={f.name} label={f.name} n={f.n} onPress={() => openShelf(`fandom:${f.name}`)} />
+          ))}
+        </View>
+      ) : null}
       <Pressable onPress={() => router.push('/tonight')} style={({ pressed }) => [u.row, { borderRadius: 16, backgroundColor: c.panel, padding: 14, gap: 12, opacity: pressed ? 0.85 : 1 }]}>
         <Icon name="moon" size={22} color={c.accent} />
         <View style={{ flex: 1 }}>

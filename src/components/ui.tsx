@@ -309,6 +309,7 @@ const coverColor = (key: string) => COVERS[[...key].reduce((a, ch) => (a * 31 + 
 
 export function Cover({
   id,
+  lib,
   title,
   author,
   hasCover = true,
@@ -319,6 +320,7 @@ export function Cover({
   shadow,
 }: {
   id: number | null | undefined;
+  lib?: 'calliope' | 'fanfic';
   title: string;
   author?: string;
   hasCover?: boolean;
@@ -355,9 +357,9 @@ export function Cover({
       ) : null}
       {id && hasCover && !failed && token ? (
         <Image
-          source={{ uri: `${url}/books/${id}/cover`, headers: authHeaders(), cacheKey: `cover-${id}` }}
+          source={{ uri: `${url}${lib === 'fanfic' ? '/fanfic' : ''}/books/${id}/cover`, headers: authHeaders(), cacheKey: `cover-${lib === 'fanfic' ? 'f' : ''}${id}` }}
           cachePolicy="disk"
-          recyclingKey={String(id)}
+          recyclingKey={`${lib ?? ''}${id}`}
           transition={150}
           contentFit="cover"
           onError={() => setFailed(true)}
