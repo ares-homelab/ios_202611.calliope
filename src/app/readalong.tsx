@@ -7,7 +7,7 @@ import { api, OfflineError } from '../api';
 import { mmss } from '../components/controls';
 import { Icon } from '../components/icon';
 import { current, getPlayer, pause, playbackMode, usePlayer } from '../player';
-import { F, fs, useTheme } from '../theme';
+import { F, fs, LINE, usePrefs, useTheme } from '../theme';
 import { atTime, useBookText } from '../booktext';
 import { sendVoice, transcript, VOICE } from '../voice';
 
@@ -16,6 +16,7 @@ type Heard = { state: 'sending' | 'transcribing' | 'done' | 'failed' | 'queued';
 /** a note on the sentence being read aloud, typed or spoken; saved by ares into the book's vault note */
 export default function ReadAlong() {
   const { c } = useTheme();
+  const { reader } = usePrefs();
   const inset = useSafeAreaInsets();
   const s = usePlayer();
   const t = current(s);
@@ -95,7 +96,7 @@ export default function ReadAlong() {
         ) : null}
       </View>
       <ScrollView contentContainerStyle={{ padding: 20, gap: 16 }} keyboardShouldPersistTaps="handled">
-        <Text style={{ fontFamily: F.sans, fontSize: fs(17), lineHeight: fs(25), color: c.muted }}>
+        <Text style={{ fontFamily: F.sans, fontSize: reader.size, lineHeight: reader.size * LINE[reader.spacing], color: c.muted }}>
           {before.map((x) => x.text).join(' ')}{' '}
           <Text style={{ color: c.text, fontFamily: F.sansBold }}>{sentence?.text ?? (text.loading ? 'loading…' : '')}</Text>
         </Text>

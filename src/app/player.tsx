@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, FlatList, Pressable, Text, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Alert, FlatList, Pressable, Text, View, type ViewProps } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, authHeaders, type Para } from '../api';
 import { Art, swatch } from '../components/art';
@@ -11,7 +11,8 @@ import { download } from '../downloads';
 import { nd } from '../navidrome';
 import { current, getVolume, next, prev, seek, setSmart, setVolume, skip, toggle, usePlayer, type Track } from '../player';
 import { atTime, useBookText } from '../booktext';
-import { F, fs, mix, useTheme } from '../theme';
+import { F, fs, LINE, usePrefs, useTheme } from '../theme';
+import { ReaderPanel, tint, useReaderTint } from '../components/reader';
 
 const Btn = ({ name, label, onPress, color, size = 24, big }: { name: IconName; label: string; onPress: () => void; color: string; size?: number; big?: string }) => (
   <Pressable
@@ -26,19 +27,20 @@ const Btn = ({ name, label, onPress, color, size = 24, big }: { name: IconName; 
 
 function useTint(seed: string) {
   const { scheme } = useTheme();
-  const base = swatch(seed);
-  return scheme === 'dark'
-    ? { bg: mix(base, '#000000', 0.72), page: mix(base, '#000000', 0.55), ink: '#F3ECE8', past: mix('#F3ECE8', base, 0.45), mark: mix(base, '#000000', 0.25), text: '#FFFFFF', muted: mix('#FFFFFF', base, 0.35), track: mix(base, '#000000', 0.4), chip: mix(base, '#000000', 0.45) }
-    : { bg: mix(base, '#FFFFFF', 0.82), page: '#FBF8F4', ink: '#211A16', past: mix('#211A16', '#FFFFFF', 0.45), mark: mix(base, '#FFFFFF', 0.7), text: '#160F0C', muted: mix('#160F0C', base, 0.4), track: mix(base, '#FFFFFF', 0.6), chip: mix(base, '#FFFFFF', 0.65) };
+  return tint(swatch(seed), scheme);
 }
 
 function BookPlayer({ t }: { t: Track }) {
   const s = usePlayer();
   const inset = useSafeAreaInsets();
-  const k = useTint(String(t.bookId));
+  const k = useReaderTint(String(t.bookId));
+  const reader = usePrefs().reader;
+  const size = reader.size;
+  const line = size * LINE[reader.spacing];
+  const [panel, setPanel] = useState(false);
   const text = useBookText(t);
-  const [size, setSize] = useState(18);
   const paras = useMemo(() => text.data?.paras ?? [], [text.data]);
+  const layouts = useRef(new WeakMap<Para[], { y: number; h: number }>());
   const groups = useMemo(() => {
     const g: Para[][] = [];
     paras.forEach((x) => (g[g.length - 1]?.[0]?.p === x.p ? g[g.length - 1].push(x) : g.push([x])));
@@ -48,9 +50,73 @@ function BookPlayer({ t }: { t: Track }) {
   const curGroup = cur >= 0 ? groups.findIndex((g) => g.includes(paras[cur])) : 0;
   const list = useRef<FlatList<Para[]>>(null);
   const follow = useRef(true);
+  const resume = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dragged = useRef(false);
+  const view = useRef({ y: 0, h: 0 });
+  const target = useRef({ group: curGroup, cur });
   useEffect(() => {
-    if (follow.current && curGroup >= 0 && groups.length) list.current?.scrollToIndex({ index: curGroup, viewPosition: 0.25, animated: true });
-  }, [curGroup, groups.length]);
+    target.current = { group: curGroup, cur };
+  }, [curGroup, cur]);
+
+  const sync = useCallback(
+    (force = false) => {
+      const { group, cur: i } = target.current;
+      if (!follow.current || group < 0 || !groups.length) return;
+      const box = layouts.current.get(groups[group]);
+      if (!box) return list.current?.scrollToIndex({ index: group, viewPosition: 0.25, animated: true });
+      const g = groups[group];
+      const total = g.reduce((n, x) => n + x.text.length + 1, 0) || 1;
+      const before = g.slice(0, Math.max(0, g.indexOf(paras[i]))).reduce((n, x) => n + x.text.length + 1, 0);
+      const y = box.y + (box.h * before) / total;
+      const { y: top, h } = view.current;
+      if (!force && y > top + h * 0.12 && y < top + h * 0.6) return;
+      list.current?.scrollToOffset({ offset: Math.max(0, y - h * 0.25), animated: true });
+    },
+    [groups, paras],
+  );
+  useEffect(() => sync(), [cur, curGroup, sync]);
+  useEffect(() => {
+    const id = setTimeout(() => sync(true), 120);
+    return () => clearTimeout(id);
+  }, [size, line, sync]);
+  useEffect(() => () => {
+    if (resume.current) clearTimeout(resume.current);
+  }, []);
+  const hold = () => {
+    if (!dragged.current) return;
+    follow.current = false;
+    if (resume.current) clearTimeout(resume.current);
+  };
+  const release = () => {
+    if (!dragged.current) return;
+    if (resume.current) clearTimeout(resume.current);
+    resume.current = setTimeout(() => {
+      dragged.current = false;
+      follow.current = true;
+      sync(true);
+    }, 3000);
+  };
+  const Cell = useMemo(
+    () =>
+      function Cell({ index, onLayout, ...rest }: ViewProps & { index: number }) {
+        return (
+          <View
+            {...rest}
+            onLayout={(e) => {
+              onLayout?.(e);
+              layouts.current.set(groups[index], { y: e.nativeEvent.layout.y, h: e.nativeEvent.layout.height });
+            }}
+          />
+        );
+      },
+    [groups],
+  );
+  const jump = (x: Para) => {
+    if (resume.current) clearTimeout(resume.current);
+    dragged.current = false;
+    follow.current = true;
+    seek(x.start);
+  };
   const more = () =>
     Alert.alert(t.album ?? '', undefined, [
       { text: 'sleep timer', onPress: () => pickSleep(true) },
@@ -72,10 +138,11 @@ function BookPlayer({ t }: { t: Track }) {
             {t.title} · {t.artist}
           </Text>
         </View>
-        <Pressable accessibilityLabel="text size" onPress={() => setSize(size >= 22 ? 16 : size + 2)} style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
+        <Pressable accessibilityLabel="reading settings" onPress={() => setPanel(!panel)} style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: panel ? k.chip : undefined }}>
           <Text style={{ fontFamily: F.sans, fontSize: 17, color: k.text }}>Aa</Text>
         </Pressable>
       </View>
+      {panel ? <ReaderPanel k={k} /> : null}
       <View style={{ flex: 1, marginHorizontal: 14, borderRadius: 18, backgroundColor: k.page, overflow: 'hidden' }}>
         {groups.length ? (
           <FlatList
@@ -83,17 +150,31 @@ function BookPlayer({ t }: { t: Track }) {
             data={groups}
             keyExtractor={(g) => String(g[0].p)}
             contentContainerStyle={{ padding: 14, paddingBottom: 200 }}
-            onScrollBeginDrag={() => (follow.current = false)}
-            onMomentumScrollEnd={() => setTimeout(() => (follow.current = true), 8000)}
-            onScrollToIndexFailed={() => {}}
+            extraData={`${cur}:${size}:${line}:${k.ink}`}
+            scrollEventThrottle={100}
+            onLayout={(e) => (view.current.h = e.nativeEvent.layout.height)}
+            onScroll={(e) => (view.current.y = e.nativeEvent.contentOffset.y)}
+            CellRendererComponent={Cell}
+            onScrollBeginDrag={() => {
+              dragged.current = true;
+              hold();
+            }}
+            onMomentumScrollBegin={hold}
+            onScrollEndDrag={release}
+            onMomentumScrollEnd={release}
+            onScrollToIndexFailed={(e) => {
+              list.current?.scrollToOffset({ offset: e.averageItemLength * e.index, animated: false });
+              setTimeout(() => sync(true), 80);
+            }}
             renderItem={({ item }) => (
-              <Text style={{ fontFamily: F.sans, fontSize: size, lineHeight: size * 1.4, color: k.ink, marginBottom: size * 0.6 }}>
+              <Text style={{ fontFamily: F.sans, fontSize: size, lineHeight: line, color: k.ink, marginBottom: size * 0.6 }}
+              >
                 {item.map((x) => {
                   const i = paras.indexOf(x);
                   return (
                     <Text
                       key={i}
-                      onPress={() => seek(x.start)}
+                      onPress={() => jump(x)}
                       style={i === cur ? { backgroundColor: k.mark, color: k.text } : i < cur ? { color: k.past } : undefined}
                     >
                       {x.text}{' '}
