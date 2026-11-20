@@ -2,21 +2,13 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import type { ArticleBlock } from '../../../../api';
-import { ReaderPanel, useReaderTint, type Tint } from '../../../../components/reader';
+import type { Note } from '../../../../api';
+import { NoteSheet, ReaderPanel, TextBlock, useReaderTint } from '../../../../components/reader';
 import { Icon } from '../../../../components/icon';
 import { ErrorBox } from '../../../../components/ui';
 import { useArticle } from '../../../../data';
 import { ARTICLE_MODE, articleLine } from '../../../../shelves';
 import { F, fs, LINE, usePrefs } from '../../../../theme';
-
-function Block({ b, k, size, line }: { b: ArticleBlock; k: Tint; size: number; line: number }) {
-  if (b.kind === 'h') return <Text style={{ fontFamily: F.heavy, fontSize: size * 1.15, lineHeight: line * 1.1, color: k.text, marginTop: size * 0.4 }}>{b.text}</Text>;
-  if (b.kind === 'quote')
-    return <Text style={{ fontFamily: F.italic, fontSize: size, lineHeight: line, color: k.ink, paddingLeft: 14, borderLeftWidth: 2, borderLeftColor: k.mark }}>{b.text}</Text>;
-  if (b.kind === 'caption') return <Text style={{ fontFamily: F.sans, fontSize: size * 0.8, lineHeight: line * 0.8, color: k.muted }}>{b.text}</Text>;
-  return <Text style={{ fontFamily: F.sans, fontSize: size, lineHeight: line, color: k.ink }}>{b.kind === 'li' ? `•  ${b.text}` : b.text}</Text>;
-}
 
 export default function ArticleScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -25,6 +17,7 @@ export default function ArticleScreen() {
   const k = useReaderTint(`article:${id}`);
   const { reader } = usePrefs();
   const [panel, setPanel] = useState(false);
+  const [note, setNote] = useState<Note | null>(null);
   const inset = useSafeAreaInsets();
   const size = reader.size;
   const line = size * LINE[reader.spacing];
@@ -56,10 +49,11 @@ export default function ArticleScreen() {
           <Text style={{ fontFamily: F.sans, fontSize: fs(14), color: k.muted }}>{res.loading ? 'loading the article…' : ''}</Text>
         )}
         {blocks.map((b, i) => (
-          <Block key={i} b={b} k={k} size={size} line={line} />
+          <TextBlock key={i} kind={b.kind} t={b.text} r={b.runs} k={k} size={size} line={line} onNote={(key) => a?.notes?.[key] && setNote(a.notes[key])} />
         ))}
         {a && !blocks.length ? <Text style={{ fontFamily: F.sans, fontSize: fs(14), color: k.muted }}>wallabag has no text for this article.</Text> : null}
       </ScrollView>
+      <NoteSheet note={note} k={k} size={size} line={line} onClose={() => setNote(null)} />
     </View>
   );
 }

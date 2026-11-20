@@ -38,12 +38,15 @@ export type Article = {
   starred?: boolean;
   preview?: string | null;
 };
-export type ArticleBlock = { kind: string; text: string };
-export type ArticleText = Article & { blocks?: ArticleBlock[]; html?: string | null };
+/** inline formatting of a block; older apis send none, so text is always there too */
+export type Run = { t: string; i?: boolean | null; b?: boolean | null; sup?: boolean | null; href?: string | null; note?: string | null };
+export type Note = { t: string; r?: Run[] | null };
+export type ArticleBlock = { kind: string; text: string; runs?: Run[] | null };
+export type ArticleText = Article & { blocks?: ArticleBlock[]; notes?: Record<string, Note> | null; html?: string | null };
 
 export type Lib = 'calliope' | 'fanfic';
-export type ReadBlock = { k: string; t: string; x?: string | null; s: number; src?: string | null };
-export type ReadChapter = { n: number; title?: string | null; s: number; words: number; blocks?: ReadBlock[] };
+export type ReadBlock = { k: string; t: string; x?: string | null; s: number; src?: string | null; r?: Run[] | null };
+export type ReadChapter = { n: number; title?: string | null; s: number; words: number; blocks?: ReadBlock[]; notes?: Record<string, Note> | null };
 export type TocEntry = { title: string; doc: number; block: number; level: number };
 export type Spot = { doc: number; block: number; xpointer?: string | null; share: number; page?: number | null };
 export type ReadKosync = { percentage: number; progress?: string | null; device?: string | null; updated?: string | null; spot?: Spot | null };
@@ -218,7 +221,7 @@ export type Audiobook = {
   track_count?: number;
 };
 export type QueueItem = { position: number; id: number; title: string | null; kind: string; chapters_ready: number };
-export type Para = { start: number; text: string; p: number; kind?: string };
+export type Para = { start: number; text: string; p: number; kind?: string; r?: Run[] | null };
 export type AudioText = { track: number; title: string; paras: Para[]; exact: boolean };
 export type Position = { track: number; seconds: number; listened: number };
 

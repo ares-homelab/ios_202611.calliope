@@ -13,7 +13,7 @@ import { current, getPlayer, getVolume, next, pause, prev, seek, setSmart, setVo
 import { atTime, useBookText } from '../booktext';
 import { readAt } from '../read';
 import { F, fs, LINE, usePrefs, useTheme } from '../theme';
-import { ReaderPanel, tint, useReaderTint } from '../components/reader';
+import { ReaderPanel, Runs, tint, useReaderTint } from '../components/reader';
 
 async function readFromHere(t: Track) {
   try {
@@ -192,7 +192,7 @@ function BookPlayer({ t }: { t: Track }) {
                       onPress={() => jump(x)}
                       style={i === cur ? { backgroundColor: k.mark, color: k.text } : i < cur ? { color: k.past } : undefined}
                     >
-                      {x.text}{' '}
+                      {x.r?.length ? <Runs r={x.r} base={F.sans} size={size} k={k} /> : x.text}{' '}
                     </Text>
                   );
                 })}

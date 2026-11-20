@@ -2,10 +2,10 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, AppState, FlatList, Modal, Pressable, ScrollView, Text, View, type ViewToken } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { api, authHeaders, type Lib, type ReadBlock, type ReadInfo } from '../api';
+import { api, authHeaders, type Lib, type Note, type ReadBlock, type ReadInfo } from '../api';
 import { Icon, type IconName } from '../components/icon';
 import { PdfPages } from '../components/pdf';
-import { ReaderPanel, TextBlock, useReaderTint, type Tint } from '../components/reader';
+import { NoteSheet, ReaderPanel, TextBlock, useReaderTint, type Tint } from '../components/reader';
 import { ErrorBox } from '../components/ui';
 import { useAudiobooks } from '../data';
 import { useDownloads } from '../downloads';
@@ -17,20 +17,22 @@ import { F, fs, LINE, usePrefs } from '../theme';
 
 type Item = { key: string; n: number; i: number; b?: ReadBlock; rule?: boolean };
 type Win = { n: number; i: number; end: number };
+type Got = { blocks: ReadBlock[]; notes?: Record<string, Note> | null };
 
 const chapterFile = (lib: Lib, id: number, n: number) => `read/${lib}_${id}_${n}.json`;
 
-async function loadChapter(info: ReadInfo, saved: ReadInfo | undefined, n: number): Promise<ReadBlock[]> {
-  const local = saved?.version === info.version ? saved.chapters.find((c) => c.n === n)?.blocks : undefined;
-  if (local) return local;
+async function loadChapter(info: ReadInfo, saved: ReadInfo | undefined, n: number): Promise<Got> {
+  const own = (r?: ReadInfo) => r?.chapters.find((c) => c.n === n);
+  const local = saved?.version === info.version ? own(saved) : undefined;
+  if (local?.blocks) return { blocks: local.blocks, notes: local.notes };
   const name = chapterFile(info.lib, info.id, n);
   try {
     const ch = await api.readChapter(info.lib, info.id, n);
-    writeJson(name, { v: info.version, blocks: ch.blocks ?? [] });
-    return ch.blocks ?? [];
+    writeJson(name, { v: info.version, blocks: ch.blocks ?? [], notes: ch.notes ?? null });
+    return { blocks: ch.blocks ?? [], notes: ch.notes };
   } catch (e) {
-    const cached = readJson<{ v: string; blocks: ReadBlock[] } | null>(name, null) ?? (saved ? { v: '', blocks: saved.chapters.find((c) => c.n === n)?.blocks ?? [] } : null);
-    if (cached) return cached.blocks;
+    const cached = readJson<({ v: string } & Got) | null>(name, null) ?? (saved ? { v: '', blocks: own(saved)?.blocks ?? [], notes: own(saved)?.notes } : null);
+    if (cached) return cached;
     throw e;
   }
 }
@@ -192,7 +194,8 @@ function Book({ info, saved, k, at }: { info: ReadInfo; saved?: ReadInfo; k: Tin
 
 function Flow({ info, saved, k, size, line, start, onMark }: { info: ReadInfo; saved?: ReadInfo; k: Tint; size: number; line: number; start: { n: number; i: number }; onMark: (m: Omit<Mark, 'lib' | 'id' | 'title' | 'at'>) => void }) {
   const order = useMemo(() => info.chapters.map((c) => c.n), [info.chapters]);
-  const [got, setGot] = useState<Record<number, ReadBlock[]>>({});
+  const [got, setGot] = useState<Record<number, Got>>({});
+  const [note, setNote] = useState<Note | null>(null);
   const [win, setWin] = useState<Win>({ n: start.n, i: start.i, end: start.n });
   const [error, setError] = useState<string | null>(null);
   const busy = useRef(new Set<number>());
@@ -202,10 +205,10 @@ function Flow({ info, saved, k, size, line, start, onMark }: { info: ReadInfo; s
       if (got[n] || busy.current.has(n)) return Promise.resolve(got[n]);
       busy.current.add(n);
       return loadChapter(info, saved, n)
-        .then((blocks) => {
-          setGot((g) => ({ ...g, [n]: blocks }));
+        .then((ch) => {
+          setGot((g) => ({ ...g, [n]: ch }));
           setError(null);
-          return blocks;
+          return ch;
         })
         .catch((e: Error) => {
           setError(e.message);
@@ -222,7 +225,7 @@ function Flow({ info, saved, k, size, line, start, onMark }: { info: ReadInfo; s
   const items = useMemo(() => {
     const out: Item[] = [];
     for (const n of order.slice(order.indexOf(win.n), order.indexOf(win.end) + 1)) {
-      const blocks = got[n];
+      const blocks = got[n]?.blocks;
       if (!blocks) break;
       if (out.length) out.push({ key: `r${n}`, n, i: -1, rule: true });
       blocks.forEach((b, i) => {
@@ -244,7 +247,7 @@ function Flow({ info, saved, k, size, line, start, onMark }: { info: ReadInfo; s
     const at = order.indexOf(win.n);
     if (at <= 0) return;
     const n = order[at - 1];
-    fetch(n).then((b) => b && setWin((w) => ({ ...w, n, i: Math.max(0, b.length - 100) })));
+    fetch(n).then((b) => b && setWin((w) => ({ ...w, n, i: Math.max(0, b.blocks.length - 100) })));
   };
 
   const seen = useRef(onMark);
@@ -268,14 +271,19 @@ function Flow({ info, saved, k, size, line, start, onMark }: { info: ReadInfo; s
         ) : (
           <Text style={{ fontFamily: F.sans, fontSize: fs(14), color: k.muted }}>{got[start.n] ? 'this chapter has no text.' : 'loading…'}</Text>
         )}
-        {got[start.n] && !got[start.n].length ? (
+        {got[start.n] && !got[start.n].blocks.length ? (
           <Pressable onPress={next} style={{ marginTop: 16 }}>
             <Text style={{ fontFamily: F.sansBold, fontSize: fs(14), color: k.text }}>next chapter</Text>
           </Pressable>
         ) : null}
       </View>
     );
+  const onNote = (n: number) => (key: string) => {
+    const hit = got[n]?.notes?.[key];
+    if (hit) setNote(hit);
+  };
   return (
+    <>
     <FlatList
       data={items}
       keyExtractor={(x) => x.key}
@@ -297,11 +305,13 @@ function Flow({ info, saved, k, size, line, start, onMark }: { info: ReadInfo; s
           <View style={{ height: 1, backgroundColor: k.mark, marginVertical: size * 1.5, marginHorizontal: 40 }} />
         ) : (
           <View style={{ paddingBottom: size * 0.7 }}>
-            <TextBlock kind={item.b!.k} t={item.b!.t} k={k} size={size} line={line} image={image(item.b!.src)} />
+            <TextBlock kind={item.b!.k} t={item.b!.t} r={item.b!.r} k={k} size={size} line={line} image={image(item.b!.src)} onNote={onNote(item.n)} />
           </View>
         )
       }
     />
+    <NoteSheet note={note} k={k} size={size} line={line} onClose={() => setNote(null)} />
+    </>
   );
 }
 

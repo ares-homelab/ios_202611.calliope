@@ -1,6 +1,8 @@
-import { Pressable, Text, View } from 'react-native';
+import { Linking, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { Image } from 'expo-image';
-import { F, mix, PALETTES, READER_SIZE, setReader, usePrefs, useTheme, type Spacing } from '../theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import type { Note, Run } from '../api';
+import { F, fs, mix, PALETTES, READER_SIZE, setReader, usePrefs, useTheme, type Spacing } from '../theme';
 import { swatch } from './art';
 
 export function tint(base: string, scheme: 'dark' | 'light') {
@@ -75,17 +77,75 @@ export function ReaderPanel({ k }: { k: Tint }) {
   );
 }
 
-/** one block of a book or article: headings, paragraphs, quotes, list items, captions, images */
-export function TextBlock({ kind, t, k, size, line, image }: { kind: string; t: string; k: Tint; size: number; line: number; image?: { uri: string; headers?: Record<string, string> } }) {
+const SUP: Record<string, string> = { 0: '⁰', 1: '¹', 2: '²', 3: '³', 4: '⁴', 5: '⁵', 6: '⁶', 7: '⁷', 8: '⁸', 9: '⁹' };
+
+function font(base: string, r: Run) {
+  const bold = r.b || base === F.heavy || base === F.heavyItalic;
+  const italic = r.i || base === F.italic || base === F.heavyItalic;
+  return bold && italic ? F.heavyItalic : bold ? F.heavy : italic ? F.italic : base;
+}
+
+/** a block's inline runs: italic, bold, superscripts (digits as real superscript characters), links, note marks */
+export function Runs({ r, base, size, k, onNote }: { r: Run[]; base: string; size: number; k: Tint; onNote?: (key: string) => void }) {
+  return (
+    <>
+      {r.map((x, j) => {
+        const digits = x.sup && /^[0-9]+$/.test(x.t);
+        const tap = x.note && onNote ? () => onNote(x.note!) : x.href ? () => Linking.openURL(x.href!).catch(() => {}) : undefined;
+        return (
+          <Text
+            key={j}
+            onPress={tap}
+            suppressHighlighting={!tap}
+            style={{ fontFamily: x.note ? F.heavy : font(base, x), fontSize: x.sup && !digits ? size * 0.7 : undefined, color: tap ? k.text : undefined, textDecorationLine: x.href ? 'underline' : undefined }}
+          >
+            {digits ? [...x.t].map((c) => SUP[c]).join('') : x.t}
+          </Text>
+        );
+      })}
+    </>
+  );
+}
+
+/** a footnote over the text; the reader stays where it is */
+export function NoteSheet({ note, k, size, line, onClose }: { note: Note | null; k: Tint; size: number; line: number; onClose: () => void }) {
+  const inset = useSafeAreaInsets();
+  return (
+    <Modal visible={!!note} transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable accessibilityLabel="close the note" onPress={onClose} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' }}>
+        <Pressable onPress={() => {}} style={{ maxHeight: '60%', margin: 12, marginBottom: inset.bottom + 12, borderRadius: 18, backgroundColor: k.page, padding: 18, gap: 10 }}>
+          <Text style={{ fontFamily: F.heavy, fontSize: 11, letterSpacing: 0.7, color: k.muted }}>NOTE</Text>
+          <ScrollView>
+            <Text style={{ fontFamily: F.sans, fontSize: size * 0.9, lineHeight: line * 0.9, color: k.ink }}>{note?.r?.length ? <Runs r={note.r} base={F.sans} size={size * 0.9} k={k} /> : note?.t}</Text>
+          </ScrollView>
+          <Pressable onPress={onClose} hitSlop={8} style={{ alignSelf: 'flex-end' }}>
+            <Text style={{ fontFamily: F.sansBold, fontSize: fs(14), color: k.text }}>close</Text>
+          </Pressable>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+}
+
+type BlockProps = { kind: string; t: string; r?: Run[] | null; k: Tint; size: number; line: number; image?: { uri: string; headers?: Record<string, string> }; onNote?: (key: string) => void };
+
+/** one block of a book or article: headings, paragraphs, quotes, list items, captions, images; runs when the api sends them */
+export function TextBlock({ kind, t, r, k, size, line, image, onNote }: BlockProps) {
+  const body = (base: string, sz: number) => (r?.length ? <Runs r={r} base={base} size={sz} k={k} onNote={onNote} /> : t);
   if (kind === 'img')
     return image ? <Image source={image} contentFit="contain" style={{ width: '100%', aspectRatio: 1.5 }} accessibilityLabel={t} /> : t ? <Text style={{ fontFamily: F.italic, fontSize: size * 0.8, color: k.muted }}>[{t}]</Text> : null;
   if (/^h[1-6]$/.test(kind) || kind === 'h') {
     const lv = Number(kind[1]) || 3;
     const scale = lv <= 1 ? 1.45 : lv === 2 ? 1.3 : lv === 3 ? 1.15 : 1.05;
-    return <Text style={{ fontFamily: F.heavy, fontSize: size * scale, lineHeight: size * scale * 1.25, color: k.text, marginTop: size * 0.6 }}>{t}</Text>;
+    return <Text style={{ fontFamily: F.heavy, fontSize: size * scale, lineHeight: size * scale * 1.25, color: k.text, marginTop: size * 0.6 }}>{body(F.heavy, size * scale)}</Text>;
   }
-  if (kind === 'quote') return <Text style={{ fontFamily: F.italic, fontSize: size, lineHeight: line, color: k.ink, paddingLeft: 14, borderLeftWidth: 2, borderLeftColor: k.mark }}>{t}</Text>;
-  if (kind === 'caption') return <Text style={{ fontFamily: F.sans, fontSize: size * 0.8, lineHeight: line * 0.8, color: k.muted }}>{t}</Text>;
-  if (kind === 'pre') return <Text style={{ fontFamily: F.sans, fontSize: size * 0.85, lineHeight: line * 0.9, color: k.ink }}>{t}</Text>;
-  return <Text style={{ fontFamily: F.sans, fontSize: size, lineHeight: line, color: k.ink }}>{kind === 'li' ? `•  ${t}` : t}</Text>;
+  if (kind === 'quote') return <Text style={{ fontFamily: F.italic, fontSize: size, lineHeight: line, color: k.ink, paddingLeft: 14, borderLeftWidth: 2, borderLeftColor: k.mark }}>{body(F.italic, size)}</Text>;
+  if (kind === 'caption') return <Text style={{ fontFamily: F.sans, fontSize: size * 0.8, lineHeight: line * 0.8, color: k.muted }}>{body(F.sans, size * 0.8)}</Text>;
+  if (kind === 'pre') return <Text style={{ fontFamily: F.sans, fontSize: size * 0.85, lineHeight: line * 0.9, color: k.ink }}>{body(F.sans, size * 0.85)}</Text>;
+  return (
+    <Text style={{ fontFamily: F.sans, fontSize: size, lineHeight: line, color: k.ink }}>
+      {kind === 'li' ? '•  ' : null}
+      {body(F.sans, size)}
+    </Text>
+  );
 }
