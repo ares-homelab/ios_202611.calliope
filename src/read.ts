@@ -30,9 +30,10 @@ export function saveMark(m: Mark) {
   listeners.forEach((fn) => fn());
 }
 
-/** the spot to kosync, as KOReader does, unless kindle sync is read only; queued in the outbox while ares is away */
+/** the spot to kosync, as KOReader does, unless kindle sync is read only; queued in the outbox while ares is away.
+ * a book the kindle doesn't have yet keeps the spot on ares, which hands it to kosync when the book reaches the kindle */
 export function sendMark(m: Mark, info: ReadInfo | undefined) {
-  if (!getPrefs().kosyncWrite || !info?.sync) return;
+  if (!getPrefs().kosyncWrite || !info || (!info.sync && info.source !== 'calibre') || !info.format) return;
   if (info.format === 'pdf' ? !m.page : !m.x) return;
   perform({ kind: 'readpos', lib: m.lib, book_id: m.id, title: m.title, xpointer: info.format === 'pdf' ? null : m.x, page: info.format === 'pdf' ? m.page : null }).catch(() => {});
 }

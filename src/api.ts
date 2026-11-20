@@ -65,6 +65,8 @@ export type ReadInfo = {
   toc?: TocEntry[];
   chapters: ReadChapter[];
   kosync?: ReadKosync | null;
+  /** the phone's place kept on ares while the kindle has no copy of the book */
+  phone?: ReadKosync | null;
 };
 export type FanficDetail = FanficBook & { description?: string | null; tags?: string[]; formats?: string[] };
 

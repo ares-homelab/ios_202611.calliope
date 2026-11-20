@@ -43,7 +43,7 @@ function startOf(info: ReadInfo, at: At): { n: number; i: number; page: number }
   if (at.page) return { n: first, i: 0, page: at.page };
   if (at.doc) return { n: at.doc, i: at.block ?? 0, page: 1 };
   const local = markOf(info.lib, info.id);
-  const ko = info.kosync;
+  const ko = info.kosync ?? info.phone;
   const koAt = ko?.updated ? Date.parse(ko.updated) : 0;
   if (local && (!ko?.spot || local.at >= koAt - 60000)) return { n: local.doc || first, i: local.block, page: local.page ?? 1 };
   if (ko?.spot) return { n: ko.spot.doc || first, i: ko.spot.block, page: ko.spot.page ?? 1 };
@@ -326,7 +326,9 @@ function Chapters({ visible, info, k, cur, onClose, onPick }: { visible: boolean
   const sync = !info.sync
     ? info.source === 'kindle'
       ? 'the kindle has no reading record for this book yet, so your place stays on this iphone.'
-      : "ares doesn't have the kindle's copy of this book yet: the kindle's place is read when it can be, yours stays on this iphone."
+      : write
+        ? "the kindle doesn't have this book yet: your place is kept on this iphone and on ares, and goes to the kindle once the book gets there."
+        : "the kindle doesn't have this book yet; kindle sync is read only, so your place stays on this iphone."
     : write
       ? 'your place goes to the kindle through kosync; the kindle offers to jump there next time it opens the book.'
       : 'kindle sync is read only (account → kindle sync): the kindle’s place opens here, yours stays on this iphone.';
