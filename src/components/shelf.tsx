@@ -13,15 +13,22 @@ import { Cover, useUi } from './ui';
 /** read: the whole library, every book opens its page; listen: only books with audio, which play */
 export type Mode = 'read' | 'listen';
 
+/** reading shows what is on the kindle (plus books under review and periodicals); listening keeps every book */
+const onShelf = (b: Item, mode: Mode) =>
+  mode === 'listen' || b.lib === 'fanfic' || b.kindle !== false || !!b.review?.length || b.types.some((t) => t.startsWith('periodicals'));
+
 /** both libraries, the shelves tree, and what has audio or is queued */
-export function useLibrary() {
+export function useLibrary(mode: Mode = 'read') {
   const books = useBooks();
   const fanfic = useFanficBooks();
   const sections = useSections();
   const lists = useLists();
   const audiobooks = useAudiobooks();
   const queue = useAudioQueue();
-  const items = useMemo(() => [...(books.data ?? []).map(fromBook), ...(fanfic.data ?? []).map(fromFanfic)], [books.data, fanfic.data]);
+  const items = useMemo(
+    () => [...(books.data ?? []).map(fromBook), ...(fanfic.data ?? []).map(fromFanfic)].filter((b) => onShelf(b, mode)),
+    [books.data, fanfic.data, mode],
+  );
   const root = useMemo(() => tree(items), [items]);
   const audio = useMemo(() => new Map((audiobooks.data ?? []).map((a) => [a.id, a])), [audiobooks.data]);
   const queued = useMemo(() => new Map((queue.data ?? []).map((q) => [q.id, q])), [queue.data]);
@@ -62,7 +69,7 @@ const STATUS: [string, string][] = [
 export function readLine(b: Item, lib: Library) {
   const st = STATUS.find(([w]) => b.workflow.includes(w))?.[1];
   const extra = b.lib === 'fanfic' ? (b.fandom ?? 'fanfic') : playable(b, lib) ? 'has audio' : null;
-  return [st, extra].filter(Boolean).join(' · ');
+  return [b.review?.length ? 'under review' : null, st, extra].filter(Boolean).join(' · ');
 }
 
 export const openItem = (b: Item) => openBook(b.id, b.lib);

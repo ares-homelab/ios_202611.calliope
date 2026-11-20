@@ -48,6 +48,8 @@ function CalliopePage({ id }: { id: number }) {
   const highlights = (hl.data ?? []).filter((h) => h.kind !== 'bookmark');
   const about = plainText(b.description);
   const language = b.language ?? (b.languages[0] ? (LANGS[b.languages[0]] ?? b.languages[0]) : null);
+  const onKindle = b.kindle ?? b.on_kindle;
+  const review = b.review ?? [];
 
   const run = async (what: string, fn: () => Promise<unknown>) => {
     setBusy(what);
@@ -97,16 +99,27 @@ function CalliopePage({ id }: { id: number }) {
         </View>
 
         <View style={[u.row, { gap: 12, paddingVertical: 12, paddingHorizontal: 14, borderWidth: 1, borderColor: c.track, borderRadius: 14 }]}>
-          <Icon name="kindle" size={20} color={b.on_kindle ? c.ok : c.muted} />
+          <Icon name="kindle" size={20} color={review.length ? c.warn : onKindle ? c.ok : c.muted} />
           <View style={{ flex: 1, gap: 2 }}>
-            <Text style={[u.body, { fontFamily: F.sansMedium }]}>{b.on_kindle ? 'on the kindle' : 'not on the kindle yet'}</Text>
-            <Text style={u.muted}>
-              {!b.on_kindle
-                ? 'ares copies every book the next time the kindle is on wi-fi'
-                : prog?.source === 'kosync'
-                  ? 'progress synced through kosync'
-                  : 'progress from reading sessions'}
+            <Text style={[u.body, { fontFamily: F.sansMedium }]}>
+              {review.length ? (onKindle ? 'on the kindle · under review' : 'under review') : onKindle ? 'on the kindle' : 'not on the kindle yet'}
             </Text>
+            <Text style={u.muted}>
+              {review.length
+                ? onKindle
+                  ? 'the kindle keeps its copy; a newer file waits until the quality check passes or you approve it in the vault note "quality review":'
+                  : 'the quality check holds it off the kindle until it is fixed or you approve it in the vault note "quality review". you can still read it here:'
+                : !onKindle
+                  ? 'ares copies every book the next time the kindle is on wi-fi'
+                  : prog?.source === 'kosync'
+                    ? 'progress synced through kosync'
+                    : 'progress from reading sessions'}
+            </Text>
+            {review.map((r) => (
+              <Text key={r} style={[u.muted, { color: c.soft }]}>
+                · {r}
+              </Text>
+            ))}
           </View>
         </View>
 

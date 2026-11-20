@@ -13,6 +13,8 @@ export type Item = {
   has_cover: boolean;
   lists: string[];
   fandom?: string;
+  kindle?: boolean | null;
+  review?: string[] | null;
 };
 
 export type Status = 'reading' | 'tbr' | 'read' | 'dnf';

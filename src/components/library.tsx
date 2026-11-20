@@ -100,8 +100,8 @@ export function LibraryBody({ lib }: { lib: Library }) {
       </Pressable>
       <Chips items={STATUSES.map((s) => [s, `${title(`status:${s}`)} ${n(s)}`] as [string, string])} value="" onChange={(s) => openShelf(`status:${s}`)} />
       <View>
-        <ShelfLink label="the whole library" sub="calliope and fanfic" n={lib.items.length} onPress={() => openShelf('all')} />
-        <ShelfLink label="with audio" sub="read here or listen" n={lib.audio.size} onPress={() => openShelf('audio')} />
+        <ShelfLink label="the whole library" sub="what is on the kindle, and books under review" n={lib.items.length} onPress={() => openShelf('all')} />
+        <ShelfLink label="with audio" sub="read here or listen" n={lib.items.filter((b) => b.lib === 'calliope' && lib.audio.has(b.id)).length} onPress={() => openShelf('audio')} />
       </View>
       <Shelves lib={lib} mode="read" />
       {fanfic.length ? (

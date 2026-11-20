@@ -55,7 +55,7 @@ function Current({ id }: { id: number }) {
 export default function Audiobooks() {
   const u = useUi();
   const { c } = useTheme();
-  const lib = useLibrary();
+  const lib = useLibrary('listen');
   const res = useAudiobooks();
   const queue = useAudioQueue();
   const player = usePlayer();

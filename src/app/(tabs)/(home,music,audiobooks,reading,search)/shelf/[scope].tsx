@@ -50,7 +50,7 @@ function Books({ scope, mode }: { scope: string; mode: Mode }) {
   const u = useUi();
   const { c } = useTheme();
   const { width } = useWindowDimensions();
-  const lib = useLibrary();
+  const lib = useLibrary(mode);
   const books = useMemo(() => shelfBooks(scope, lib, mode), [scope, lib, mode]);
   const [kind, ...rest] = scope.split(':');
   const arg = rest.join(':');

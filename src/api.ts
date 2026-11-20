@@ -13,6 +13,10 @@ export type Book = {
   series_index: number | null;
   has_cover: boolean;
   lists?: string[];
+  /** has a copy on the kindle; null or missing from an older api */
+  kindle?: boolean | null;
+  /** held by the quality check, reasons in plain words */
+  review?: string[] | null;
 };
 
 export type FanficBook = {
