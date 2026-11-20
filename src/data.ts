@@ -6,6 +6,8 @@ export const useHome = () => useResource('home', api.home);
 export const useBooks = () => useResource('books', api.books);
 export const useFanficBooks = () => useResource('fanfic/books', api.fanficBooks);
 export const useLists = () => useResource('lists', api.lists);
+export const useArticles = () => useResource('articles', api.articles);
+export const useArticle = (id: number) => useResource(`article/${id}`, () => api.article(id));
 export const useBook = (id: number) => useResource(`book/${id}`, () => api.book(id));
 export const usePaths = () => useResource('paths', api.paths);
 export const useSections = () => useResource('sections', api.sections);

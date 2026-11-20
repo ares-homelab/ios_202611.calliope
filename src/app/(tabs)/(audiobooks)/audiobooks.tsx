@@ -1,12 +1,13 @@
 import { router } from 'expo-router';
 import { voiceOf } from '../../../components/bits';
 import { Pressable, Text, View } from 'react-native';
+import { openRandomArticle } from '../../../components/articles';
 import { Icon } from '../../../components/icon';
 import { openShelf, RandomButton, ShelfLink, useLibrary } from '../../../components/shelf';
 import { Chips, Cover, ErrorBox, Screen, SectionHead, useUi } from '../../../components/ui';
-import { useAudiobook, useAudiobooks, useAudioQueue } from '../../../data';
+import { useArticles, useAudiobook, useAudiobooks, useAudioQueue } from '../../../data';
 import { percent } from '../../../format';
-import { fandoms, find, hasStatus, hint, lists, sectionOf, STATUSES, title, vaultOrder, type Status } from '../../../shelves';
+import { ARTICLE_MODE, fandoms, find, hasStatus, hint, lists, sectionOf, STATUSES, title, vaultOrder, type Status } from '../../../shelves';
 import { listen } from '../../../play';
 import { current, usePlayer } from '../../../player';
 import { F, fs, useTheme } from '../../../theme';
@@ -67,6 +68,7 @@ export default function Audiobooks() {
   const shelves = lib.root.children.filter((n) => n.path !== 'calliope');
   const fanfic = fandoms(lib.items);
   const named = lists(lib.items, lib.lists);
+  const articles = useArticles().data ?? [];
   const count = (s: Status) => lib.items.filter((b) => b.lib === 'calliope' && hasStatus(b, s)).length;
   return (
     <Screen refreshing={lib.loading && !!lib.items.length} onRefresh={lib.refresh} gap={18}>
@@ -107,6 +109,12 @@ export default function Audiobooks() {
           {fanfic.map((f) => (
             <ShelfLink key={f.name} label={f.name} n={f.n} onPress={() => openShelf(`fandom:${f.name}`)} />
           ))}
+        </View>
+      ) : null}
+      {articles.length ? (
+        <View>
+          <SectionHead title="articles" right="random" onPress={() => openRandomArticle(articles)} />
+          <ShelfLink label="wallabag" sub={`${ARTICLE_MODE} · newest: ${articles[0].title}`} n={articles.length} onPress={() => openShelf('articles')} />
         </View>
       ) : null}
       <Pressable onPress={() => router.push('/tonight')} style={({ pressed }) => [u.row, { borderRadius: 16, backgroundColor: c.panel, padding: 14, gap: 12, opacity: pressed ? 0.85 : 1 }]}>

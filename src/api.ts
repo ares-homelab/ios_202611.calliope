@@ -27,6 +27,20 @@ export type FanficBook = {
   has_cover?: boolean;
 };
 
+export type Article = {
+  id: number;
+  title: string;
+  domain?: string | null;
+  url?: string | null;
+  reading_time?: number | null;
+  created?: string | null;
+  archived?: boolean;
+  starred?: boolean;
+  preview?: string | null;
+};
+export type ArticleBlock = { kind: string; text: string };
+export type ArticleText = Article & { blocks?: ArticleBlock[]; html?: string | null };
+
 export type ListInfo = { name: string; calliope?: number; fanfic?: number };
 
 export type BookDetail = Book & {
@@ -294,6 +308,8 @@ export const api = {
   books: () => request<Book[]>('/books'),
   fanficBooks: () => request<FanficBook[]>('/fanfic/books'),
   lists: () => request<ListInfo[]>('/lists'),
+  articles: () => request<Article[]>('/articles'),
+  article: (id: number) => request<ArticleText>(`/articles/${id}`),
   book: (id: number) => request<BookFull>(`/books/${id}`),
   coverUrl: (id: number) => `${getConfig().url}/books/${id}/cover`,
   setStatus: (id: number, workflow: Workflow) => put<BookFull>(`/books/${id}/status`, { workflow }),

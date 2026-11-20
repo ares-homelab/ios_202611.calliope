@@ -149,6 +149,7 @@ export function title(scope: string) {
   if (kind === 'type') return arg.startsWith('calliope.') ? arg.slice(9).replace(/-/g, ' ') : shelfName(arg);
   if (kind === 'status') return ({ reading: 'reading', tbr: 'to read', read: 'read', dnf: 'dnf' } as Record<string, string>)[arg] ?? arg;
   if (kind === 'fanfic') return 'fanfic';
+  if (kind === 'articles') return 'articles';
   if (kind === 'audio') return 'ready to listen';
   if (kind === 'all') return 'the whole library';
   return arg;
@@ -171,3 +172,9 @@ export function audioState(b: Item, audio: Map<number, Audiobook>, queue: Map<nu
   if (q) return { playable: false, line: q.kind === 'tapped' || q.kind === 'listening' ? `no audio yet · ticked, #${q.position} tonight` : `no audio yet · #${q.position} in the night queue` };
   return { playable: false, line: 'no audio yet' };
 }
+
+/** a wallabag article's line: site · reading time, and that it has no audio */
+export const articleLine = (a: { domain?: string | null; reading_time?: number | null }) =>
+  [a.domain?.replace(/^www\./, ''), a.reading_time ? `${a.reading_time} min` : null].filter(Boolean).join(' · ');
+
+export const ARTICLE_MODE = 'article · read only';
