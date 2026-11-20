@@ -9,10 +9,21 @@ import { Icon, type IconName } from '../components/icon';
 import { Cover } from '../components/ui';
 import { download } from '../downloads';
 import { nd } from '../navidrome';
-import { current, getVolume, next, prev, seek, setSmart, setVolume, skip, toggle, usePlayer, type Track } from '../player';
+import { current, getPlayer, getVolume, next, pause, prev, seek, setSmart, setVolume, skip, toggle, usePlayer, type Track } from '../player';
 import { atTime, useBookText } from '../booktext';
+import { readAt } from '../read';
 import { F, fs, LINE, usePrefs, useTheme } from '../theme';
 import { ReaderPanel, tint, useReaderTint } from '../components/reader';
+
+async function readFromHere(t: Track) {
+  try {
+    const at = await api.audioToRead(t.bookId!, t.n!, getPlayer().time);
+    pause();
+    readAt('calliope', t.bookId!, { doc: at.doc, block: at.block });
+  } catch (e) {
+    Alert.alert("can't open the book here", (e as Error).message);
+  }
+}
 
 const Btn = ({ name, label, onPress, color, size = 24, big }: { name: IconName; label: string; onPress: () => void; color: string; size?: number; big?: string }) => (
   <Pressable
@@ -121,6 +132,7 @@ function BookPlayer({ t }: { t: Track }) {
     Alert.alert(t.album ?? '', undefined, [
       { text: 'sleep timer', onPress: () => pickSleep(true) },
       { text: 'note on this sentence', onPress: () => router.push('/readalong') },
+      { text: 'read from here', onPress: () => readFromHere(t) },
       { text: 'chapters', onPress: () => (router.back(), router.push({ pathname: '/audiobook/[id]', params: { id: String(t.bookId) } })) },
       { text: 'download this chapter', onPress: () => download(t.key, api.trackUrl(t.bookId!, t.n!), t.ext ?? 'mp3', String(t.bookId), t.album ?? '', authHeaders()).catch(() => {}) },
       { text: 'cancel', style: 'cancel' },
@@ -138,6 +150,9 @@ function BookPlayer({ t }: { t: Track }) {
             {t.title} · {t.artist}
           </Text>
         </View>
+        <Pressable accessibilityLabel="read from here" onPress={() => readFromHere(t)} style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' }}>
+          <Icon name="book" size={21} color={k.text} />
+        </Pressable>
         <Pressable accessibilityLabel="reading settings" onPress={() => setPanel(!panel)} style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: panel ? k.chip : undefined }}>
           <Text style={{ fontFamily: F.sans, fontSize: 17, color: k.text }}>Aa</Text>
         </Pressable>

@@ -1,4 +1,5 @@
 import { Pressable, Text, View } from 'react-native';
+import { Image } from 'expo-image';
 import { F, mix, PALETTES, READER_SIZE, setReader, usePrefs, useTheme, type Spacing } from '../theme';
 import { swatch } from './art';
 
@@ -72,4 +73,19 @@ export function ReaderPanel({ k }: { k: Tint }) {
       </Row>
     </View>
   );
+}
+
+/** one block of a book or article: headings, paragraphs, quotes, list items, captions, images */
+export function TextBlock({ kind, t, k, size, line, image }: { kind: string; t: string; k: Tint; size: number; line: number; image?: { uri: string; headers?: Record<string, string> } }) {
+  if (kind === 'img')
+    return image ? <Image source={image} contentFit="contain" style={{ width: '100%', aspectRatio: 1.5 }} accessibilityLabel={t} /> : t ? <Text style={{ fontFamily: F.italic, fontSize: size * 0.8, color: k.muted }}>[{t}]</Text> : null;
+  if (/^h[1-6]$/.test(kind) || kind === 'h') {
+    const lv = Number(kind[1]) || 3;
+    const scale = lv <= 1 ? 1.45 : lv === 2 ? 1.3 : lv === 3 ? 1.15 : 1.05;
+    return <Text style={{ fontFamily: F.heavy, fontSize: size * scale, lineHeight: size * scale * 1.25, color: k.text, marginTop: size * 0.6 }}>{t}</Text>;
+  }
+  if (kind === 'quote') return <Text style={{ fontFamily: F.italic, fontSize: size, lineHeight: line, color: k.ink, paddingLeft: 14, borderLeftWidth: 2, borderLeftColor: k.mark }}>{t}</Text>;
+  if (kind === 'caption') return <Text style={{ fontFamily: F.sans, fontSize: size * 0.8, lineHeight: line * 0.8, color: k.muted }}>{t}</Text>;
+  if (kind === 'pre') return <Text style={{ fontFamily: F.sans, fontSize: size * 0.85, lineHeight: line * 0.9, color: k.ink }}>{t}</Text>;
+  return <Text style={{ fontFamily: F.sans, fontSize: size, lineHeight: line, color: k.ink }}>{kind === 'li' ? `•  ${t}` : t}</Text>;
 }

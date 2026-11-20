@@ -97,11 +97,11 @@ export type Mode = 'dark' | 'light' | 'system';
 export type Quality = 'original' | '320' | '192' | '128';
 export type Spacing = 'tight' | 'normal' | 'loose';
 export type Reader = { size: number; spacing: Spacing; page: string };
-type Prefs = { mode: Mode; palette: string; v?: number; wifi: Quality; cellular: Quality; lrclib: boolean; name: string; crossfade: number; iconFollows: boolean; notify: NotifyPrefs; reader: Reader };
+type Prefs = { mode: Mode; palette: string; v?: number; wifi: Quality; cellular: Quality; lrclib: boolean; name: string; crossfade: number; iconFollows: boolean; notify: NotifyPrefs; reader: Reader; kosyncWrite: boolean };
 
 export const READER_SIZE = { min: 14, max: 32, step: 2 };
 export const LINE: Record<Spacing, number> = { tight: 1.25, normal: 1.45, loose: 1.75 };
-const DEFAULTS: Prefs = { mode: 'system', palette: 'coral', v: 2, wifi: 'original', cellular: '192', lrclib: true, name: 'mars', crossfade: 0, iconFollows: true, notify: NOTIFY_DEFAULTS, reader: { size: 18, spacing: 'normal', page: 'book' } };
+const DEFAULTS: Prefs = { mode: 'system', palette: 'coral', v: 2, wifi: 'original', cellular: '192', lrclib: true, name: 'mars', crossfade: 0, iconFollows: true, notify: NOTIFY_DEFAULTS, reader: { size: 18, spacing: 'normal', page: 'book' }, kosyncWrite: true };
 const saved = readJson<Partial<Prefs>>('prefs.json', {});
 let prefs: Prefs = saved.v === 2 ? { ...DEFAULTS, ...saved, reader: { ...DEFAULTS.reader, ...saved.reader } } : DEFAULTS;
 export const getPrefs = () => prefs;

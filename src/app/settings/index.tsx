@@ -114,6 +114,12 @@ export default function Settings() {
           { label: 'wanted from spotify & apple music', value: wanted.data ? `${wanted.data.total} songs` : undefined, onPress: () => router.push('/wanted') },
           { label: 'tonight on ares', value: tonight ? `${tonight} ${tonight === 1 ? 'book' : 'books'} ticked` : 'nothing ticked', onPress: () => router.push('/tonight') },
           { label: 'downloads', value: `${gb(totalBytes(dl))} on this iphone`, onPress: () => router.push('/settings/downloads') },
+          {
+            label: 'kindle sync',
+            value: prefs.kosyncWrite ? 'read and write' : 'read only',
+            onPress: () =>
+              pick('kindle sync', [['write', 'read and write: the phone’s place goes to the kindle'], ['read', 'read only: open at the kindle’s place, keep mine here']], (v) => setPrefs({ kosyncWrite: v === 'write' })),
+          },
         ])}
         {section('playback', [
           { label: 'quality on wi-fi', value: qLabel(prefs.wifi), onPress: () => pick('quality on wi-fi', QUALITY, (wifi) => setPrefs({ wifi })) },

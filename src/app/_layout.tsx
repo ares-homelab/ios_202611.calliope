@@ -66,6 +66,7 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="player" options={{ presentation: 'modal' }} />
         <Stack.Screen name="readalong" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
+        <Stack.Screen name="reader" options={{ presentation: 'fullScreenModal' }} />
         <Stack.Screen name="queue" options={sheet} />
         <Stack.Screen name="lyrics" options={sheet} />
         <Stack.Screen name="settings/connection" options={{ gestureEnabled: !!getConfig().token }} />

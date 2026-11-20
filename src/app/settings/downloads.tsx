@@ -20,7 +20,7 @@ export default function Downloads() {
       <BackBar label="account" />
       <Screen top={false} gap={12}>
         <Text style={u.h1}>downloads</Text>
-        <Text style={u.soft}>{size(totalBytes(dl))} on this iphone. downloads play without ares.</Text>
+        <Text style={u.soft}>{size(totalBytes(dl))} on this iphone. downloads play, and saved books read, without ares.</Text>
         {[...groups.entries()].map(([g, x]) => (
           <View key={g} style={[u.row, u.line, { gap: 12, paddingVertical: 10 }]}>
             <View style={{ flex: 1 }}>

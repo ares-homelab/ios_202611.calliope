@@ -17,7 +17,9 @@ const pendingLabel = (p: Pending) =>
     ? `${p.title} → ${p.workflow.toLowerCase()}`
     : p.kind === 'position'
         ? `listening position in ${p.title}`
-        : p.label;
+        : p.kind === 'readpos'
+          ? `reading place in ${p.title} → kindle`
+          : p.label;
 
 export function PickCard({ eyebrow, title, sub, color, onPress, width = 165 }: { eyebrow: string; title: string; sub: string; color: string; onPress: () => void; width?: number }) {
   return (

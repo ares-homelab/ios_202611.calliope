@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useSyncExternalStore } from 'react';
-import { api, Book, BookFull, Entry as PathEntry, EntryStatus, net, OfflineError, onNet, Path, pathKey, Pins, Section, sectionKey, Workflow } from './api';
+import { api, Book, BookFull, Entry as PathEntry, EntryStatus, net, OfflineError, onNet, Path, pathKey, Pins, Section, sectionKey, Workflow, type Lib } from './api';
 import { clearDir, readJson, writeJson } from './files';
 
 type Entry = { data?: unknown; at?: number; error?: string; loading: boolean };
@@ -95,7 +95,8 @@ export const useNet = () => useSyncExternalStore(onNet, () => netSnap);
 export type Pending =
   | { kind: 'status'; book_id: number; title: string; workflow: Workflow }
   | { kind: 'pins'; pins: Pins; label: string }
-  | { kind: 'position'; book_id: number; title: string; track: number; seconds: number; listened: number };
+  | { kind: 'position'; book_id: number; title: string; track: number; seconds: number; listened: number }
+  | { kind: 'readpos'; lib: Lib; book_id: number; title: string; xpointer?: string | null; page?: number | null };
 
 // 'send' items queued by 0.4.0 and earlier are dropped: the mirror copies every book
 let outbox: Pending[] = readJson<Pending[]>('outbox.json', []).filter((p) => (p.kind as string) !== 'send');
@@ -118,7 +119,8 @@ export const useOutbox = () =>
   );
 
 const same = (a: Pending, b: Pending) =>
-  a.kind === b.kind && (a.kind === 'pins' || ('book_id' in a && 'book_id' in b && a.book_id === b.book_id));
+  a.kind === b.kind &&
+  (a.kind === 'pins' || ('book_id' in a && 'book_id' in b && a.book_id === b.book_id && (a.kind !== 'readpos' || (b.kind === 'readpos' && a.lib === b.lib))));
 
 const run = (p: Pending): Promise<unknown> =>
   p.kind === 'status'
@@ -127,12 +129,15 @@ const run = (p: Pending): Promise<unknown> =>
       ? api.setPins(p.pins)
       : p.kind === 'position'
         ? api.position(p.book_id, { track: p.track, seconds: p.seconds, listened: p.listened })
-        : Promise.resolve();
+        : p.kind === 'readpos'
+          ? api.readPosition(p.lib, p.book_id, { xpointer: p.xpointer, page: p.page })
+          : Promise.resolve();
 
 const AFTER: Record<Pending['kind'], (p: Pending) => string[]> = {
   status: (p) => ['books', 'paths', 'sections', 'home', 'reading', 'stats/', `book/${'book_id' in p ? p.book_id : ''}`],
   pins: () => ['pins', 'paths', 'sections', 'home'],
   position: () => [],
+  readpos: () => [],
 };
 
 type Pinnable = { section?: string; name: string; pinned?: boolean };

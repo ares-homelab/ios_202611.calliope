@@ -41,6 +41,30 @@ export type Article = {
 export type ArticleBlock = { kind: string; text: string };
 export type ArticleText = Article & { blocks?: ArticleBlock[]; html?: string | null };
 
+export type Lib = 'calliope' | 'fanfic';
+export type ReadBlock = { k: string; t: string; x?: string | null; s: number; src?: string | null };
+export type ReadChapter = { n: number; title?: string | null; s: number; words: number; blocks?: ReadBlock[] };
+export type TocEntry = { title: string; doc: number; block: number; level: number };
+export type Spot = { doc: number; block: number; xpointer?: string | null; share: number; page?: number | null };
+export type ReadKosync = { percentage: number; progress?: string | null; device?: string | null; updated?: string | null; spot?: Spot | null };
+export type ReadInfo = {
+  lib: Lib;
+  id: number;
+  title: string;
+  authors: string[];
+  format: 'epub' | 'pdf' | null;
+  source: 'kindle' | 'calibre' | string;
+  version: string;
+  md5?: string | null;
+  sync?: boolean;
+  words?: number;
+  pages?: number | null;
+  toc?: TocEntry[];
+  chapters: ReadChapter[];
+  kosync?: ReadKosync | null;
+};
+export type FanficDetail = FanficBook & { description?: string | null; tags?: string[]; formats?: string[] };
+
 export type ListInfo = { name: string; calliope?: number; fanfic?: number };
 
 export type BookDetail = Book & {
@@ -339,6 +363,16 @@ export const api = {
   wanted: () => request<Wanted>('/wanted'),
   note: (n: { book_id: number; track: number; seconds: number; text: string; quote: string; voice?: boolean }) => request<{ id: string }>('/notes', { method: 'POST', body: JSON.stringify(n) }),
   voiceState: (id: string) => request<{ state: 'pending' | 'done' | 'failed'; text: string; language?: string }>(`/notes/${id}/voice`),
+  fanficBook: (id: number) => request<FanficDetail>(`/fanfic/books/${id}`),
+  setFanficStatus: (id: number, workflow: Workflow) => put<{ id: number; workflow: string }>(`/fanfic/books/${id}/status`, { workflow }),
+  readInfo: (lib: Lib, id: number) => request<ReadInfo>(`/read/${lib}/${id}`),
+  readChapter: (lib: Lib, id: number, n: number) => request<ReadChapter>(`/read/${lib}/${id}/chapters/${n}`),
+  readBookUrl: (lib: Lib, id: number) => `${getConfig().url}/read/${lib}/${id}/book`,
+  readImageUrl: (lib: Lib, id: number, src: string) => `${getConfig().url}/read/${lib}/${id}/images/${src.split('/').map(encodeURIComponent).join('/')}`,
+  readPageUrl: (lib: Lib, id: number, n: number) => `${getConfig().url}/read/${lib}/${id}/pages/${n}?width=1200`,
+  readPosition: (lib: Lib, id: number, p: { xpointer?: string | null; page?: number | null }) => put<{ progress: string; percentage: number }>(`/read/${lib}/${id}/position`, p),
+  readToAudio: (id: number, xpointer: string) => request<{ track: number; seconds: number }>(`/read/calliope/${id}/audio${q({ xpointer })}`),
+  audioToRead: (id: number, track: number, seconds: number) => request<Spot>(`/read/calliope/${id}/spot${q({ track, seconds })}`),
   queueBook: (id: number) => request<{ queued: boolean; position: number; of: number }>(`/audiobooks/${id}/queue`, { method: 'POST' }),
 };
 
