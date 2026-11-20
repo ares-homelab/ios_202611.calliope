@@ -1,8 +1,10 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { openBook } from '../../../components/bits';
 import { HighlightsBody } from '../../../components/reading/highlights';
+import { LibraryBody } from '../../../components/library';
+import { useLibrary } from '../../../components/shelf';
 import { IssuesBody } from '../../../components/reading/issues';
 import { PathsBody } from '../../../components/reading/paths';
 import { swatch } from '../../../components/art';
@@ -13,7 +15,7 @@ import { listen } from '../../../play';
 import { refreshAll } from '../../../store';
 import { F, fs, S, useTheme } from '../../../theme';
 
-const VIEWS = ['now', 'paths', 'highlights', 'issues'] as const;
+const VIEWS = ['now', 'library', 'paths', 'highlights', 'issues'] as const;
 type View_ = (typeof VIEWS)[number];
 
 function Now() {
@@ -90,16 +92,15 @@ export default function Reading() {
   const params = useLocalSearchParams<{ view?: View_ }>();
   const [view, setView] = useState<View_>(params.view && VIEWS.includes(params.view) ? params.view : 'now');
   const home = useHome();
+  const lib = useLibrary();
   return (
     <Screen refreshing={home.loading && !!home.data} onRefresh={() => refreshAll()} gap={16}>
       <View style={[u.row, { justifyContent: 'space-between' }]}>
         <Text style={u.h1}>reading</Text>
-        <Pressable onPress={() => router.push('/library')} hitSlop={8}>
-          <Text style={u.muted}>{home.data?.last_sync ? `kindle synced ${clock(home.data.last_sync)}` : 'library'}</Text>
-        </Pressable>
+        <Text style={u.muted}>{home.data?.last_sync ? `kindle synced ${clock(home.data.last_sync)}` : ''}</Text>
       </View>
-      <Chips items={[...VIEWS, 'library']} value={view} onChange={(v) => (v === 'library' ? router.push('/library') : setView(v as View_))} />
-      {view === 'now' ? <Now /> : view === 'paths' ? <PathsBody /> : view === 'highlights' ? <HighlightsBody /> : <IssuesBody />}
+      <Chips items={[...VIEWS]} value={view} onChange={(v) => setView(v as View_)} />
+      {view === 'now' ? <Now /> : view === 'library' ? <LibraryBody lib={lib} /> : view === 'paths' ? <PathsBody /> : view === 'highlights' ? <HighlightsBody /> : <IssuesBody />}
     </Screen>
   );
 }

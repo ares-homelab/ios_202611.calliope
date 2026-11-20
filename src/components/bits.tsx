@@ -8,7 +8,8 @@ import { Bar, Cover, Segments, useUi } from './ui';
 export const segmentsOf = (entries: Entry[] = []) =>
   entries.map((e) => (e.status === 'read' ? 'read' : e.calibre_id ? 'library' : 'missing') as 'read' | 'library' | 'missing');
 
-export const openBook = (id: number | null | undefined) => id && router.push({ pathname: '/book/[id]', params: { id: String(id) } });
+export const openBook = (id: number | null | undefined, lib: 'calliope' | 'fanfic' = 'calliope') =>
+  id && router.push({ pathname: '/book/[id]', params: lib === 'fanfic' ? { id: String(id), lib } : { id: String(id) } });
 export const openPath = (n: number | null | undefined) => n != null && router.push({ pathname: '/path/[number]', params: { number: String(n) } });
 export const openSection = (name: string) => router.push({ pathname: '/section/[name]', params: { name } });
 

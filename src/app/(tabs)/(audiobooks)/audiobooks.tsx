@@ -1,13 +1,12 @@
 import { router } from 'expo-router';
 import { voiceOf } from '../../../components/bits';
 import { Pressable, Text, View } from 'react-native';
-import { openRandomArticle } from '../../../components/articles';
 import { Icon } from '../../../components/icon';
+import { Shelves } from '../../../components/library';
 import { openShelf, RandomButton, ShelfLink, useLibrary } from '../../../components/shelf';
-import { Chips, Cover, ErrorBox, Screen, SectionHead, useUi } from '../../../components/ui';
-import { useArticles, useAudiobook, useAudiobooks, useAudioQueue } from '../../../data';
+import { Cover, ErrorBox, Screen, useUi } from '../../../components/ui';
+import { useAudiobook, useAudiobooks, useAudioQueue } from '../../../data';
 import { percent } from '../../../format';
-import { ARTICLE_MODE, fandoms, find, hasStatus, hint, lists, sectionOf, STATUSES, title, vaultOrder, type Status } from '../../../shelves';
 import { listen } from '../../../play';
 import { current, usePlayer } from '../../../player';
 import { F, fs, useTheme } from '../../../theme';
@@ -63,60 +62,16 @@ export default function Audiobooks() {
   const t = current(player);
   const top = t?.kind === 'book' ? t.bookId : res.data?.[0]?.id;
   const ticked = (queue.data ?? []).filter((q) => q.kind === 'listening' || q.kind === 'tapped');
-  const calliope = find(lib.root, 'calliope');
-  const sections = calliope ? vaultOrder(calliope.children, lib.sections) : [];
-  const shelves = lib.root.children.filter((n) => n.path !== 'calliope');
-  const fanfic = fandoms(lib.items);
-  const named = lists(lib.items, lib.lists);
-  const articles = useArticles().data ?? [];
-  const count = (s: Status) => lib.items.filter((b) => b.lib === 'calliope' && hasStatus(b, s)).length;
   return (
     <Screen refreshing={lib.loading && !!lib.items.length} onRefresh={lib.refresh} gap={18}>
       <Text style={u.h1}>audiobooks</Text>
       {lib.error ? <ErrorBox error={lib.error} onRetry={lib.refresh} /> : null}
       {top ? <Current id={top} /> : null}
-      <RandomButton scope="all" lib={lib} />
-      <Chips items={STATUSES.map((s) => [s, `${title(`status:${s}`)} ${count(s)}`] as [string, string])} value="" onChange={(s) => openShelf(`status:${s}`)} />
+      <RandomButton scope="audio" lib={lib} mode="listen" />
       <View>
-        <ShelfLink label="ready to listen" sub="human voice and ares voice" n={lib.audio.size} onPress={() => openShelf('audio')} />
-        <ShelfLink label="the whole library" n={lib.items.length} onPress={() => openShelf('all')} />
+        <ShelfLink label="ready to listen" sub="human voice and ares voice" n={lib.audio.size} onPress={() => openShelf('audio', 'listen')} />
       </View>
-      {sections.length ? (
-        <View>
-          <SectionHead title="sections" />
-          {sections.map((n) => (
-            <ShelfLink key={n.path} label={title(`type:${n.path}`)} sub={sectionOf(n.path, lib.sections)?.summary} n={n.count} onPress={() => openShelf(`type:${n.path}`)} />
-          ))}
-        </View>
-      ) : null}
-      {shelves.length ? (
-        <View>
-          <SectionHead title="shelves" />
-          {shelves.map((n) => (
-            <ShelfLink key={n.path} label={n.name} sub={hint(n)} n={n.count} onPress={() => openShelf(`type:${n.path}`)} />
-          ))}
-        </View>
-      ) : null}
-      <View>
-        <SectionHead title="lists" />
-        {named.map((l) => (
-          <ShelfLink key={l.name} label={l.name} n={l.n} onPress={() => openShelf(`list:${l.name}`)} />
-        ))}
-      </View>
-      {fanfic.length ? (
-        <View>
-          <SectionHead title="fanfic" right="all" onPress={() => openShelf('fanfic')} />
-          {fanfic.map((f) => (
-            <ShelfLink key={f.name} label={f.name} n={f.n} onPress={() => openShelf(`fandom:${f.name}`)} />
-          ))}
-        </View>
-      ) : null}
-      {articles.length ? (
-        <View>
-          <SectionHead title="articles" right="random" onPress={() => openRandomArticle(articles)} />
-          <ShelfLink label="wallabag" sub={`${ARTICLE_MODE} · newest: ${articles[0].title}`} n={articles.length} onPress={() => openShelf('articles')} />
-        </View>
-      ) : null}
+      <Shelves lib={lib} mode="listen" />
       <Pressable onPress={() => router.push('/tonight')} style={({ pressed }) => [u.row, { borderRadius: 16, backgroundColor: c.panel, padding: 14, gap: 12, opacity: pressed ? 0.85 : 1 }]}>
         <Icon name="moon" size={22} color={c.accent} />
         <View style={{ flex: 1 }}>
@@ -125,6 +80,7 @@ export default function Audiobooks() {
         </View>
         <Text style={u.link}>pick</Text>
       </Pressable>
+      <Text style={u.muted}>every other book is in reading → library: read it there, or queue it for tonight from its page.</Text>
     </Screen>
   );
 }
