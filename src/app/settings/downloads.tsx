@@ -1,19 +1,18 @@
 import { Alert, Pressable, Text, View } from 'react-native';
 import { Icon } from '../../components/icon';
 import { BackBar, Button, Empty, Screen, useUi } from '../../components/ui';
-import { removeAll, removeGroup, totalBytes, useDownloads } from '../../downloads';
+import { fmtBytes as size, removeAll, removeGroup, totalBytes, useDownloads } from '../../downloads';
 import { F, fs, useTheme } from '../../theme';
-
-const size = (b: number) => (b > 1e9 ? `${(b / 1e9).toFixed(1)} GB` : `${Math.round(b / 1e6)} MB`);
 
 export default function Downloads() {
   const u = useUi();
   const { c } = useTheme();
   const dl = useDownloads();
-  const groups = new Map<string, { label: string; bytes: number; n: number }>();
+  const groups = new Map<string, { label: string; bytes: number; n: number; images: number }>();
   for (const s of Object.values(dl.saved)) {
-    const g = groups.get(s.group) ?? { label: s.label, bytes: 0, n: 0 };
-    groups.set(s.group, { ...g, bytes: g.bytes + s.bytes, n: g.n + 1 });
+    const g = groups.get(s.group) ?? { label: s.label, bytes: 0, n: 0, images: 0 };
+    const img = s.key.startsWith('i:');
+    groups.set(s.group, { ...g, bytes: g.bytes + s.bytes, n: g.n + (img ? 0 : 1), images: g.images + (img ? 1 : 0) });
   }
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
@@ -26,7 +25,7 @@ export default function Downloads() {
             <View style={{ flex: 1 }}>
               <Text style={{ fontFamily: F.sansBold, fontSize: fs(15), color: c.text }}>{x.label}</Text>
               <Text style={u.muted}>
-                {x.n} {x.n === 1 ? 'file' : 'files'} · {size(x.bytes)}
+                {g.startsWith('r:') && !x.label.endsWith('pdf pages') ? (x.images ? `with ${x.images} ${x.images === 1 ? 'image' : 'images'}` : 'text only') : `${x.n} ${x.n === 1 ? 'file' : 'files'}`} · {size(x.bytes)}
               </Text>
             </View>
             <Pressable accessibilityLabel={`remove ${x.label}`} onPress={() => removeGroup(g)} hitSlop={8}>

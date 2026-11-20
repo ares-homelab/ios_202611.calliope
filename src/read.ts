@@ -2,7 +2,7 @@ import { File } from 'expo-file-system';
 import { router } from 'expo-router';
 import { useSyncExternalStore } from 'react';
 import { api, authHeaders, type Lib, type ReadInfo } from './api';
-import { download, localFile, removeGroup } from './downloads';
+import { download, localFile, removeGroup, removeKeys } from './downloads';
 import { readJson, writeJson } from './files';
 import { perform } from './store';
 import { getPrefs } from './theme';
@@ -40,8 +40,11 @@ export function sendMark(m: Mark, info: ReadInfo | undefined) {
 export const offlineGroup = (lib: Lib, id: number) => `r:${lib}:${id}`;
 const pageKey = (lib: Lib, id: number, n: number) => `p:${lib}:${id}:${n}`;
 
-/** keeps the whole book text (or every pdf page) on the iphone, listed with the audio downloads */
-export async function saveOffline(info: ReadInfo) {
+const imageKey = (lib: Lib, id: number, src: string) => `i:${lib}:${id}:${src}`;
+export const imagePrefix = (lib: Lib, id: number) => `i:${lib}:${id}:`;
+
+/** keeps the whole book text (or every pdf page) on the iphone, listed with the audio downloads; images only when asked */
+export async function saveOffline(info: ReadInfo, images = false) {
   const group = offlineGroup(info.lib, info.id);
   const label = `${info.title} · ${info.format === 'pdf' ? 'pdf pages' : 'book text'}`;
   if (info.format === 'pdf') {
@@ -49,8 +52,33 @@ export async function saveOffline(info: ReadInfo) {
   } else {
     await download(group, api.readBookUrl(info.lib, info.id), 'json', group, label, authHeaders());
     offline.delete(group);
+    if (images) await saveImages(info.lib, info.id);
   }
 }
+
+/** every image of a saved book, so the reader shows them offline; returns how many couldn't be fetched */
+export async function saveImages(lib: Lib, id: number) {
+  const book = offlineBook(lib, id);
+  if (!book) return 0;
+  const srcs = new Set(book.chapters.flatMap((c) => (c.blocks ?? []).filter((b) => b.k === 'img' && b.src).map((b) => b.src!)));
+  let failed = 0;
+  for (const src of srcs) {
+    const ext = (src.split('.').pop() ?? '').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+    try {
+      await download(imageKey(lib, id, src), api.readImageUrl(lib, id, src), ext, offlineGroup(lib, id), `${book.title} · book text`, authHeaders());
+    } catch {
+      failed++;
+    }
+  }
+  return failed;
+}
+
+export const removeImages = (lib: Lib, id: number, keys: string[]) => removeKeys(keys.filter((k) => k.startsWith(imagePrefix(lib, id))));
+
+export const imageSource = (lib: Lib, id: number, src: string) => {
+  const local = localFile(imageKey(lib, id, src));
+  return local ? { uri: local } : { uri: api.readImageUrl(lib, id, src), headers: authHeaders() };
+};
 
 export const removeOffline = (lib: Lib, id: number) => {
   offline.delete(offlineGroup(lib, id));

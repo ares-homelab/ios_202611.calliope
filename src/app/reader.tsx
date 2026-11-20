@@ -2,7 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, AppState, FlatList, Modal, Pressable, ScrollView, Text, View, type ViewToken } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { api, authHeaders, type Lib, type Note, type ReadBlock, type ReadInfo } from '../api';
+import { api, type Lib, type Note, type ReadBlock, type ReadInfo } from '../api';
 import { Icon, type IconName } from '../components/icon';
 import { PdfPages } from '../components/pdf';
 import { NoteSheet, ReaderPanel, TextBlock, useReaderTint, type Tint } from '../components/reader';
@@ -11,7 +11,7 @@ import { useAudiobooks } from '../data';
 import { useDownloads } from '../downloads';
 import { readJson, writeJson } from '../files';
 import { playBook } from '../play';
-import { markOf, offlineBook, saveMark, sendMark, setOpenReader, type At, type Mark } from '../read';
+import { imageSource, markOf, offlineBook, saveMark, sendMark, setOpenReader, type At, type Mark } from '../read';
 import { useResource } from '../store';
 import { F, fs, LINE, usePrefs } from '../theme';
 
@@ -259,7 +259,7 @@ function Flow({ info, saved, k, size, line, start, onMark }: { info: ReadInfo; s
     if (top?.item?.b) seen.current({ doc: top.item.n, block: top.item.i, x: top.item.b.x, s: top.item.b.s });
   });
 
-  const image = (src?: string | null) => (src ? { uri: api.readImageUrl(info.lib, info.id, src), headers: authHeaders() } : undefined);
+  const image = (src?: string | null) => (src ? imageSource(info.lib, info.id, src) : undefined);
   if (!items.length)
     return (
       <View style={{ flex: 1, padding: 24 }}>

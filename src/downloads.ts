@@ -55,6 +55,20 @@ export function removeGroup(group: string) {
   emit();
 }
 
+export function removeKeys(keys: string[]) {
+  const next = { ...saved };
+  for (const k of keys) {
+    const s = saved[k];
+    if (!s) continue;
+    try {
+      new File(dir, s.name).delete();
+    } catch {}
+    delete next[k];
+  }
+  saved = next;
+  emit();
+}
+
 export function removeAll() {
   if (dir.exists) dir.delete();
   saved = {};
@@ -78,3 +92,5 @@ export const groupState = (s: typeof snap, group: string, keys: string[]) => {
 };
 
 export const totalBytes = (s: typeof snap) => Object.values(s.saved).reduce((a, x) => a + x.bytes, 0);
+
+export const fmtBytes = (b: number) => (b > 1e9 ? `${(b / 1e9).toFixed(1)} GB` : b >= 1e6 ? `${Math.round(b / 1e6)} MB` : `${Math.max(1, Math.round(b / 1e3))} KB`);
