@@ -31,13 +31,12 @@ function Interpretation({ text }: { text: string }) {
     <View style={{ width: '100%', gap: 8, marginTop: 14 }}>
       <Text
         style={{
-          fontFamily: F.heavy,
-          fontSize: 11,
-          letterSpacing: 0.7,
+          fontFamily: F.sansBold,
+          fontSize: fs(12),
           color: c.muted,
         }}
       >
-        YOUR READING
+        your reading
       </Text>
       {text
         .split('\n')

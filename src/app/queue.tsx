@@ -13,7 +13,7 @@ export default function Queue() {
   const t = current(s);
   const book = t?.kind === 'book';
   const rest = s.queue.map((x, i) => ({ x, i })).slice(s.index + 1);
-  const eyebrow = { fontFamily: F.heavy, fontSize: 12, letterSpacing: 0.7, color: c.muted, marginTop: 8 };
+  const eyebrow = { fontFamily: F.sansBold, fontSize: fs(12), color: c.muted, marginTop: 8 };
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingTop: 12 }}>
@@ -28,7 +28,7 @@ export default function Queue() {
       <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40, gap: 6 }}>
         {t ? (
           <>
-            <Text style={eyebrow}>NOW PLAYING</Text>
+            <Text style={eyebrow}>now playing</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 6 }}>
               <TrackArt t={t} size={48} />
               <View style={{ flex: 1 }}>
@@ -42,7 +42,7 @@ export default function Queue() {
             </View>
           </>
         ) : null}
-        {rest.length ? <Text style={eyebrow}>{book ? 'NEXT IN THIS BOOK' : s.label ? `NEXT FROM ${s.label.toUpperCase()}` : 'NEXT'}</Text> : null}
+        {rest.length ? <Text style={eyebrow}>{book ? 'next in this book' : s.label ? `next from ${s.label}` : 'next'}</Text> : null}
         {rest.map(({ x, i }) => (
           <Pressable accessibilityRole="button" key={`${x.key}-${i}`} onPress={() => jump(i)} style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 6, opacity: pressed ? 0.6 : 1 })}>
             {book ? null : <TrackArt t={x} size={44} />}

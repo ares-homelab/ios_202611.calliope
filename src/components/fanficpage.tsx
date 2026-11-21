@@ -46,20 +46,20 @@ export function FanficPage({ id }: { id: number }) {
         <View style={{ flexDirection: 'row', gap: 18, alignItems: 'flex-end' }}>
           <Cover id={id} lib="fanfic" title={b.title} author={b.authors[0]} hasCover={b.has_cover ?? false} width={118} height={177} shadow />
           <View style={{ flex: 1, gap: 6, paddingBottom: 4 }}>
-            <Text style={{ fontFamily: F.serifBold, fontSize: fs(26), lineHeight: fs(29), color: c.text }}>{b.title}</Text>
+            <Text accessibilityRole="header" style={{ fontFamily: F.serifBold, fontSize: fs(26), lineHeight: fs(29), color: c.text }}>{b.title}</Text>
             <Text style={[u.soft, { fontSize: fs(14) }]}>{authors(b.authors)}</Text>
             <Text style={u.muted}>{['fanfic', b.fandom, b.series ? `${b.series}${b.series_index ? ` ${b.series_index}` : ''}` : null].filter(Boolean).join(' · ')}</Text>
           </View>
         </View>
         <ReadActions lib="fanfic" id={id} title={b.title} formats={res.data?.formats ?? ['epub']} />
         <View style={{ gap: 10 }}>
-          <Eyebrow>status</Eyebrow>
+          <Eyebrow header>status</Eyebrow>
           <Segmented strong value={status} onChange={setStatus} options={WORKFLOWS.map((w) => ({ value: w, label: w.toLowerCase() }))} />
           <Text style={u.muted}>{busy ? 'saving…' : 'saved to the fanfic library on ares'}</Text>
         </View>
         {about ? (
-          <Pressable accessibilityRole="button" onPress={() => setMore(!more)} style={{ gap: 10 }}>
-            <Eyebrow>summary</Eyebrow>
+          <Pressable accessibilityRole="button" accessibilityState={{ expanded: more }} accessibilityHint={more ? 'shows less' : 'shows the whole summary'} onPress={() => setMore(!more)} style={{ gap: 10 }}>
+            <Eyebrow header>summary</Eyebrow>
             <Text style={[u.soft, { fontSize: fs(14), lineHeight: fs(21) }]} numberOfLines={more ? undefined : 8}>
               {about}
             </Text>

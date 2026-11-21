@@ -5,7 +5,6 @@ import { Inter_500Medium_Italic } from '@expo-google-fonts/inter/500Medium_Itali
 import { Inter_600SemiBold } from '@expo-google-fonts/inter/600SemiBold';
 import { Inter_700Bold } from '@expo-google-fonts/inter/700Bold';
 import { Inter_700Bold_Italic } from '@expo-google-fonts/inter/700Bold_Italic';
-import { Inter_800ExtraBold } from '@expo-google-fonts/inter/800ExtraBold';
 import { useFonts } from 'expo-font';
 import * as Updates from 'expo-updates';
 import { router, Stack } from 'expo-router';
@@ -26,7 +25,7 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
   const { c, scheme } = useTheme();
-  const [loaded] = useFonts({ Inter_400Regular, Inter_400Regular_Italic, Inter_500Medium, Inter_500Medium_Italic, Inter_600SemiBold, Inter_700Bold, Inter_700Bold_Italic, Inter_800ExtraBold });
+  const [loaded] = useFonts({ Inter_400Regular, Inter_400Regular_Italic, Inter_500Medium, Inter_500Medium_Italic, Inter_600SemiBold, Inter_700Bold, Inter_700Bold_Italic });
   useEffect(() => {
     SystemUI.setBackgroundColorAsync(c.bg).catch(() => {});
   }, [c.bg]);

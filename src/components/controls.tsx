@@ -12,14 +12,20 @@ export const mmss = (s: number) => {
   return h ? `${h}:${String(m).padStart(2, '0')}:${sec}` : `${m}:${sec}`;
 };
 
-/** a bar you tap or drag; reports the share 0..1 on release */
-export function Scrubber({ value, onSeek, color, track, height = 6 }: { value: number; onSeek: (share: number) => void; color: string; track: string; height?: number }) {
+/** a bar you tap or drag; reports the share 0..1 on release. VoiceOver swipes it up and down by `step` */
+export function Scrubber({ value, onSeek, color, track, height = 6, label, valueText, step = 0.05 }: { value: number; onSeek: (share: number) => void; color: string; track: string; height?: number; label: string; valueText?: string; step?: number }) {
   const width = useRef(1);
   const [drag, setDrag] = useState<number | null>(null);
   const share = (x: number) => Math.max(0, Math.min(1, x / width.current));
   const v = drag ?? value;
   return (
     <View
+      accessible
+      accessibilityRole="adjustable"
+      accessibilityLabel={label}
+      accessibilityValue={{ text: valueText ?? `${Math.round(v * 100)}%` }}
+      accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
+      onAccessibilityAction={(e) => onSeek(Math.max(0, Math.min(1, value + (e.nativeEvent.actionName === 'increment' ? step : -step))))}
       onLayout={(e) => (width.current = e.nativeEvent.layout.width || 1)}
       onStartShouldSetResponder={() => true}
       onMoveShouldSetResponder={() => true}
@@ -67,7 +73,7 @@ export function SleepButton({ sleep, book, color, active }: { sleep: Sleep; book
   const { c } = useTheme();
   const label = sleepLabel(sleep);
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel="sleep timer" onPress={() => pickSleep(book)} style={{ height: 44, minWidth: 44, flexDirection: 'row', gap: 4, alignItems: 'center', justifyContent: 'center' }}>
+    <Pressable accessibilityRole="button" accessibilityLabel={label ? `sleep timer, ${label}` : 'sleep timer, off'} onPress={() => pickSleep(book)} style={{ height: 44, minWidth: 44, flexDirection: 'row', gap: 4, alignItems: 'center', justifyContent: 'center' }}>
       <Icon name="moon" size={22} color={label ? active : color} />
       {label ? <Text style={{ fontFamily: F.sansBold, fontSize: 11, color: label ? active : c.muted }}>{label}</Text> : null}
     </Pressable>

@@ -9,7 +9,7 @@ import { openAlbum, openArtist, SongRow } from '../../../components/music';
 import { StatsBody } from '../../../components/reading/stats';
 import { Chips, Cover, Empty, Screen, SectionHead, useUi } from '../../../components/ui';
 import { useAudiobooks, useBooks, usePaths } from '../../../data';
-import { statusOf } from '../../../format';
+import { count, statusOf } from '../../../format';
 import { nd } from '../../../navidrome';
 import { playSongs } from '../../../play';
 import { F, fs, useTheme } from '../../../theme';
@@ -80,7 +80,7 @@ export default function Search() {
 
   return (
     <Screen gap={14}>
-      <Text style={u.h1}>search</Text>
+      <Text accessibilityRole="header" style={u.h1}>search</Text>
       <View style={[u.row, { gap: 10, height: 46, paddingHorizontal: 14, backgroundColor: c.panel, borderRadius: 12 }]}>
         <Icon name="search" size={18} color={c.muted} />
         <TextInput
@@ -103,7 +103,7 @@ export default function Search() {
             <View>
               <SectionHead title="artists" />
               {music.artist.map((a) => (
-                <Row key={a.id} title={a.name} sub={`${a.albumCount ?? 0} albums`} left={<Art id={a.coverArt} seed={a.id} size={44} radius={22} />} onPress={() => openArtist(a.id)} />
+                <Row key={a.id} title={a.name} sub={count(a.albumCount, 'album')} left={<Art id={a.coverArt} seed={a.id} size={44} radius={22} />} onPress={() => openArtist(a.id)} />
               ))}
             </View>
           ) : null}

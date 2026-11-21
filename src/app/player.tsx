@@ -151,10 +151,10 @@ function BookPlayer({ t }: { t: Track }) {
             {t.title} · {t.artist}
           </Text>
         </View>
-        <Pressable accessibilityRole="button" accessibilityLabel="read from here" onPress={() => readFromHere(t)} style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' }}>
+        <Pressable accessibilityRole="button" accessibilityLabel="read from here" onPress={() => readFromHere(t)} hitSlop={2} style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' }}>
           <Icon name="book" size={21} color={k.text} />
         </Pressable>
-        <Pressable accessibilityRole="button" accessibilityLabel="reading settings" onPress={() => setPanel(!panel)} style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: panel ? k.chip : undefined }}>
+        <Pressable accessibilityRole="button" accessibilityLabel="reading settings" accessibilityState={{ expanded: panel }} onPress={() => setPanel(!panel)} hitSlop={2} style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: panel ? k.chip : undefined }}>
           <Text style={{ fontFamily: F.sans, fontSize: 17, color: k.text }}>Aa</Text>
         </Pressable>
       </View>
@@ -210,10 +210,10 @@ function BookPlayer({ t }: { t: Track }) {
         <Text style={{ fontFamily: F.sans, fontSize: 12, color: k.muted }}>
           {text.data?.exact === false ? 'text matched roughly to this recording · ' : ''}kindle follows as you listen
         </Text>
-        <Scrubber value={s.duration ? s.time / s.duration : 0} onSeek={(x) => seek(x * s.duration)} color={k.text} track={k.track} height={4} />
+        <Scrubber value={s.duration ? s.time / s.duration : 0} onSeek={(x) => seek(x * s.duration)} color={k.text} track={k.track} height={4} label="position" valueText={`${mmss(s.time)} of ${mmss(s.duration)}`} step={s.duration ? 30 / s.duration : 0.05} />
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: -6 }}>
-          <Text style={{ fontFamily: F.sans, fontSize: 12, color: k.muted }}>{mmss(s.time)}</Text>
-          <Text style={{ fontFamily: F.sans, fontSize: 12, color: k.muted }}>-{mmss(s.duration - s.time)}</Text>
+          <Text style={{ fontFamily: F.sans, fontSize: 12, color: k.muted, fontVariant: ['tabular-nums'] }}>{mmss(s.time)}</Text>
+          <Text style={{ fontFamily: F.sans, fontSize: 12, color: k.muted, fontVariant: ['tabular-nums'] }}>-{mmss(s.duration - s.time)}</Text>
         </View>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <RateButton rate={s.rate} color={k.muted} />
@@ -253,7 +253,7 @@ function MusicPlayer({ t }: { t: Track }) {
   const vol = getVolume();
   return (
     <View style={{ flex: 1, backgroundColor: k.bg, paddingHorizontal: 28, paddingTop: 10, paddingBottom: inset.bottom + 10, gap: 20 }}>
-      <Pressable accessibilityRole="button" onPress={() => router.back()} accessibilityLabel="close" style={{ alignItems: 'center', paddingVertical: 6 }}>
+      <Pressable accessibilityRole="button" onPress={() => router.back()} accessibilityLabel="close" hitSlop={{ top: 12, bottom: 12 }} style={{ alignItems: 'center', paddingVertical: 6 }}>
         <View style={{ width: 40, height: 5, borderRadius: 3, backgroundColor: k.track }} />
       </Pressable>
       <View style={{ alignItems: 'center', flex: 1, justifyContent: 'center' }}>
@@ -268,18 +268,18 @@ function MusicPlayer({ t }: { t: Track }) {
             {t.artist}
           </Text>
         </View>
-        <Pressable accessibilityRole="button" accessibilityLabel={fav ? 'remove from favorites' : 'favorite'} onPress={star} style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: k.chip, alignItems: 'center', justifyContent: 'center' }}>
+        <Pressable accessibilityRole="button" accessibilityLabel={fav ? 'remove from favorites' : 'favorite'} onPress={star} hitSlop={4} style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: k.chip, alignItems: 'center', justifyContent: 'center' }}>
           <Icon name="heart" size={18} color={fav ? c.accent : k.text} filled={fav} />
         </Pressable>
-        <Pressable accessibilityRole="button" accessibilityLabel="more" onPress={more} style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: k.chip, alignItems: 'center', justifyContent: 'center' }}>
+        <Pressable accessibilityRole="button" accessibilityLabel="more" onPress={more} hitSlop={4} style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: k.chip, alignItems: 'center', justifyContent: 'center' }}>
           <Icon name="more" size={18} color={k.text} />
         </Pressable>
       </View>
       <View>
-        <Scrubber value={s.duration ? s.time / s.duration : 0} onSeek={(x) => seek(x * s.duration)} color={k.text} track={k.track} />
+        <Scrubber value={s.duration ? s.time / s.duration : 0} onSeek={(x) => seek(x * s.duration)} color={k.text} track={k.track} label="position" valueText={`${mmss(s.time)} of ${mmss(s.duration)}`} step={s.duration ? 10 / s.duration : 0.05} />
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: -4 }}>
-          <Text style={{ fontFamily: F.sans, fontSize: 12, color: k.muted }}>{mmss(s.time)}</Text>
-          <Text style={{ fontFamily: F.sans, fontSize: 12, color: k.muted }}>-{mmss(s.duration - s.time)}</Text>
+          <Text style={{ fontFamily: F.sans, fontSize: 12, color: k.muted, fontVariant: ['tabular-nums'] }}>{mmss(s.time)}</Text>
+          <Text style={{ fontFamily: F.sans, fontSize: 12, color: k.muted, fontVariant: ['tabular-nums'] }}>-{mmss(s.duration - s.time)}</Text>
         </View>
       </View>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20 }}>
@@ -290,13 +290,13 @@ function MusicPlayer({ t }: { t: Track }) {
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
         <Icon name="volLow" size={16} color={k.muted} />
         <View style={{ flex: 1 }}>
-          <Scrubber value={vol} onSeek={setVolume} color={k.muted} track={k.track} />
+          <Scrubber value={vol} onSeek={setVolume} color={k.muted} track={k.track} label="volume" step={0.1} />
         </View>
         <Icon name="volHigh" size={16} color={k.muted} />
       </View>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         <Btn name="lyrics" label="lyrics" onPress={() => router.push('/lyrics')} color={k.muted} size={22} />
-        <Pressable accessibilityRole="button" accessibilityLabel={s.smart ? 'smart shuffle on' : 'smart shuffle off'} onPress={() => setSmart(!s.smart)} style={{ flexDirection: 'row', gap: 6, alignItems: 'center', height: 44 }}>
+        <Pressable accessibilityRole="switch" accessibilityLabel="smart shuffle" accessibilityState={{ checked: s.smart }} onPress={() => setSmart(!s.smart)} style={{ flexDirection: 'row', gap: 6, alignItems: 'center', height: 44, paddingHorizontal: 12, borderRadius: 22, backgroundColor: s.smart ? k.chip : undefined }}>
           <Icon name="sparkle" size={22} color={s.smart ? c.accent : k.muted} />
           <Text style={{ fontFamily: F.heavy, fontSize: 13, color: s.smart ? c.accent : k.muted }}>smart shuffle</Text>
         </Pressable>

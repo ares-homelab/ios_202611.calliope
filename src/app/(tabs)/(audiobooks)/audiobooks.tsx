@@ -64,7 +64,7 @@ export default function Audiobooks() {
   const ticked = (queue.data ?? []).filter((q) => q.kind === 'listening' || q.kind === 'tapped');
   return (
     <Screen refreshing={lib.loading && !!lib.items.length} onRefresh={lib.refresh} gap={18}>
-      <Text style={u.h1}>audiobooks</Text>
+      <Text accessibilityRole="header" style={u.h1}>audiobooks</Text>
       {lib.error ? <ErrorBox error={lib.error} onRetry={lib.refresh} /> : null}
       {top ? <Current id={top} /> : null}
       <RandomButton scope="audio" lib={lib} mode="listen" />

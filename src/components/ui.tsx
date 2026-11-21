@@ -15,18 +15,18 @@ const make = (c: Colors) => ({
   body: { fontFamily: F.sans, fontSize: fs(14), lineHeight: fs(20), color: c.text },
   soft: { fontFamily: F.sans, fontSize: fs(13), lineHeight: fs(18), color: c.soft },
   muted: { fontFamily: F.sans, fontSize: fs(12), lineHeight: fs(16), color: c.muted },
-  eyebrow: { fontFamily: F.sans, fontSize: fs(11), letterSpacing: 1.2, color: c.muted },
+  eyebrow: { fontFamily: F.sansBold, fontSize: fs(12), color: c.muted },
   link: { fontFamily: F.sans, fontSize: fs(13), color: c.link },
   panel: { backgroundColor: c.panel, borderRadius: S.card, padding: S.card },
   tile: { flex: 1, backgroundColor: c.panel, borderRadius: S.radius, paddingVertical: 14, paddingHorizontal: 12, gap: 4 },
   tileValue: { fontFamily: F.black, fontSize: fs(22), lineHeight: fs(26), color: c.text },
   seg: { flexDirection: 'row' as const, backgroundColor: c.panel, borderRadius: 12, padding: 4, gap: 4 },
-  segItem: { flex: 1, height: 38, borderRadius: 9, alignItems: 'center' as const, justifyContent: 'center' as const, flexDirection: 'row' as const, gap: 6 },
+  segItem: { flex: 1, minHeight: 38, borderRadius: 9, alignItems: 'center' as const, justifyContent: 'center' as const, flexDirection: 'row' as const, gap: 6 },
   segText: { fontFamily: F.sansMedium, fontSize: fs(14), color: c.muted },
   chip: { backgroundColor: c.raised, borderRadius: 14, paddingVertical: 6, paddingHorizontal: 12 },
   pill: { borderRadius: 10, borderWidth: 1, paddingVertical: 3, paddingHorizontal: 8 },
   error: { backgroundColor: c.warnBg, borderColor: c.warnLine, borderWidth: 1, borderRadius: S.radius, padding: 14, gap: 10 },
-  button: { height: 44, borderRadius: 12, alignItems: 'center' as const, justifyContent: 'center' as const, flexDirection: 'row' as const, gap: 10, paddingHorizontal: 16 },
+  button: { minHeight: 44, borderRadius: 12, alignItems: 'center' as const, justifyContent: 'center' as const, flexDirection: 'row' as const, gap: 10, paddingHorizontal: 16 },
   line: { borderBottomWidth: 1, borderBottomColor: c.line },
   row: { flexDirection: 'row' as const, alignItems: 'center' as const },
 });
@@ -65,7 +65,7 @@ export function TitleRow({ title, right, sub }: { title: string; right?: ReactNo
   return (
     <View style={{ gap: 6 }}>
       <View style={[u.row, { justifyContent: 'space-between', alignItems: 'flex-end' }]}>
-        <Text style={u.h1}>{title}</Text>
+        <Text accessibilityRole="header" style={u.h1}>{title}</Text>
         {right}
       </View>
       {sub ? <Text style={[u.soft, { color: c.muted }]}>{sub}</Text> : null}
@@ -85,14 +85,15 @@ export function Chips<T extends string>({ items, value, onChange }: { items: (T 
 }
 
 export function Avatar({ size = 38 }: { size?: number }) {
+  const { c } = useTheme();
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel="profile and settings"
+      accessibilityLabel="account"
       onPress={() => router.push('/settings')}
-      style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: '#5E4A7A', alignItems: 'center', justifyContent: 'center' }}
+      style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: c.accent, alignItems: 'center', justifyContent: 'center' }}
     >
-      <Text style={{ fontFamily: F.heavy, fontSize: size * 0.42, color: '#FFFFFF' }}>m</Text>
+      <Text style={{ fontFamily: F.heavy, fontSize: size * 0.42, color: c.onAccent }}>m</Text>
     </Pressable>
   );
 }
@@ -101,7 +102,7 @@ export function SectionHead({ title, right, onPress }: { title: string; right?: 
   const u = useUi();
   return (
     <View style={[u.row, { justifyContent: 'space-between', alignItems: 'baseline' }]}>
-      <Text style={u.h2}>{title}</Text>
+      <Text accessibilityRole="header" style={u.h2}>{title}</Text>
       {right ? (
         <Pressable onPress={onPress} hitSlop={12} accessibilityRole="button">
           <Text style={u.link}>{right}</Text>
@@ -118,7 +119,7 @@ export function BackBar({ label, right }: { label: string; right?: ReactNode }) 
     <View style={{ paddingTop: inset.top + 6, paddingHorizontal: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: c.bg }}>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={label ? `back to ${label}` : 'back'}
+        accessibilityLabel={label && label !== 'back' ? `back to ${label}` : 'back'}
         onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
         hitSlop={8}
         style={{ height: 44, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 4 }}
@@ -146,9 +147,13 @@ export function IconButton({ name, onPress, color, round, label }: { name: IconN
   );
 }
 
-export const Eyebrow = ({ children, style }: { children: ReactNode; style?: StyleProp<TextStyle> }) => {
+export const Eyebrow = ({ children, style, header }: { children: ReactNode; style?: StyleProp<TextStyle>; header?: boolean }) => {
   const u = useUi();
-  return <Text style={[u.eyebrow, style]}>{typeof children === 'string' ? children.toUpperCase() : children}</Text>;
+  return (
+    <Text accessibilityRole={header ? 'header' : undefined} style={[u.eyebrow, style]}>
+      {children}
+    </Text>
+  );
 };
 
 export function Tile({ value, label, size = 28 }: { value: string; label: string; size?: number }) {
@@ -234,7 +239,7 @@ export function Chip({ label, on, onPress }: { label: string; on?: boolean; onPr
       onPress={onPress}
       hitSlop={{ top: 5, bottom: 5 }}
       style={{
-        height: 34,
+        minHeight: 34,
         paddingHorizontal: 14,
         borderRadius: 17,
         justifyContent: 'center',
@@ -283,15 +288,16 @@ export function Button({ label, onPress, icon, kind = 'primary', busy, style }: 
       accessibilityState={{ busy: !!busy, disabled: !!busy }}
       disabled={busy}
       onPress={onPress}
+      hitSlop={kind === 'outline' ? 4 : undefined}
       style={({ pressed }) => [
         u.button,
         { backgroundColor: bg, opacity: busy ? 0.6 : pressed ? 0.85 : 1 },
-        kind === 'outline' && { borderWidth: 1, borderColor: c.trackOn, height: 36, borderRadius: 18, paddingHorizontal: 14 },
+        kind === 'outline' && { borderWidth: 1, borderColor: c.trackOn, minHeight: 36, borderRadius: 18, paddingHorizontal: 14 },
         style,
       ]}
     >
       {icon ? <Icon name={icon} size={20} color={fg} width={1.9} /> : null}
-      <Text style={{ fontFamily: kind === 'outline' ? F.sansMedium : F.sansBold, fontSize: kind === 'outline' ? 13 : 14, color: fg }}>{busy ? '…' : label}</Text>
+      <Text style={{ fontFamily: kind === 'outline' ? F.sansMedium : F.sansBold, fontSize: fs(kind === 'outline' ? 13 : 14), color: fg }}>{busy ? '…' : label}</Text>
     </Pressable>
   );
 }
@@ -345,6 +351,8 @@ export function Cover({
   const bg = coverColor(title);
   const lightCover = bg === '#E6DCC4';
   const small = width < 80;
+  const longest = Math.max(...title.split(/\s+/).map((w) => w.length));
+  const titleSize = Math.min(width > 120 ? 19 : 17, Math.floor((width - 24) / (longest * 0.58)));
   return (
     <View
       style={[
@@ -352,9 +360,9 @@ export function Cover({
         shadow && { shadowColor: '#000', shadowOpacity: 0.45, shadowRadius: 15, shadowOffset: { width: 0, height: 10 } },
       ]}
     >
-      {!plain && !small ? (
+      {!plain && !small && titleSize >= 12 ? (
         <View style={{ flex: 1, paddingVertical: 14, paddingHorizontal: 12, justifyContent: 'space-between' }}>
-          <Text style={{ fontFamily: F.serif, fontSize: width > 120 ? 19 : 17, lineHeight: width > 120 ? 21 : 18, color: lightCover ? '#2A251B' : '#F1EBDC' }} numberOfLines={5}>
+          <Text style={{ fontFamily: F.serif, fontSize: titleSize, lineHeight: Math.round(titleSize * 1.1), color: lightCover ? '#2A251B' : '#F1EBDC' }} numberOfLines={5}>
             {title}
           </Text>
           {author ? (
@@ -404,7 +412,7 @@ export function Group({ label, children }: { label: string; children: ReactNode 
   const { c } = useTheme();
   return (
     <View style={{ gap: 8 }}>
-      <Text style={{ marginHorizontal: 4, marginTop: 8, fontFamily: F.sansBold, fontSize: fs(12), letterSpacing: 1, color: c.muted }}>{label.toUpperCase()}</Text>
+      <Text accessibilityRole="header" style={{ marginHorizontal: 4, marginTop: 8, fontFamily: F.sansBold, fontSize: fs(12), color: c.muted }}>{label}</Text>
       <View style={{ backgroundColor: c.panel, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 4 }}>{children}</View>
     </View>
   );

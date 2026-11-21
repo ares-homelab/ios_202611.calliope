@@ -28,6 +28,7 @@ const Chip = ({ label, on, onPress, k, dot }: { label: string; on: boolean; onPr
     accessibilityRole="button"
     onPress={onPress}
     accessibilityState={{ selected: on }}
+    hitSlop={{ top: 5, bottom: 5 }}
     style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, height: 34, borderRadius: 17, backgroundColor: on ? k.text : k.chip }}
   >
     {dot ? <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: dot }} /> : null}
@@ -37,7 +38,7 @@ const Chip = ({ label, on, onPress, k, dot }: { label: string; on: boolean; onPr
 
 const Row = ({ label, k, children }: { label: string; k: Tint; children: React.ReactNode }) => (
   <View style={{ gap: 8 }}>
-    <Text style={{ fontFamily: F.heavy, fontSize: 11, letterSpacing: 0.7, color: k.muted }}>{label}</Text>
+    <Text style={{ fontFamily: F.sansBold, fontSize: fs(12), color: k.muted }}>{label}</Text>
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>{children}</View>
   </View>
 );
@@ -49,8 +50,10 @@ export function ReaderPanel({ k }: { k: Tint }) {
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={d < 0 ? 'smaller text' : 'bigger text'}
+      accessibilityState={{ disabled: off }}
       disabled={off}
       onPress={() => size(d)}
+      hitSlop={{ top: 2, bottom: 2 }}
       style={{ width: 52, height: 40, borderRadius: 20, backgroundColor: k.chip, alignItems: 'center', justifyContent: 'center', opacity: off ? 0.35 : 1 }}
     >
       <Text style={{ fontFamily: F.heavy, fontSize: d < 0 ? 14 : 20, color: k.text }}>{label}</Text>
@@ -58,17 +61,17 @@ export function ReaderPanel({ k }: { k: Tint }) {
   );
   return (
     <View style={{ marginHorizontal: 14, marginBottom: 10, padding: 14, gap: 14, borderRadius: 18, backgroundColor: k.page }}>
-      <Row label="SIZE" k={k}>
+      <Row label="size" k={k}>
         {step('A−', -1, r.size <= READER_SIZE.min)}
         <Text style={{ fontFamily: F.sansBold, fontSize: 15, color: k.text, minWidth: 28, textAlign: 'center' }}>{r.size}</Text>
         {step('A+', 1, r.size >= READER_SIZE.max)}
       </Row>
-      <Row label="LINE SPACING" k={k}>
+      <Row label="line spacing" k={k}>
         {(['tight', 'normal', 'loose'] as Spacing[]).map((x) => (
           <Chip key={x} label={x} on={r.spacing === x} onPress={() => setReader({ spacing: x })} k={k} />
         ))}
       </Row>
-      <Row label="PAGE" k={k}>
+      <Row label="page" k={k}>
         {PAGES.map((x) => {
           const dot = x === 'aegean' ? COLORS.dark.accent : x === 'dark' ? '#0D0D0F' : undefined;
           return <Chip key={x} label={x} on={r.page === x} onPress={() => setReader({ page: x })} k={k} dot={dot} />;
@@ -115,11 +118,11 @@ export function NoteSheet({ note, k, size, line, onClose }: { note: Note | null;
     <Modal visible={!!note} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable accessibilityRole="button" accessibilityLabel="close the note" onPress={onClose} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' }}>
         <Pressable onPress={() => {}} style={{ maxHeight: '60%', margin: 12, marginBottom: inset.bottom + 12, borderRadius: 18, backgroundColor: k.page, padding: 18, gap: 10 }}>
-          <Text style={{ fontFamily: F.heavy, fontSize: 11, letterSpacing: 0.7, color: k.muted }}>NOTE</Text>
+          <Text style={{ fontFamily: F.sansBold, fontSize: fs(12), color: k.muted }}>note</Text>
           <ScrollView>
             <Text style={{ fontFamily: F.sans, fontSize: size * 0.9, lineHeight: line * 0.9, color: k.ink }}>{note?.r?.length ? <Runs r={note.r} base={F.sans} size={size * 0.9} k={k} /> : note?.t}</Text>
           </ScrollView>
-          <Pressable accessibilityRole="button" onPress={onClose} hitSlop={8} style={{ alignSelf: 'flex-end' }}>
+          <Pressable accessibilityRole="button" onPress={onClose} style={{ alignSelf: 'flex-end', minHeight: 44, minWidth: 44, alignItems: 'flex-end', justifyContent: 'center' }}>
             <Text style={{ fontFamily: F.sansBold, fontSize: fs(14), color: k.text }}>close</Text>
           </Pressable>
         </Pressable>
