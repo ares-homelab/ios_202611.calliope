@@ -76,3 +76,64 @@ changes:
 suggestions (not done): the cover drawings are the one place for a richer moment, for example a thin rule and the series number like a real spine label; the "your november so far" card could show the month as a small bar of reading vs listening instead of three numbers in a row.
 
 checks: `npx tsc --noEmit`, `npx eslint src --max-warnings 0` and `npx expo export --platform ios` pass (they also passed on origin/main before the changes). No native change, so no version bump; nothing was published.
+
+---
+
+## tapa de ux audit (real skill, 20/11)
+
+rules: tapa-de-ux-en (the copy is all English, so the pt-BR skill wasn't needed). code only: the 20/11 sweep branch, every screen in `src/app/`, `src/components/`, `theme.ts` and `format.ts`. no new live pass; no device. project identity wins: lowercase everywhere (the sentence-case rule and its capitals don't apply) and the aegean palette.
+
+topics reviewed, in the table's order: hierarchy, typography, accessibility, color, buttons and actions, forms, states, ux writing, navigation, psychology. none was skipped; forms covers the connection screen and the search, filter and note fields.
+
+### rule findings the sweep didn't cover
+
+blocks use
+1. **one style per role / every control says what it is**: no text was marked as a heading, so VoiceOver's headings rotor found nothing. **fixed**: screen titles, section heads, settings groups, the book and fanfic titles, the book page's section labels, stats card titles and the chapters sheet title carry the heading trait.
+2. **every control says what it is**: the position and volume bars in the player (`Scrubber`) had no name, role or value; VoiceOver couldn't find or move them. **fixed**: adjustable, named "position" (reads "12:04 of 41:30", swipes 30 s in books and 10 s in songs) and "volume".
+3. **touch target**: the music player's heart and more (36pt), its close handle (17pt tall, below Apple's 28pt floor) and the readalong header's two buttons (40pt). **fixed**: `hitSlop` to 44 and more, look unchanged.
+4. **label always visible / every control says what it is**: the connection fields, wanted filter, tonight search, highlight search and readalong note had no name for VoiceOver (it read the placeholder or nothing). **fixed**.
+
+confuses
+5. **text grows without breaking**: `Button`, `Chip` and `Segmented` had fixed heights, which cut text at large Dynamic Type sizes. **fixed**: minimum heights; same look at the default size. The outline button (36pt) also gets `hitSlop` to 44.
+6. **you are here / never color alone**: the active tab differed only by colour. **fixed**: heavier name and icon stroke. Smart shuffle on/off was colour only. **fixed**: a switch for VoiceOver and a tinted pill when on.
+7. **every action responds (a disabled button says what's missing)**: in connections, "save" with no token and "sign in" with no password showed "…", as if loading. **fixed**: both stay active and say which field is empty.
+8. **the right keyboard and autofill**: addresses open the url keyboard; user and password tell the phone what they are, so the password manager can fill them. **fixed**.
+9. **every control says what it is (state)**: on/off settings ("new yorker on mondays", "audiobook ready") are announced as switches with their state; "about"/"summary" say expanded or collapsed; the Aa button says whether the panel is open; the sleep timer says its time left; each day of the week chart reads its reading and listening time.
+
+finish
+10. **one format for each kind of data**: plurals were fixed strings ("1 books", "1 songs", "1 chapters voiced"), and stats wrote durations as "1 h 5 min" / "12.3 h" while the rest of the app writes "1h 05m". **fixed**: `count()` in `format.ts` and the shared `hm` format in stats.
+11. **missing data is not zero**: favourites, playlist and artist counts and recap plays showed "0 songs" before the data arrived. **fixed**: "— songs".
+12. **text alignment (tabular figures)**: the player's running time jittered as digits changed width. **fixed**: tabular figures.
+13. **one name for each thing**: the avatar was "profile and settings" for VoiceOver; the screen and every back button call it "account". **fixed**: "account".
+
+### contradictions with the sweep
+- **a status color has one meaning**: the sweep moved the stats "listening" series to the theme's `warn`, the colour of the offline banner, the "try again" buttons and failed connections. Contrast is right, but the chart now borrows the warning colour. Not changed (the warm listening tone predates the sweep, and a new hue is a palette call): see left open.
+- nothing else the sweep did goes against a rule. The lowercase eyebrows follow the project (the rule's capitals don't apply), the 11pt minimum matches Apple, and `inkOn` and the 44pt fixes hold up.
+
+### passes
+offline (banner with what's saved, outbox listed, retried on its own), deleting (downloads, offline copies and the cache confirm with what's lost; status and pins are reversible), one family (Inter), both themes defined separately, no decoration (one shadow, on the floating cover), a visible five-place tab bar with names, sheets with a close button and swipe, empty states with a way forward (sweep).
+
+### fixes
+- `1ef6773` ux: one plural and duration format; missing counts show a dash (node tests in `tests/`, `npm test`, added to checks.yml)
+- `5e6d417` a11y: headings, adjustable scrubbers, named fields and switch states
+- `c786aee` ux: 44pt targets in the player, controls grow with text, active tab not colour alone
+- `b0319e3` forms: connection fields autofill and say what's missing
+
+### left open
+- **status colour on the chart**: give "listening" its own role in the palette (a hue that isn't `warn`, e.g. a sea-green next to the aegean blue) or accept the overlap. Mars's call.
+- **few weights**: Inter 400, 500, 600 and 700 are four weights; the rule asks for two or three. Merging 500 (sweep proposal) still wants a look on the phone.
+- **reading size and scale**: body text is 16pt (`fs(14)`); the rule asks for 17 on iPhone. Belongs with the 6-step type scale the sweep left open; body 16 next to soft 15 is also less than a step apart.
+- **one spacing scale**: spacing isn't on a 4 grid (`S.gap` 10, plus 6, 14, 18, 22). The values are consistent between screens, so it's a taste call, not a bug.
+- **wait fits the time**: loading is a plain "loading…" line everywhere; skeletons for the lists would fit the rule. Needs the device to judge real timings.
+- **Jakob**: option lists (player "more", sleep timer, settings pickers) open as alerts, while the book page uses an iOS action sheet. One pattern (action sheet) would be the iOS way.
+- **motion under control**: the reader's chapters sheet slides and modals use the system transitions; check with Reduce Motion on the iPhone.
+- **name says what's there**: "account" holds connections, playback, notifications and appearance; "settings" would say it better. Kept, since it's the name on every screen.
+- **label instead of state** (sweep): "saved · 12 MB" removes the offline copy, and the settings row "offline copy · saved 14:02" clears it. Both confirm first.
+- the uppercase author line on drawn covers is a cover imitation (content), kept.
+
+### Mars must do
+- merge PR #7 (OTA; no native change, no version bump).
+- in the VoiceOver pass on the iPhone: the headings rotor, swiping the position bar, and the tab bar's heavier active name.
+- decide the chart colour for "listening".
+
+checks: `npx tsc --noEmit` (0 errors), `npx eslint src --max-warnings 0` (0 problems), `npm test` (3 of 3 pass), `npx expo export --platform ios` (bundle built).
