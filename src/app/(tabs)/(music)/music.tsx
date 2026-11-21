@@ -9,7 +9,7 @@ import { useAlbums, useArtists, useMixes, usePlaylists, useSongs, useStarred } f
 import { useDownloads } from '../../../downloads';
 import { nd } from '../../../navidrome';
 import { playSongs } from '../../../play';
-import { F, fs, S, useTheme } from '../../../theme';
+import { COLORS, F, fs, S, useTheme } from '../../../theme';
 
 type V = 'pinned' | 'playlists' | 'albums' | 'artists' | 'songs' | 'downloaded';
 
@@ -46,7 +46,7 @@ function Pinned() {
   return (
     <>
       <View>
-        <ListRow title="favorites" sub={`${starred.data?.song?.length ?? 0} songs`} color="#D32F48" icon="heart" onPress={() => router.push({ pathname: '/playlist/[id]', params: { id: 'favorites' } })} />
+        <ListRow title="favorites" sub={`${starred.data?.song?.length ?? 0} songs`} color={COLORS.light.accent} icon="heart" onPress={() => router.push({ pathname: '/playlist/[id]', params: { id: 'favorites' } })} />
         {(mixes.data ?? []).map((m) => (
           <ListRow key={m.id} title={m.title} sub={`made for you · ${m.sub}`} color={m.color} icon="sparkle" onPress={() => router.push({ pathname: '/mix/[id]', params: { id: m.id } })} />
         ))}

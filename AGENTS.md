@@ -46,7 +46,7 @@ Docs: https://docs.expo.dev/eas/index.md
 - `src/api.ts` mirrors the api's pydantic models; keep optional fields optional so an older or newer api doesn't break the app.
 - `src/store.ts` caches every response as json in the document dir (offline copy) and queues changes made while ares is unreachable (`outbox.json`: status, pins, audiobook positions), flushed on refresh or when the app becomes active; voice notes wait in `voice-outbox.json` (`src/voice.ts`).
 - `src/player.ts` is the one player (expo-audio) for songs and books: queue, lock screen, sleep timer, smart shuffle, play log to `/plays`, book positions to `/audiobooks/{id}/position`.
-- Styling lives in `src/theme.ts` (six palettes × dark/light, Inter, spacing) and `src/components/ui.tsx`; screens use `useStyles`/`useTheme`, never hard-coded colors. The design reference is the claude.ai design canvas, page "a · full app".
+- Styling lives in `src/theme.ts` (one palette, aegean, in dark and light following the system; Inter, spacing) and `src/components/ui.tsx`; screens use `useStyles`/`useTheme`, never hard-coded colors. The design reference is the claude.ai design canvas, page "a · full app".
 - Installed with marsign on ares (free Apple ID): no app extensions or widgets, each needs another App ID and the free account is at its limit. No remote push either: notifications are local (`src/notify.ts`).
 - Changes go to a branch and a pull request; Mars merges, and merging to `main` ships the OTA update.
 - Names are lowercase (files, folders, commit subjects) unless a tool requires otherwise; code lean, few comments.

@@ -82,26 +82,18 @@ const light = (accent: string): Colors => ({
   coverEdge: 'rgba(0,0,0,0.08)',
 });
 
-const palette = (id: string, note: string, d: string, l: string) => ({ id, note, dark: dark(d), light: light(l) });
-
-export const PALETTES = [
-  palette('coral', 'the canvas', '#F45D73', '#D32F48'),
-  palette('gold', 'the old calliope', '#D9BE7E', '#9C7A2A'),
-  palette('olive', "calliope's tree", '#AFC28A', '#4E6A2E'),
-  palette('aegean', 'sea blue', '#8FB8E0', '#2C5A85'),
-  palette('wine', 'deep red', '#E0A1B0', '#8A3346'),
-  palette('bronze', 'warm copper', '#DDA073', '#8A4F22'),
-];
+const ACCENT = { dark: '#8FB8E0', light: '#2C5A85' };
+export const COLORS = { dark: dark(ACCENT.dark), light: light(ACCENT.light) };
 
 export type Mode = 'dark' | 'light' | 'system';
 export type Quality = 'original' | '320' | '192' | '128';
 export type Spacing = 'tight' | 'normal' | 'loose';
 export type Reader = { size: number; spacing: Spacing; page: string };
-type Prefs = { mode: Mode; palette: string; v?: number; wifi: Quality; cellular: Quality; lrclib: boolean; name: string; crossfade: number; iconFollows: boolean; notify: NotifyPrefs; reader: Reader; kosyncWrite: boolean };
+type Prefs = { mode: Mode; v?: number; wifi: Quality; cellular: Quality; lrclib: boolean; name: string; crossfade: number; notify: NotifyPrefs; reader: Reader; kosyncWrite: boolean };
 
 export const READER_SIZE = { min: 14, max: 32, step: 2 };
 export const LINE: Record<Spacing, number> = { tight: 1.25, normal: 1.45, loose: 1.75 };
-const DEFAULTS: Prefs = { mode: 'system', palette: 'coral', v: 2, wifi: 'original', cellular: '192', lrclib: true, name: 'mars', crossfade: 0, iconFollows: true, notify: NOTIFY_DEFAULTS, reader: { size: 18, spacing: 'normal', page: 'book' }, kosyncWrite: true };
+const DEFAULTS: Prefs = { mode: 'system', v: 2, wifi: 'original', cellular: '192', lrclib: true, name: 'mars', crossfade: 0, notify: NOTIFY_DEFAULTS, reader: { size: 18, spacing: 'normal', page: 'book' }, kosyncWrite: true };
 const saved = readJson<Partial<Prefs>>('prefs.json', {});
 let prefs: Prefs = saved.v === 2 ? { ...DEFAULTS, ...saved, reader: { ...DEFAULTS.reader, ...saved.reader } } : DEFAULTS;
 export const getPrefs = () => prefs;
@@ -127,8 +119,7 @@ export function useTheme() {
   const p = usePrefs();
   const system = useColorScheme();
   const scheme: 'dark' | 'light' = p.mode === 'system' ? (system === 'light' ? 'light' : 'dark') : p.mode;
-  const palette = PALETTES.find((x) => x.id === p.palette) ?? PALETTES[0];
-  return { c: palette[scheme], scheme };
+  return { c: COLORS[scheme], scheme };
 }
 
 export function useStyles<T extends StyleSheet.NamedStyles<T>>(make: (c: Colors) => T): T {

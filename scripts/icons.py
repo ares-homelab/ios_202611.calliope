@@ -1,46 +1,31 @@
-"""one app icon per palette, recoloured from the coral lyre (assets/icon-dark.png, assets/icon.png): hue moved to the
-palette's accent and saturation/brightness scaled from coral's, weighted by each pixel's saturation, so white, grey and
-the gradients stay as drawn. Tinted = the dark icon's lyre in grey on black.
-docker run --rm -v "$PWD:/app" -w /app python:3.14-slim sh -c "pip -q install pillow numpy && python scripts/icons.py" """
-import colorsys
+"""app icons and splash from the amphora in assets/icon.svg (the light icon): dark = aegean light blue on the dark
+radial background, tinted = grey on black, splash = the dark amphora on the splash colour, no background.
+docker run --rm -v "$PWD:/app" -w /app python:3.14-slim sh -c "apt-get -qq update && apt-get -qq install -y libcairo2 >/dev/null && pip -q install cairosvg && python scripts/icons.py" """
+import re
 
-import numpy as np
-from PIL import Image
+import cairosvg
 
-CORAL = ("#F45D73", "#D32F48")  # dark, light accent of the coral palette (src/theme.ts)
-PALETTES = {
-    "gold": ("#D9BE7E", "#9C7A2A"),
-    "olive": ("#AFC28A", "#4E6A2E"),
-    "aegean": ("#8FB8E0", "#2C5A85"),
-    "wine": ("#E0A1B0", "#8A3346"),
-    "bronze": ("#DDA073", "#8A4F22"),
+LIGHT = open("assets/icon.svg").read()
+FG = "#2C5A85"
+
+
+def variant(fg, defs, rect=True):
+    svg = re.sub(r"<defs>.*</defs>", f"<defs>{defs}</defs>", LIGHT.replace(FG, fg))
+    return svg if rect else re.sub(r"<rect [^>]*/>\n", "", svg)
+
+
+def solid(c):
+    return f'<linearGradient id="bg" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="96"><stop offset="0" stop-color="{c}"/><stop offset="1" stop-color="{c}"/></linearGradient>'
+
+
+RADIAL = ('<radialGradient id="bg" gradientUnits="userSpaceOnUse" cx="48" cy="40" r="68">'
+          '<stop offset="0" stop-color="#242428"/><stop offset="1" stop-color="#0E0E10"/></radialGradient>')
+
+out = {
+    "icon.png": (LIGHT, 1024),
+    "icon-dark.png": (variant("#8FB8E0", RADIAL), 1024),
+    "icon-tinted.png": (variant("#F2F2F2", solid("#000000")), 1024),
+    "splash.png": (variant("#8FB8E0", solid("#0D0D0F"), rect=False), 512),
 }
-
-
-def hsv(h):
-    return colorsys.rgb_to_hsv(*(int(h[i:i + 2], 16) / 255 for i in (1, 3, 5)))
-
-
-def recolour(src, ref, target, out):
-    im = np.asarray(Image.open(src).convert("RGB").convert("HSV"), float) / 255
-    rh, rs, rv = hsv(ref)
-    th, ts, tv = hsv(target)
-    w = np.clip(im[..., 1] / rs, 0, 1)
-    h = np.where(w > 0.05, th, im[..., 0])
-    s = np.clip(im[..., 1] * ts / rs, 0, 1)
-    v = np.clip(im[..., 2] * (1 + w * (tv / rv - 1)), 0, 1)
-    hsvimg = (np.stack([h, s, v], -1) * 255).round().astype(np.uint8)
-    Image.fromarray(hsvimg, "HSV").convert("RGB").save(out)
-
-
-def tinted(src, out):
-    im = np.asarray(Image.open(src).convert("RGB").convert("HSV"), float)
-    lyre = np.clip(im[..., 1] / (hsv(CORAL[0])[1] * 255), 0, 1) * im[..., 2]
-    Image.fromarray(lyre.round().astype(np.uint8), "L").convert("RGB").save(out)
-
-
-for name, (dark, light) in PALETTES.items():
-    recolour("assets/icon-dark.png", CORAL[0], dark, f"assets/icons/{name}-dark.png")
-    recolour("assets/icon.png", CORAL[1], light, f"assets/icons/{name}.png")
-    tinted("assets/icon-dark.png", f"assets/icons/{name}-tinted.png")
-tinted("assets/icon-dark.png", "assets/icon-tinted.png")
+for name, (svg, size) in out.items():
+    cairosvg.svg2png(bytestring=svg.encode(), write_to=f"assets/{name}", output_width=size, output_height=size)

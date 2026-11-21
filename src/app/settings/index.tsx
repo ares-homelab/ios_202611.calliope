@@ -144,7 +144,6 @@ export default function Settings() {
                 ['light', 'light'],
               ], (mode) => setPrefs({ mode })),
           },
-          { label: 'palette', value: prefs.palette, onPress: () => router.push('/settings/palette') },
         ])}
         {section('app', [
           { label: 'offline copy', value: net.syncedAt ? `saved ${clock(net.syncedAt)}` : 'saved copy', onPress: clear },
