@@ -8,7 +8,7 @@ import { clock, hm } from '../../../format';
 import { listen, openContext } from '../../../play';
 import { current, remaining, useHistory, usePlayer, type Context } from '../../../player';
 import { refreshAll, useNet, useOutbox, type Pending } from '../../../store';
-import { F, fs, S, useTheme } from '../../../theme';
+import { F, fs, inkOn, S, useTheme } from '../../../theme';
 
 const MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
 
@@ -22,14 +22,15 @@ const pendingLabel = (p: Pending) =>
           : p.label;
 
 export function PickCard({ eyebrow, title, sub, color, onPress, width = 165 }: { eyebrow: string; title: string; sub: string; color: string; onPress: () => void; width?: number }) {
+  const on = inkOn(color);
   return (
-    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => ({ width, height: 150, borderRadius: 14, backgroundColor: color, padding: 12, justifyContent: 'space-between', opacity: pressed ? 0.85 : 1 })}>
-      <Text style={{ fontFamily: F.heavy, fontSize: 11, letterSpacing: 0.7, color: 'rgba(255,255,255,0.8)' }}>{eyebrow.toUpperCase()}</Text>
+    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => ({ width, height: 152, borderRadius: 14, backgroundColor: color, padding: 12, justifyContent: 'space-between', opacity: pressed ? 0.85 : 1 })}>
+      <Text style={{ fontFamily: F.sansBold, fontSize: fs(12), color: on.soft }}>{eyebrow}</Text>
       <View>
-        <Text numberOfLines={3} style={{ fontFamily: F.black, fontSize: fs(17), lineHeight: fs(19), color: '#FFFFFF' }}>
+        <Text numberOfLines={3} style={{ fontFamily: F.black, fontSize: fs(17), lineHeight: fs(19), color: on.ink }}>
           {title}
         </Text>
-        <Text numberOfLines={2} style={{ marginTop: 6, fontFamily: F.sansBold, fontSize: fs(12), color: 'rgba(255,255,255,0.85)' }}>
+        <Text numberOfLines={2} style={{ marginTop: 6, fontFamily: F.sansBold, fontSize: fs(12), color: on.soft }}>
           {sub}
         </Text>
       </View>
@@ -132,7 +133,7 @@ export default function Home() {
 
       <Pressable accessibilityRole="button" onPress={() => router.push('/recap')} style={({ pressed }) => [u.row, { borderRadius: 16, backgroundColor: c.panel, padding: 14, gap: 14, opacity: pressed ? 0.85 : 1 }]}>
         <View style={{ width: 46, height: 46, borderRadius: 12, backgroundColor: c.accent, alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={{ fontFamily: F.black, fontSize: 13, color: c.onAccent }}>{month.slice(0, 3)}</Text>
+          <Text style={{ fontFamily: F.black, fontSize: fs(13), color: c.onAccent }}>{month.slice(0, 3)}</Text>
         </View>
         <View style={{ flex: 1, gap: 2 }}>
           <Text style={{ fontFamily: F.heavy, fontSize: fs(15), color: c.text }}>your {month} so far</Text>

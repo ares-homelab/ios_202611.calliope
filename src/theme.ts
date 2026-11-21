@@ -31,6 +31,15 @@ export type Colors = {
 const hex = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
 export const mix = (a: string, b: string, t: number) =>
   '#' + hex(a).map((x, i) => Math.round(x + (hex(b)[i] - x) * t).toString(16).padStart(2, '0')).join('').toUpperCase();
+const lum = (h: string) => {
+  const [r, g, b] = hex(h).map((v) => (v /= 255) <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4);
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+/** text on a coloured card (swatches, mix colours): white on dark ones, ink on light ones, both above 4.5:1 */
+export const inkOn = (bg: string) => {
+  const ink = lum(bg) > 0.18 ? '#1A1510' : '#FFFFFF';
+  return { ink, soft: mix(ink, bg, 0.12), line: mix(ink, bg, 0.6) };
+};
 
 const dark = (accent: string): Colors => ({
   bg: '#0D0D0F',
