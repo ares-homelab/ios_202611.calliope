@@ -111,7 +111,7 @@ export default function Settings() {
           { label: 'familiar', value: cotd ? 'card of the day on' : 'card of the day off', onPress: () => router.push({ pathname: '/mix/[id]', params: { id: 'cotd' } }) },
         ])}
         {section('library', [
-          { label: 'wanted from spotify & apple music', value: wanted.data ? `${wanted.data.total} songs` : undefined, onPress: () => router.push('/wanted') },
+          { label: 'wanted from apple music & plays', value: wanted.data ? `${wanted.data.total} songs` : undefined, onPress: () => router.push('/wanted') },
           { label: 'tonight on ares', value: tonight ? `${tonight} ${tonight === 1 ? 'book' : 'books'} ticked` : 'nothing ticked', onPress: () => router.push('/tonight') },
           { label: 'downloads', value: `${gb(totalBytes(dl))} on this iphone`, onPress: () => router.push('/settings/downloads') },
           {
