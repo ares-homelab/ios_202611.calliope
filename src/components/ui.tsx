@@ -65,7 +65,7 @@ export function TitleRow({ title, right, sub }: { title: string; right?: ReactNo
   return (
     <View style={{ gap: 6 }}>
       <View style={[u.row, { justifyContent: 'space-between', alignItems: 'flex-end' }]}>
-        <Text style={u.h1}>{title}</Text>
+        <Text accessibilityRole="header" style={u.h1}>{title}</Text>
         {right}
       </View>
       {sub ? <Text style={[u.soft, { color: c.muted }]}>{sub}</Text> : null}
@@ -102,7 +102,7 @@ export function SectionHead({ title, right, onPress }: { title: string; right?: 
   const u = useUi();
   return (
     <View style={[u.row, { justifyContent: 'space-between', alignItems: 'baseline' }]}>
-      <Text style={u.h2}>{title}</Text>
+      <Text accessibilityRole="header" style={u.h2}>{title}</Text>
       {right ? (
         <Pressable onPress={onPress} hitSlop={12} accessibilityRole="button">
           <Text style={u.link}>{right}</Text>
@@ -147,9 +147,13 @@ export function IconButton({ name, onPress, color, round, label }: { name: IconN
   );
 }
 
-export const Eyebrow = ({ children, style }: { children: ReactNode; style?: StyleProp<TextStyle> }) => {
+export const Eyebrow = ({ children, style, header }: { children: ReactNode; style?: StyleProp<TextStyle>; header?: boolean }) => {
   const u = useUi();
-  return <Text style={[u.eyebrow, style]}>{children}</Text>;
+  return (
+    <Text accessibilityRole={header ? 'header' : undefined} style={[u.eyebrow, style]}>
+      {children}
+    </Text>
+  );
 };
 
 export function Tile({ value, label, size = 28 }: { value: string; label: string; size?: number }) {
@@ -407,7 +411,7 @@ export function Group({ label, children }: { label: string; children: ReactNode 
   const { c } = useTheme();
   return (
     <View style={{ gap: 8 }}>
-      <Text style={{ marginHorizontal: 4, marginTop: 8, fontFamily: F.sansBold, fontSize: fs(12), color: c.muted }}>{label}</Text>
+      <Text accessibilityRole="header" style={{ marginHorizontal: 4, marginTop: 8, fontFamily: F.sansBold, fontSize: fs(12), color: c.muted }}>{label}</Text>
       <View style={{ backgroundColor: c.panel, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 4 }}>{children}</View>
     </View>
   );

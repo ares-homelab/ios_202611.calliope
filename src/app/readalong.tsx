@@ -120,6 +120,7 @@ export default function ReadAlong() {
           ) : (
             <>
               <TextInput
+                accessibilityLabel="note"
                 value={note}
                 onChangeText={setNote}
                 placeholder={clip ? 'add to the voice note (optional)' : 'your note, or record one'}

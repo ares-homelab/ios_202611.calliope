@@ -336,7 +336,7 @@ function Chapters({ visible, info, k, cur, onClose, onPick }: { visible: boolean
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: k.bg }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', padding: 16, gap: 8 }}>
-          <Text style={{ flex: 1, fontFamily: F.heavy, fontSize: fs(18), color: k.text }}>{info.format === 'pdf' ? 'pages' : 'chapters'}</Text>
+          <Text accessibilityRole="header" style={{ flex: 1, fontFamily: F.heavy, fontSize: fs(18), color: k.text }}>{info.format === 'pdf' ? 'pages' : 'chapters'}</Text>
           <Btn name="close" label="close" onPress={onClose} k={k} />
         </View>
         <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}>

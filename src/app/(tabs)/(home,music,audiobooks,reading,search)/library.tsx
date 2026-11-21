@@ -26,7 +26,7 @@ export default function Library() {
     <View style={{ flex: 1, backgroundColor: c.bg }}>
       <BackBar label="" />
       <View style={{ paddingHorizontal: S.page, gap: 14, paddingBottom: 12 }}>
-        <Text style={u.h1}>library</Text>
+        <Text accessibilityRole="header" style={u.h1}>library</Text>
         <View style={[u.row, { gap: 10, height: 44, paddingHorizontal: 14, backgroundColor: c.panel, borderRadius: 12 }]}>
           <Icon name="search" size={18} color={c.muted} />
           <TextInput

@@ -47,7 +47,7 @@ export function IssuesBody() {
       </Pressable>
       {older.length ? (
         <>
-          <Text style={{ fontFamily: F.heavy, fontSize: fs(20), color: c.text, marginTop: 4 }}>last {older.length} {older.length === 1 ? 'issue' : 'issues'}</Text>
+          <Text accessibilityRole="header" style={{ fontFamily: F.heavy, fontSize: fs(20), color: c.text, marginTop: 4 }}>last {older.length} {older.length === 1 ? 'issue' : 'issues'}</Text>
           <View>
             {older.map((i, n) => (
               <Pressable accessibilityRole="button" key={i.id} onPress={() => openBook(i.id)} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: c.line }}>

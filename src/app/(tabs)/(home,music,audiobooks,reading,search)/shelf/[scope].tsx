@@ -94,7 +94,7 @@ function Books({ scope, mode }: { scope: string; mode: Mode }) {
                 ))}
               </View>
             ) : null}
-            {children.length || kind === 'fanfic' ? <Text style={u.h2}>every book</Text> : null}
+            {children.length || kind === 'fanfic' ? <Text accessibilityRole="header" style={u.h2}>every book</Text> : null}
           </View>
         }
         ListEmptyComponent={<Empty>{lib.loading ? 'loading…' : mode === 'listen' ? 'none of these has audio yet. open a book from reading → library and queue it for tonight.' : 'no books on this shelf. pull down to refresh.'}</Empty>}

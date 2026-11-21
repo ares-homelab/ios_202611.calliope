@@ -15,17 +15,17 @@ import { clearCache, refreshAll, useNet } from '../../store';
 import { F, fs, getPrefs, setPrefs, usePrefs, useTheme, type Mode, type Quality } from '../../theme';
 import { Icon } from '../../components/icon';
 
-type Row = { label: string; value?: string; dot?: 'ok' | 'off'; onPress?: () => void };
+type Row = { label: string; value?: string; dot?: 'ok' | 'off'; onPress?: () => void; on?: boolean };
 
 function Group({ title, rows }: { title: string; rows: Row[] }) {
   const { c } = useTheme();
   return (
     <View style={{ gap: 8 }}>
-      <Text style={{ marginTop: 6, fontFamily: F.sansBold, fontSize: fs(12), color: c.muted }}>{title}</Text>
+      <Text accessibilityRole="header" style={{ marginTop: 6, fontFamily: F.sansBold, fontSize: fs(12), color: c.muted }}>{title}</Text>
       <View style={{ borderRadius: 14, backgroundColor: c.panel, paddingHorizontal: 14 }}>
         {rows.map((r, i) => (
           <Fragment key={r.label}>
-            <Pressable accessibilityRole={r.onPress ? 'button' : undefined} onPress={r.onPress} disabled={!r.onPress} style={({ pressed }) => ({ minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, opacity: pressed ? 0.6 : 1 })}>
+            <Pressable accessibilityRole={r.on != null ? 'switch' : r.onPress ? 'button' : undefined} accessibilityState={r.on != null ? { checked: r.on } : undefined} onPress={r.onPress} disabled={!r.onPress} style={({ pressed }) => ({ minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, opacity: pressed ? 0.6 : 1 })}>
               <Text style={{ flexShrink: 1, fontFamily: F.sans, fontSize: fs(15), color: c.text }}>{r.label}</Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 0, maxWidth: '55%' }}>
                 {r.dot ? <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: r.dot === 'ok' ? c.ok : c.warn }} /> : null}
@@ -95,7 +95,7 @@ export default function Settings() {
 
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
-      <BackBar label="" right={<Text pointerEvents="none" style={[u.body, { fontFamily: F.heavy, position: 'absolute', left: 0, right: 0, textAlign: 'center' }]}>account</Text>} />
+      <BackBar label="" right={<Text accessibilityRole="header" pointerEvents="none" style={[u.body, { fontFamily: F.heavy, position: 'absolute', left: 0, right: 0, textAlign: 'center' }]}>account</Text>} />
       <Screen top={false} gap={12}>
         <View style={[u.row, { gap: 14, marginBottom: 4 }]}>
           <Avatar size={64} />
@@ -130,8 +130,8 @@ export default function Settings() {
         {section('notifications', [
           { label: 'reading reminder', value: prefs.notify.reading, onPress: () => pick('reading reminder', TIMES(['19:00', '20:00', '21:00', '22:00', '23:00']), (reading) => notify({ reading })) },
           { label: 'card of the day', value: prefs.notify.card, onPress: () => pick('card of the day', TIMES(['07:00', '08:00', '09:00', '10:00', '12:00']), (card) => notify({ card })) },
-          { label: 'new yorker on mondays', value: prefs.notify.issues ? 'on' : 'off', onPress: () => notify({ issues: !prefs.notify.issues }) },
-          { label: 'audiobook ready', value: prefs.notify.audiobooks ? 'on' : 'off', onPress: () => notify({ audiobooks: !prefs.notify.audiobooks }) },
+          { label: 'new yorker on mondays', value: prefs.notify.issues ? 'on' : 'off', on: prefs.notify.issues, onPress: () => notify({ issues: !prefs.notify.issues }) },
+          { label: 'audiobook ready', value: prefs.notify.audiobooks ? 'on' : 'off', on: prefs.notify.audiobooks, onPress: () => notify({ audiobooks: !prefs.notify.audiobooks }) },
         ])}
         {section('appearance', [
           {

@@ -140,7 +140,7 @@ export default function Music() {
   return (
     <Screen gap={16} refreshing={starred.loading && !!starred.data} onRefresh={starred.refresh}>
       <View style={[u.row, { justifyContent: 'space-between' }]}>
-        <Text style={u.h1}>music</Text>
+        <Text accessibilityRole="header" style={u.h1}>music</Text>
         <Pressable accessibilityRole="button" accessibilityLabel="wanted songs" onPress={() => router.push('/wanted')} style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: c.raised, alignItems: 'center', justifyContent: 'center' }}>
           <Icon name="plus" size={20} color={c.text} />
         </Pressable>

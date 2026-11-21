@@ -88,7 +88,7 @@ function CalliopePage({ id }: { id: number }) {
         <View style={{ flexDirection: 'row', gap: 18, alignItems: 'flex-end' }}>
           <Cover id={id} title={b.title} author={b.authors[0]} hasCover={b.has_cover} width={118} height={177} shadow />
           <View style={{ flex: 1, gap: 6, paddingBottom: 4 }}>
-            <Text style={{ fontFamily: F.serifBold, fontSize: fs(28), lineHeight: fs(30), color: c.text }}>{b.title}</Text>
+            <Text accessibilityRole="header" style={{ fontFamily: F.serifBold, fontSize: fs(28), lineHeight: fs(30), color: c.text }}>{b.title}</Text>
             <Text style={[u.soft, { fontSize: fs(14) }]}>{[authors(b.authors), b.year].filter(Boolean).join(' · ')}</Text>
             <Text style={u.muted}>
               {[pages ? count(pages, 'page') : null, language, b.series ? `${b.series}${b.series_index ? ` ${b.series_index}` : ''}` : null, pinned ? 'pinned' : null]
@@ -126,7 +126,7 @@ function CalliopePage({ id }: { id: number }) {
         <ReadActions lib="calliope" id={id} title={b.title} formats={b.formats} audio={audio} />
 
         <View style={{ gap: 10 }}>
-          <Eyebrow>status</Eyebrow>
+          <Eyebrow header>status</Eyebrow>
           <Segmented strong value={status} onChange={setStatus} options={WORKFLOWS.map((w) => ({ value: w, label: w.toLowerCase() }))} />
           <Text style={u.muted}>{busy === 'status' ? 'saving…' : queued ? 'waiting to sync with ares' : 'saved to calibre on ares'}</Text>
         </View>
@@ -141,7 +141,7 @@ function CalliopePage({ id }: { id: number }) {
 
         {b.paths?.length ? (
           <View style={{ gap: 10 }}>
-            <Eyebrow>on a path</Eyebrow>
+            <Eyebrow header>on a path</Eyebrow>
             {b.paths.map((m) => (
               <View key={`${m.kind}-${m.name}`} style={{ backgroundColor: c.panel, borderRadius: 14, paddingHorizontal: 16 }}>
                 <RowLink
@@ -157,7 +157,7 @@ function CalliopePage({ id }: { id: number }) {
         {highlights.length ? (
           <View style={{ gap: 10 }}>
             <View style={[u.row, { justifyContent: 'space-between', alignItems: 'baseline' }]}>
-              <Eyebrow>highlights · {highlights.length}</Eyebrow>
+              <Eyebrow header>highlights · {highlights.length}</Eyebrow>
               {highlights.length > 2 ? (
                 <Pressable accessibilityRole="button" onPress={() => setAllHl(!allHl)} hitSlop={8}>
                   <Text style={u.link}>{allHl ? 'show fewer' : 'see all'}</Text>
@@ -175,8 +175,8 @@ function CalliopePage({ id }: { id: number }) {
         ) : null}
 
         {about ? (
-          <Pressable accessibilityRole="button" onPress={() => setMore(!more)} style={{ gap: 10 }}>
-            <Eyebrow>about</Eyebrow>
+          <Pressable accessibilityRole="button" accessibilityState={{ expanded: more }} accessibilityHint={more ? 'shows less' : 'shows the whole description'} onPress={() => setMore(!more)} style={{ gap: 10 }}>
+            <Eyebrow header>about</Eyebrow>
             <Text style={[u.soft, { fontSize: fs(14), lineHeight: fs(21) }]} numberOfLines={more ? undefined : 6}>
               {about}
             </Text>

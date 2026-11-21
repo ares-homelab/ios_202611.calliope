@@ -105,7 +105,7 @@ export default function Reading() {
   return (
     <Screen refreshing={home.loading && !!home.data} onRefresh={() => refreshAll()} gap={16}>
       <View style={[u.row, { justifyContent: 'space-between' }]}>
-        <Text style={u.h1}>reading</Text>
+        <Text accessibilityRole="header" style={u.h1}>reading</Text>
         <Text style={u.muted}>{home.data?.last_sync ? `kindle synced ${clock(home.data.last_sync)}` : ''}</Text>
       </View>
       <Chips items={[...VIEWS]} value={view} onChange={(v) => setView(v as View_)} />

@@ -63,6 +63,7 @@ export function HighlightsBody() {
       <View style={[u.row, { gap: 10, height: 44, paddingHorizontal: 14, backgroundColor: c.panel, borderRadius: 12 }]}>
         <Icon name="search" size={18} color={c.muted} />
         <TextInput
+          accessibilityLabel="search highlights and notes"
           value={query}
           onChangeText={setQuery}
           placeholder="search highlights and notes"
@@ -83,7 +84,7 @@ export function HighlightsBody() {
           const header = view === 'book' && (i === 0 || shown[i - 1].book_title !== h.book_title);
           return (
             <View key={h.id}>
-              {header ? <Text style={[u.h3, { marginTop: i ? 18 : 0, marginBottom: 8 }]}>{h.book_title ?? 'untitled'}</Text> : null}
+              {header ? <Text accessibilityRole="header" style={[u.h3, { marginTop: i ? 18 : 0, marginBottom: 8 }]}>{h.book_title ?? 'untitled'}</Text> : null}
               <Item h={h} last={i === shown.length - 1} showBook={view !== 'book'} />
             </View>
           );

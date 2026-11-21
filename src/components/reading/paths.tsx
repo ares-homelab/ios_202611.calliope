@@ -46,7 +46,7 @@ function Pinned({ p }: { p: Path }) {
   return (
     <Pressable accessibilityRole="button" onPress={() => openPath(p.number)} style={{ gap: 14 }}>
       <View style={[u.row, { justifyContent: 'space-between', alignItems: 'baseline' }]}>
-        <Text style={u.h2}>{p.name}</Text>
+        <Text accessibilityRole="header" style={u.h2}>{p.name}</Text>
         <Text style={u.muted}>
           {p.pinned ? 'pinned · ' : ''}
           {p.read} of {total} read

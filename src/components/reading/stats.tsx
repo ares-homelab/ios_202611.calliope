@@ -37,7 +37,7 @@ function Card({ title, right, children }: { title: string; right?: string; child
   return (
     <View style={{ borderRadius: 18, backgroundColor: c.panel, padding: 16, gap: 12 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-        <Text style={{ fontFamily: F.heavy, fontSize: fs(15), color: c.text }}>{title}</Text>
+        <Text accessibilityRole="header" style={{ fontFamily: F.heavy, fontSize: fs(15), color: c.text }}>{title}</Text>
         {right ? <Text style={{ fontFamily: F.sans, fontSize: fs(12), color: c.muted }}>{right}</Text> : null}
       </View>
       {children}

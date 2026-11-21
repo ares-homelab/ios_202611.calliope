@@ -210,7 +210,7 @@ function BookPlayer({ t }: { t: Track }) {
         <Text style={{ fontFamily: F.sans, fontSize: 12, color: k.muted }}>
           {text.data?.exact === false ? 'text matched roughly to this recording · ' : ''}kindle follows as you listen
         </Text>
-        <Scrubber value={s.duration ? s.time / s.duration : 0} onSeek={(x) => seek(x * s.duration)} color={k.text} track={k.track} height={4} />
+        <Scrubber value={s.duration ? s.time / s.duration : 0} onSeek={(x) => seek(x * s.duration)} color={k.text} track={k.track} height={4} label="position" valueText={`${mmss(s.time)} of ${mmss(s.duration)}`} step={s.duration ? 30 / s.duration : 0.05} />
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: -6 }}>
           <Text style={{ fontFamily: F.sans, fontSize: 12, color: k.muted }}>{mmss(s.time)}</Text>
           <Text style={{ fontFamily: F.sans, fontSize: 12, color: k.muted }}>-{mmss(s.duration - s.time)}</Text>
@@ -276,7 +276,7 @@ function MusicPlayer({ t }: { t: Track }) {
         </Pressable>
       </View>
       <View>
-        <Scrubber value={s.duration ? s.time / s.duration : 0} onSeek={(x) => seek(x * s.duration)} color={k.text} track={k.track} />
+        <Scrubber value={s.duration ? s.time / s.duration : 0} onSeek={(x) => seek(x * s.duration)} color={k.text} track={k.track} label="position" valueText={`${mmss(s.time)} of ${mmss(s.duration)}`} step={s.duration ? 10 / s.duration : 0.05} />
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: -4 }}>
           <Text style={{ fontFamily: F.sans, fontSize: 12, color: k.muted }}>{mmss(s.time)}</Text>
           <Text style={{ fontFamily: F.sans, fontSize: 12, color: k.muted }}>-{mmss(s.duration - s.time)}</Text>
@@ -290,7 +290,7 @@ function MusicPlayer({ t }: { t: Track }) {
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
         <Icon name="volLow" size={16} color={k.muted} />
         <View style={{ flex: 1 }}>
-          <Scrubber value={vol} onSeek={setVolume} color={k.muted} track={k.track} />
+          <Scrubber value={vol} onSeek={setVolume} color={k.muted} track={k.track} label="volume" step={0.1} />
         </View>
         <Icon name="volHigh" size={16} color={k.muted} />
       </View>

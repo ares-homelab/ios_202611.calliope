@@ -107,7 +107,7 @@ export default function Home() {
   return (
     <Screen refreshing={home.loading && !!h} onRefresh={() => refreshAll()} gap={22}>
       <View style={[u.row, { justifyContent: 'space-between' }]}>
-        <Text style={u.h1}>home</Text>
+        <Text accessibilityRole="header" style={u.h1}>home</Text>
         <Avatar />
       </View>
 

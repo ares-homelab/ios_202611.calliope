@@ -70,8 +70,8 @@ export default function Connection() {
     <View style={{ flex: 1, backgroundColor: c.bg }}>
       {first ? <View style={{ height: 54 }} /> : <BackBar label="account" />}
       <Screen top={false} gap={16}>
-        <Text style={u.h1}>{first ? 'connect to ares' : 'connections'}</Text>
-        <Text style={u.h2}>calliope api</Text>
+        <Text accessibilityRole="header" style={u.h1}>{first ? 'connect to ares' : 'connections'}</Text>
+        <Text accessibilityRole="header" style={u.h2}>calliope api</Text>
         <Text style={[u.soft, { color: c.muted }]}>books, audiobooks, stats. reached over tailscale; the token is in /srv/config/calliope/api.env on ares and kept in this iphone&apos;s keychain.</Text>
         {field('api address', url, setUrl, DEFAULT_URL)}
         {field('token', token, setToken, 'bearer token', true)}
@@ -81,7 +81,7 @@ export default function Connection() {
         </View>
         {apiResult ? <Text style={[u.soft, { color: apiResult.ok ? c.ok : c.warn }]}>{apiResult.text}</Text> : null}
 
-        <Text style={[u.h2, { marginTop: 12 }]}>navidrome</Text>
+        <Text accessibilityRole="header" style={[u.h2, { marginTop: 12 }]}>navidrome</Text>
         <Text style={[u.soft, { color: c.muted }]}>music. only a salted token is kept on this iphone, never the password.{nd.ready() ? ` signed in as ${cfg.nd.user}.` : ''}</Text>
         {field('address', ndUrl, setNdUrl, DEFAULT_ND)}
         {field('user', ndUser, setNdUser, 'mars')}

@@ -25,7 +25,7 @@ export default function Recap() {
     <View style={{ flex: 1, backgroundColor: c.bg }}>
       <BackBar label={`your ${month}`} />
       <Screen top={false} gap={16} refreshing={res.loading && !!r} onRefresh={res.refresh}>
-        <Text style={u.h1}>ears and eyes</Text>
+        <Text accessibilityRole="header" style={u.h1}>ears and eyes</Text>
         {res.error && !r ? <ErrorBox error={res.error} onRetry={res.refresh} /> : null}
         {r ? (
           <>
@@ -35,7 +35,7 @@ export default function Recap() {
               {big(String(r.books_finished), 'books finished')}
               {big(String(r.streak), 'days in a row')}
             </View>
-            <Text style={u.h2}>top this month</Text>
+            <Text accessibilityRole="header" style={u.h2}>top this month</Text>
             <Chips items={['mixed', 'music', 'books'] as const} value={k} onChange={setK} />
             {top.map((x, i) => (
               <View key={`${x.kind}-${x.name}`} style={[u.row, u.line, { gap: 14, paddingVertical: 10 }]}>

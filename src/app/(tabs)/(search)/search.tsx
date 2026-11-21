@@ -80,7 +80,7 @@ export default function Search() {
 
   return (
     <Screen gap={14}>
-      <Text style={u.h1}>search</Text>
+      <Text accessibilityRole="header" style={u.h1}>search</Text>
       <View style={[u.row, { gap: 10, height: 46, paddingHorizontal: 14, backgroundColor: c.panel, borderRadius: 12 }]}>
         <Icon name="search" size={18} color={c.muted} />
         <TextInput

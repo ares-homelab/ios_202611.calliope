@@ -44,7 +44,7 @@ export function PathCard({ path }: { path: Path }) {
           {path.read} of {total} · {path.in_library ?? path.books.length} in library
         </Text>
       </View>
-      <Text style={u.h3}>{path.name}</Text>
+      <Text accessibilityRole="header" style={u.h3}>{path.name}</Text>
       {entries.length ? <Segments items={segmentsOf(entries)} /> : null}
       {next ? (
         <Text style={u.soft}>
