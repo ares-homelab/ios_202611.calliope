@@ -2,7 +2,7 @@ import { Linking, Modal, Pressable, ScrollView, Text, View } from 'react-native'
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Note, Run } from '../api';
-import { F, fs, mix, PALETTES, READER_SIZE, setReader, usePrefs, useTheme, type Spacing } from '../theme';
+import { F, fs, mix, COLORS, READER_SIZE, setReader, usePrefs, useTheme, type Spacing } from '../theme';
 import { swatch } from './art';
 
 export function tint(base: string, scheme: 'dark' | 'light') {
@@ -14,14 +14,13 @@ export type Tint = ReturnType<typeof tint>;
 
 const DARK: Tint = { bg: '#0D0D0F', page: '#151518', ink: '#E6E6EA', past: '#7A7A82', mark: '#3A3A42', text: '#F4F4F6', muted: '#A0A0A9', track: '#33333A', chip: '#26262C' };
 
-export const PAGES = ['book', 'dark', ...PALETTES.map((p) => p.id)];
+export const PAGES = ['book', 'dark', 'aegean'];
 
 export function useReaderTint(seed: string): Tint {
   const { scheme } = useTheme();
   const page = usePrefs().reader.page;
   if (page === 'dark') return DARK;
-  const pal = PALETTES.find((p) => p.id === page);
-  return pal ? tint(pal.dark.accent, 'dark') : tint(swatch(seed), scheme);
+  return page === 'aegean' ? tint(COLORS.dark.accent, 'dark') : tint(swatch(seed), scheme);
 }
 
 const Chip = ({ label, on, onPress, k, dot }: { label: string; on: boolean; onPress: () => void; k: Tint; dot?: string }) => (
@@ -69,8 +68,8 @@ export function ReaderPanel({ k }: { k: Tint }) {
       </Row>
       <Row label="PAGE" k={k}>
         {PAGES.map((x) => {
-          const pal = PALETTES.find((p) => p.id === x);
-          return <Chip key={x} label={x} on={r.page === x} onPress={() => setReader({ page: x })} k={k} dot={pal ? pal.dark.accent : x === 'dark' ? '#0D0D0F' : undefined} />;
+          const dot = x === 'aegean' ? COLORS.dark.accent : x === 'dark' ? '#0D0D0F' : undefined;
+          return <Chip key={x} label={x} on={r.page === x} onPress={() => setReader({ page: x })} k={k} dot={dot} />;
         })}
       </Row>
     </View>

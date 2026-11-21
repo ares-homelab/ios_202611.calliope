@@ -64,14 +64,6 @@ const ICONS = {
       <Path d="M11 18h2" />
     </>
   ),
-  palette: (
-    <>
-      <Path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.6-.9 1.2-1.8-.5-1 .2-2.2 1.3-2.2H17a4 4 0 0 0 4-4c0-5.5-4-10-9-10z" />
-      <Circle cx="7.5" cy="11" r="1" />
-      <Circle cx="10" cy="7" r="1" />
-      <Circle cx="15" cy="7.5" r="1" />
-    </>
-  ),
   queue: (
     <>
       <Rect x="5" y="3" width="14" height="18" rx="2" />
