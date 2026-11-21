@@ -203,7 +203,7 @@ function Year({ year, setYear }: { year: number; setYear: (y: number) => void })
                 <View key={i} style={{ alignItems: 'center', gap: 4 }}>
                   <View style={{ height: 96, justifyContent: 'flex-end', gap: 2 }}>
                     {books.slice(0, 4).map((b, j) => (
-                      <Pressable key={j} onPress={() => openBook(b.calibre_id)} style={{ width: 22, height: 20, borderRadius: 2, backgroundColor: swatch(String(b.calibre_id ?? b.title)) }} />
+                      <Pressable key={j} accessibilityRole="button" accessibilityLabel={b.title} onPress={() => openBook(b.calibre_id)} style={{ width: 22, height: 20, borderRadius: 2, backgroundColor: swatch(String(b.calibre_id ?? b.title)) }} />
                     ))}
                   </View>
                   <Text style={{ fontFamily: F.sans, fontSize: 10, color: c.muted }}>{MONTHS[i]}</Text>

@@ -87,6 +87,7 @@ export function Chips<T extends string>({ items, value, onChange }: { items: (T 
 export function Avatar({ size = 38 }: { size?: number }) {
   return (
     <Pressable
+      accessibilityRole="button"
       accessibilityLabel="profile and settings"
       onPress={() => router.push('/settings')}
       style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: '#5E4A7A', alignItems: 'center', justifyContent: 'center' }}
@@ -102,7 +103,7 @@ export function SectionHead({ title, right, onPress }: { title: string; right?: 
     <View style={[u.row, { justifyContent: 'space-between', alignItems: 'baseline' }]}>
       <Text style={u.h2}>{title}</Text>
       {right ? (
-        <Pressable onPress={onPress} hitSlop={8}>
+        <Pressable onPress={onPress} hitSlop={12} accessibilityRole="button">
           <Text style={u.link}>{right}</Text>
         </Pressable>
       ) : null}
@@ -116,6 +117,8 @@ export function BackBar({ label, right }: { label: string; right?: ReactNode }) 
   return (
     <View style={{ paddingTop: inset.top + 6, paddingHorizontal: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: c.bg }}>
       <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={label ? `back to ${label}` : 'back'}
         onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
         hitSlop={8}
         style={{ height: 44, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 4 }}
@@ -132,6 +135,7 @@ export function IconButton({ name, onPress, color, round, label }: { name: IconN
   const { c } = useTheme();
   return (
     <Pressable
+      accessibilityRole="button"
       accessibilityLabel={label}
       onPress={onPress}
       hitSlop={6}
@@ -225,7 +229,10 @@ export function Chip({ label, on, onPress }: { label: string; on?: boolean; onPr
   const { c } = useTheme();
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ selected: !!on }}
       onPress={onPress}
+      hitSlop={{ top: 5, bottom: 5 }}
       style={{
         height: 34,
         paddingHorizontal: 14,
@@ -272,6 +279,8 @@ export function Button({ label, onPress, icon, kind = 'primary', busy, style }: 
   const fg = kind === 'outline' ? c.text : c.onAccent;
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ busy: !!busy, disabled: !!busy }}
       disabled={busy}
       onPress={onPress}
       style={({ pressed }) => [
@@ -376,7 +385,7 @@ export function RowLink({ title, sub, onPress, icon }: { title: string; sub?: st
   const u = useUi();
   const { c } = useTheme();
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [u.row, { gap: 12, minHeight: 58, opacity: pressed ? 0.7 : 1 }]}>
+    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [u.row, { gap: 12, minHeight: 58, opacity: pressed ? 0.7 : 1 }]}>
       {icon ? (
         <View style={{ width: 34, height: 34, borderRadius: 9, backgroundColor: c.raised, alignItems: 'center', justifyContent: 'center' }}>
           <Icon name={icon} size={18} color={c.link} />
