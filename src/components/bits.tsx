@@ -39,7 +39,7 @@ export function PathCard({ path }: { path: Path }) {
   return (
     <Pressable accessibilityRole="button" onPress={() => openPath(path.number)} style={({ pressed }) => [u.panel, { gap: 12, opacity: pressed ? 0.8 : 1 }]}>
       <View style={[u.row, { justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }]}>
-        <Text style={[u.eyebrow, { flex: 1 }]}>{(path.sections ?? []).join(' · ').toUpperCase()}</Text>
+        <Text style={[u.eyebrow, { flex: 1 }]}>{(path.sections ?? []).join(' · ')}</Text>
         <Text style={[u.muted, { maxWidth: 110, textAlign: 'right' }]}>
           {path.read} of {total} · {path.in_library ?? path.books.length} in library
         </Text>

@@ -6,7 +6,6 @@ import { useIssues } from '../../data';
 import { clock, longDate, weekday } from '../../format';
 import { F, fs, useTheme } from '../../theme';
 
-const OK = '#4E9A5A';
 
 function status(i: Issue, oldest: boolean, keep: number) {
   if (!i.on_kindle) return 'not on the kindle yet';
@@ -34,11 +33,11 @@ export function IssuesBody() {
       <Pressable accessibilityRole="button" onPress={() => openBook(latest.id)} style={{ borderRadius: 18, backgroundColor: c.panel, padding: 14, flexDirection: 'row', gap: 14 }}>
         <Cover id={latest.id} title="the new yorker" hasCover={latest.has_cover} width={110} height={146} radius={6} />
         <View style={{ flex: 1, gap: 6 }}>
-          <Text style={{ fontFamily: F.heavy, fontSize: 12, letterSpacing: 0.7, color: c.muted }}>THIS WEEK</Text>
+          <Text style={{ fontFamily: F.sansBold, fontSize: fs(12), color: c.muted }}>this week</Text>
           <Text style={{ fontFamily: F.black, fontSize: fs(18), color: c.text }}>the new yorker</Text>
           <Text style={{ fontFamily: F.sans, fontSize: fs(13), color: c.muted }}>{longDate(latest.date ?? latest.added)}</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: latest.on_kindle ? OK : c.muted }} />
+            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: latest.on_kindle ? c.ok : c.muted }} />
             <Text style={{ fontFamily: F.sans, fontSize: fs(13), color: c.text }}>
               {latest.on_kindle ? (latest.progress ? `on your kindle · read ${Math.round(latest.progress * 100)}%` : 'on your kindle') : `arrived ${clock(latest.added)}, on the kindle next time it's on wi-fi`}
             </Text>
