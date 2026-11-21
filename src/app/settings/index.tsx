@@ -21,13 +21,13 @@ function Group({ title, rows }: { title: string; rows: Row[] }) {
   const { c } = useTheme();
   return (
     <View style={{ gap: 8 }}>
-      <Text style={{ marginTop: 6, fontFamily: F.heavy, fontSize: 12, letterSpacing: 0.7, color: c.muted }}>{title.toUpperCase()}</Text>
+      <Text style={{ marginTop: 6, fontFamily: F.sansBold, fontSize: fs(12), color: c.muted }}>{title}</Text>
       <View style={{ borderRadius: 14, backgroundColor: c.panel, paddingHorizontal: 14 }}>
         {rows.map((r, i) => (
           <Fragment key={r.label}>
             <Pressable accessibilityRole={r.onPress ? 'button' : undefined} onPress={r.onPress} disabled={!r.onPress} style={({ pressed }) => ({ minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, opacity: pressed ? 0.6 : 1 })}>
-              <Text style={{ fontFamily: F.sans, fontSize: fs(15), color: c.text }}>{r.label}</Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1 }}>
+              <Text style={{ flexShrink: 1, fontFamily: F.sans, fontSize: fs(15), color: c.text }}>{r.label}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 0, maxWidth: '55%' }}>
                 {r.dot ? <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: r.dot === 'ok' ? c.ok : c.warn }} /> : null}
                 {r.value ? (
                   <Text numberOfLines={1} style={{ fontFamily: F.sans, fontSize: fs(14), color: c.muted, flexShrink: 1 }}>

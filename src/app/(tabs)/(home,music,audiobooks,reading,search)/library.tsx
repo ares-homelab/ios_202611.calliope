@@ -6,7 +6,7 @@ import { Icon } from '../../../components/icon';
 import { BackBar, Chip, Cover, Empty, ErrorBox, useUi } from '../../../components/ui';
 import { authors } from '../../../format';
 import { key } from '../../../shelves';
-import { F, useTheme, fs } from '../../../theme';
+import { F, S, useTheme, fs } from '../../../theme';
 
 const fold = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
@@ -25,13 +25,14 @@ export default function Library() {
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
       <BackBar label="" />
-      <View style={{ paddingHorizontal: 24, gap: 14, paddingBottom: 12 }}>
+      <View style={{ paddingHorizontal: S.page, gap: 14, paddingBottom: 12 }}>
         <Text style={u.h1}>library</Text>
         <View style={[u.row, { gap: 10, height: 44, paddingHorizontal: 14, backgroundColor: c.panel, borderRadius: 12 }]}>
           <Icon name="search" size={18} color={c.muted} />
           <TextInput
             value={query}
             onChangeText={setQuery}
+            accessibilityLabel="search the library"
             placeholder="title, author, series or fandom"
             placeholderTextColor={c.muted}
             clearButtonMode="while-editing"
@@ -51,9 +52,9 @@ export default function Library() {
         data={shown}
         keyExtractor={key}
         keyboardDismissMode="on-drag"
-        contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40 }}
+        contentContainerStyle={{ paddingHorizontal: S.page, paddingBottom: 40 }}
         refreshControl={<RefreshControl refreshing={lib.loading && !!lib.items.length} onRefresh={lib.refresh} tintColor={c.muted} />}
-        ListEmptyComponent={<Empty>{lib.loading && !lib.items.length ? 'loading…' : 'no books match.'}</Empty>}
+        ListEmptyComponent={<Empty>{lib.loading && !lib.items.length ? 'loading…' : filter ? 'no books match. tap the status again to clear it, or try fewer letters.' : 'no books match. try fewer letters, or part of the author’s name.'}</Empty>}
         renderItem={({ item: b }) => (
           <Pressable accessibilityRole="button" onPress={() => openItem(b)} style={[u.row, { gap: 14, paddingVertical: 10 }, u.line]}>
             <Cover id={b.id} lib={b.lib} title={b.title} hasCover={b.has_cover} width={34} height={50} radius={3} />

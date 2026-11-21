@@ -118,7 +118,7 @@ export function BackBar({ label, right }: { label: string; right?: ReactNode }) 
     <View style={{ paddingTop: inset.top + 6, paddingHorizontal: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: c.bg }}>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={label ? `back to ${label}` : 'back'}
+        accessibilityLabel={label && label !== 'back' ? `back to ${label}` : 'back'}
         onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))}
         hitSlop={8}
         style={{ height: 44, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 4 }}

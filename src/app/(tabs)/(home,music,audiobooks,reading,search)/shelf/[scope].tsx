@@ -39,7 +39,7 @@ function Articles() {
             {items.length ? <RandomArticle items={items} /> : null}
           </View>
         }
-        ListEmptyComponent={<Empty>{res.loading ? 'loading…' : 'no articles in wallabag.'}</Empty>}
+        ListEmptyComponent={<Empty>{res.loading ? 'loading…' : 'no articles in wallabag. save one there, then pull down here to refresh.'}</Empty>}
         renderItem={({ item }) => <ArticleRow a={item} />}
       />
     </View>
@@ -97,7 +97,7 @@ function Books({ scope, mode }: { scope: string; mode: Mode }) {
             {children.length || kind === 'fanfic' ? <Text style={u.h2}>every book</Text> : null}
           </View>
         }
-        ListEmptyComponent={<Empty>{lib.loading ? 'loading…' : 'no books here.'}</Empty>}
+        ListEmptyComponent={<Empty>{lib.loading ? 'loading…' : mode === 'listen' ? 'none of these has audio yet. open a book from reading → library and queue it for tonight.' : 'no books on this shelf. pull down to refresh.'}</Empty>}
         renderItem={({ item }) => <BookTile b={item} lib={lib} width={tile} mode={mode} />}
       />
     </View>
