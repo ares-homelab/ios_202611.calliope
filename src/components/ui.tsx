@@ -291,7 +291,7 @@ export function Button({ label, onPress, icon, kind = 'primary', busy, style }: 
       ]}
     >
       {icon ? <Icon name={icon} size={20} color={fg} width={1.9} /> : null}
-      <Text style={{ fontFamily: kind === 'outline' ? F.sansMedium : F.sansBold, fontSize: kind === 'outline' ? 13 : 14, color: fg }}>{busy ? '…' : label}</Text>
+      <Text style={{ fontFamily: kind === 'outline' ? F.sansMedium : F.sansBold, fontSize: fs(kind === 'outline' ? 13 : 14), color: fg }}>{busy ? '…' : label}</Text>
     </Pressable>
   );
 }

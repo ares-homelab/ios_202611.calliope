@@ -143,7 +143,7 @@ export const F = {
   sansBold: 'Inter_600SemiBold',
   heavy: 'Inter_700Bold',
   heavyItalic: 'Inter_700Bold_Italic',
-  black: 'Inter_800ExtraBold',
+  black: 'Inter_700Bold',
   serif: 'Inter_400Regular',
   serifItalic: 'Inter_400Regular_Italic',
   serifMediumItalic: 'Inter_500Medium_Italic',

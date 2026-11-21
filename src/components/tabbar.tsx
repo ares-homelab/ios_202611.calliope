@@ -88,7 +88,7 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
               style={{ width: 70, alignItems: 'center', gap: 4 }}
             >
               <Icon name={tab[2]} size={24} color={color} />
-              <Text style={{ fontFamily: F.sansMedium, fontSize: 10.5, color }}>{tab[1]}</Text>
+              <Text style={{ fontFamily: F.sansMedium, fontSize: 11, color }}>{tab[1]}</Text>
             </Pressable>
           );
         })}
