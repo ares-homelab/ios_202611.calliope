@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Text, TextInput, View } from 'react-native';
+import { Text, TextInput, View, type TextInputProps } from 'react-native';
 import { api } from '../../api';
 import { BackBar, Button, Eyebrow, Screen, useUi } from '../../components/ui';
 import { DEFAULT_ND, DEFAULT_URL, ndLogin, saveConfig, saveNd, useConfig } from '../../config';
@@ -38,11 +38,13 @@ export default function Connection() {
     }
   };
   const saveApi = async () => {
+    if (!token.trim()) return setApiResult({ ok: false, text: 'paste the token first; it is in api.env on ares.' });
     await saveConfig(clean());
     refreshAll();
     if (first) router.replace('/');
   };
   const signIn = async () => {
+    if (!ndPass) return setNdResult({ ok: false, text: 'type the navidrome password first.' });
     setBusy(true);
     setNdResult(null);
     try {
@@ -59,10 +61,17 @@ export default function Connection() {
     }
   };
   const input = { height: 48, borderRadius: 12, paddingHorizontal: 14, backgroundColor: c.panel, color: c.text, fontFamily: F.sans, fontSize: fs(15) };
-  const field = (label: string, value: string, set: (v: string) => void, placeholder: string, secure = false) => (
+  type Kind = 'url' | 'token' | 'user' | 'password';
+  const KIND = {
+    url: { keyboardType: 'url', textContentType: 'URL', autoComplete: 'url' },
+    token: { textContentType: 'none', autoComplete: 'off' },
+    user: { textContentType: 'username', autoComplete: 'username' },
+    password: { textContentType: 'password', autoComplete: 'current-password' },
+  } as const satisfies Record<Kind, TextInputProps>;
+  const field = (label: string, value: string, set: (v: string) => void, placeholder: string, kind: Kind) => (
     <View style={{ gap: 8 }}>
       <Eyebrow>{label}</Eyebrow>
-      <TextInput value={value} onChangeText={set} placeholder={placeholder} placeholderTextColor={c.muted} autoCapitalize="none" autoCorrect={false} secureTextEntry={secure} style={input} />
+      <TextInput accessibilityLabel={label} value={value} onChangeText={set} placeholder={placeholder} placeholderTextColor={c.muted} autoCapitalize="none" autoCorrect={false} secureTextEntry={kind === 'token' || kind === 'password'} {...KIND[kind]} style={input} />
     </View>
   );
 
@@ -73,20 +82,20 @@ export default function Connection() {
         <Text accessibilityRole="header" style={u.h1}>{first ? 'connect to ares' : 'connections'}</Text>
         <Text accessibilityRole="header" style={u.h2}>calliope api</Text>
         <Text style={[u.soft, { color: c.muted }]}>books, audiobooks, stats. reached over tailscale; the token is in /srv/config/calliope/api.env on ares and kept in this iphone&apos;s keychain.</Text>
-        {field('api address', url, setUrl, DEFAULT_URL)}
-        {field('token', token, setToken, 'bearer token', true)}
+        {field('api address', url, setUrl, DEFAULT_URL, 'url')}
+        {field('token', token, setToken, 'bearer token', 'token')}
         <View style={[u.row, { gap: 10 }]}>
           <Button label="test" kind="outline" onPress={testApi} busy={busy} />
-          <Button label="save" onPress={saveApi} busy={!token.trim()} style={{ flex: 1 }} />
+          <Button label="save" onPress={saveApi} style={{ flex: 1 }} />
         </View>
         {apiResult ? <Text style={[u.soft, { color: apiResult.ok ? c.ok : c.warn }]}>{apiResult.text}</Text> : null}
 
         <Text accessibilityRole="header" style={[u.h2, { marginTop: 12 }]}>navidrome</Text>
         <Text style={[u.soft, { color: c.muted }]}>music. only a salted token is kept on this iphone, never the password.{nd.ready() ? ` signed in as ${cfg.nd.user}.` : ''}</Text>
-        {field('address', ndUrl, setNdUrl, DEFAULT_ND)}
-        {field('user', ndUser, setNdUser, 'mars')}
-        {field('password', ndPass, setNdPass, 'navidrome password', true)}
-        <Button label={nd.ready() ? 'sign in again' : 'sign in'} onPress={signIn} busy={busy || !ndPass} />
+        {field('address', ndUrl, setNdUrl, DEFAULT_ND, 'url')}
+        {field('user', ndUser, setNdUser, 'mars', 'user')}
+        {field('password', ndPass, setNdPass, 'navidrome password', 'password')}
+        <Button label={nd.ready() ? 'sign in again' : 'sign in'} onPress={signIn} busy={busy} />
         {ndResult ? <Text style={[u.soft, { color: ndResult.ok ? c.ok : c.warn }]}>{ndResult.text}</Text> : null}
       </Screen>
     </View>

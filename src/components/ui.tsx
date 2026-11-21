@@ -89,7 +89,7 @@ export function Avatar({ size = 38 }: { size?: number }) {
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel="profile and settings"
+      accessibilityLabel="account"
       onPress={() => router.push('/settings')}
       style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: c.accent, alignItems: 'center', justifyContent: 'center' }}
     >
