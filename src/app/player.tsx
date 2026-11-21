@@ -27,6 +27,7 @@ async function readFromHere(t: Track) {
 
 const Btn = ({ name, label, onPress, color, size = 24, big }: { name: IconName; label: string; onPress: () => void; color: string; size?: number; big?: string }) => (
   <Pressable
+    accessibilityRole="button"
     accessibilityLabel={label}
     onPress={onPress}
     hitSlop={6}
@@ -150,10 +151,10 @@ function BookPlayer({ t }: { t: Track }) {
             {t.title} · {t.artist}
           </Text>
         </View>
-        <Pressable accessibilityLabel="read from here" onPress={() => readFromHere(t)} style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' }}>
+        <Pressable accessibilityRole="button" accessibilityLabel="read from here" onPress={() => readFromHere(t)} style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' }}>
           <Icon name="book" size={21} color={k.text} />
         </Pressable>
-        <Pressable accessibilityLabel="reading settings" onPress={() => setPanel(!panel)} style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: panel ? k.chip : undefined }}>
+        <Pressable accessibilityRole="button" accessibilityLabel="reading settings" onPress={() => setPanel(!panel)} style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: panel ? k.chip : undefined }}>
           <Text style={{ fontFamily: F.sans, fontSize: 17, color: k.text }}>Aa</Text>
         </Pressable>
       </View>
@@ -252,7 +253,7 @@ function MusicPlayer({ t }: { t: Track }) {
   const vol = getVolume();
   return (
     <View style={{ flex: 1, backgroundColor: k.bg, paddingHorizontal: 28, paddingTop: 10, paddingBottom: inset.bottom + 10, gap: 20 }}>
-      <Pressable onPress={() => router.back()} accessibilityLabel="close" style={{ alignItems: 'center', paddingVertical: 6 }}>
+      <Pressable accessibilityRole="button" onPress={() => router.back()} accessibilityLabel="close" style={{ alignItems: 'center', paddingVertical: 6 }}>
         <View style={{ width: 40, height: 5, borderRadius: 3, backgroundColor: k.track }} />
       </Pressable>
       <View style={{ alignItems: 'center', flex: 1, justifyContent: 'center' }}>
@@ -267,10 +268,10 @@ function MusicPlayer({ t }: { t: Track }) {
             {t.artist}
           </Text>
         </View>
-        <Pressable accessibilityLabel={fav ? 'remove from favorites' : 'favorite'} onPress={star} style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: k.chip, alignItems: 'center', justifyContent: 'center' }}>
+        <Pressable accessibilityRole="button" accessibilityLabel={fav ? 'remove from favorites' : 'favorite'} onPress={star} style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: k.chip, alignItems: 'center', justifyContent: 'center' }}>
           <Icon name="heart" size={18} color={fav ? c.accent : k.text} filled={fav} />
         </Pressable>
-        <Pressable accessibilityLabel="more" onPress={more} style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: k.chip, alignItems: 'center', justifyContent: 'center' }}>
+        <Pressable accessibilityRole="button" accessibilityLabel="more" onPress={more} style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: k.chip, alignItems: 'center', justifyContent: 'center' }}>
           <Icon name="more" size={18} color={k.text} />
         </Pressable>
       </View>
@@ -295,7 +296,7 @@ function MusicPlayer({ t }: { t: Track }) {
       </View>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         <Btn name="lyrics" label="lyrics" onPress={() => router.push('/lyrics')} color={k.muted} size={22} />
-        <Pressable accessibilityLabel={s.smart ? 'smart shuffle on' : 'smart shuffle off'} onPress={() => setSmart(!s.smart)} style={{ flexDirection: 'row', gap: 6, alignItems: 'center', height: 44 }}>
+        <Pressable accessibilityRole="button" accessibilityLabel={s.smart ? 'smart shuffle on' : 'smart shuffle off'} onPress={() => setSmart(!s.smart)} style={{ flexDirection: 'row', gap: 6, alignItems: 'center', height: 44 }}>
           <Icon name="sparkle" size={22} color={s.smart ? c.accent : k.muted} />
           <Text style={{ fontFamily: F.heavy, fontSize: 13, color: s.smart ? c.accent : k.muted }}>smart shuffle</Text>
         </Pressable>

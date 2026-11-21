@@ -25,7 +25,7 @@ function Group({ title, rows }: { title: string; rows: Row[] }) {
       <View style={{ borderRadius: 14, backgroundColor: c.panel, paddingHorizontal: 14 }}>
         {rows.map((r, i) => (
           <Fragment key={r.label}>
-            <Pressable onPress={r.onPress} disabled={!r.onPress} style={({ pressed }) => ({ minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, opacity: pressed ? 0.6 : 1 })}>
+            <Pressable accessibilityRole={r.onPress ? 'button' : undefined} onPress={r.onPress} disabled={!r.onPress} style={({ pressed }) => ({ minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, opacity: pressed ? 0.6 : 1 })}>
               <Text style={{ fontFamily: F.sans, fontSize: fs(15), color: c.text }}>{r.label}</Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1 }}>
                 {r.dot ? <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: r.dot === 'ok' ? c.ok : c.warn }} /> : null}

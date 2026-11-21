@@ -73,7 +73,7 @@ const light = (accent: string): Colors => ({
   onAccent: '#FFFFFF',
   link: accent,
   progress: accent,
-  ok: '#3E8A4C',
+  ok: '#357A42',
   warn: '#A8643A',
   warnBg: '#F7EBE1',
   warnLine: '#E6CDB6',

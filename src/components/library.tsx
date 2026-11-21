@@ -66,7 +66,7 @@ function Continue({ lib }: { lib: Library }) {
   const which = usePhone ? phone.lib : 'calliope';
   const share = usePhone ? phone.s : kindle!.progress;
   return (
-    <Pressable onPress={() => openBook(id, which)} style={({ pressed }) => [{ borderRadius: 18, backgroundColor: c.panel, padding: 14, flexDirection: 'row', gap: 14, opacity: pressed ? 0.85 : 1 }]}>
+    <Pressable accessibilityRole="button" onPress={() => openBook(id, which)} style={({ pressed }) => [{ borderRadius: 18, backgroundColor: c.panel, padding: 14, flexDirection: 'row', gap: 14, opacity: pressed ? 0.85 : 1 }]}>
       <Cover id={id} lib={which} title={t} hasCover={item?.has_cover ?? true} width={80} height={118} radius={6} />
       <View style={{ flex: 1, gap: 7 }}>
         <Text style={{ fontFamily: F.heavy, fontSize: 11, letterSpacing: 0.7, color: c.accent }}>{usePhone ? 'CONTINUE ON THE IPHONE' : 'CONTINUE · FROM THE KINDLE'}</Text>
@@ -74,7 +74,7 @@ function Continue({ lib }: { lib: Library }) {
           {t}
         </Text>
         <Text style={u.muted}>{percent(share)}</Text>
-        <Pressable onPress={() => openReader(which, id)} style={{ marginTop: 'auto', alignSelf: 'flex-start', height: 34, paddingHorizontal: 18, borderRadius: 17, backgroundColor: c.accent, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+        <Pressable accessibilityRole="button" onPress={() => openReader(which, id)} style={{ marginTop: 'auto', alignSelf: 'flex-start', height: 34, paddingHorizontal: 18, borderRadius: 17, backgroundColor: c.accent, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           <Icon name="book" size={16} color={c.onAccent} />
           <Text style={{ fontFamily: F.heavy, fontSize: fs(13), color: c.onAccent }}>read</Text>
         </Pressable>
@@ -94,7 +94,7 @@ export function LibraryBody({ lib }: { lib: Library }) {
     <>
       <Continue lib={lib} />
       <RandomButton scope="all" lib={lib} mode="read" />
-      <Pressable onPress={() => router.push('/library')} style={[u.row, { gap: 10, height: 44, paddingHorizontal: 14, backgroundColor: c.panel, borderRadius: 12 }]}>
+      <Pressable accessibilityRole="button" accessibilityLabel="search the library" onPress={() => router.push('/library')} style={[u.row, { gap: 10, height: 44, paddingHorizontal: 14, backgroundColor: c.panel, borderRadius: 12 }]}>
         <Icon name="search" size={18} color={c.muted} />
         <Text style={[u.soft, { color: c.muted }]}>title, author, series or fandom</Text>
       </Pressable>

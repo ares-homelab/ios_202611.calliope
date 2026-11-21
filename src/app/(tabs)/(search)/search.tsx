@@ -27,7 +27,7 @@ function Row({ title, sub, left, onPress }: { title: string; sub: string; left: 
   const u = useUi();
   const { c } = useTheme();
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [u.row, u.line, { gap: 14, paddingVertical: 9, opacity: pressed ? 0.7 : 1 }]}>
+    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [u.row, u.line, { gap: 14, paddingVertical: 9, opacity: pressed ? 0.7 : 1 }]}>
       {left}
       <View style={{ flex: 1 }}>
         <Text numberOfLines={2} style={{ fontFamily: F.sansBold, fontSize: fs(15), color: c.text }}>
@@ -163,7 +163,7 @@ export default function Search() {
       ) : null}
       {term.length > 1 && !music?.song?.length && !music?.album?.length && !ab.length && !bk.length && !hl?.highlights.length ? <Empty>nothing found for “{q}”.</Empty> : null}
       {term.length > 1 ? (
-        <Pressable onPress={() => router.push('/library')} style={{ paddingVertical: 8 }}>
+        <Pressable accessibilityRole="button" onPress={() => router.push('/library')} style={{ paddingVertical: 8 }}>
           <Text style={u.link}>browse the whole library</Text>
         </Pressable>
       ) : null}

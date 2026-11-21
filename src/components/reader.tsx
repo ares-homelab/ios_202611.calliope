@@ -25,6 +25,7 @@ export function useReaderTint(seed: string): Tint {
 
 const Chip = ({ label, on, onPress, k, dot }: { label: string; on: boolean; onPress: () => void; k: Tint; dot?: string }) => (
   <Pressable
+    accessibilityRole="button"
     onPress={onPress}
     accessibilityState={{ selected: on }}
     style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, height: 34, borderRadius: 17, backgroundColor: on ? k.text : k.chip }}
@@ -46,6 +47,7 @@ export function ReaderPanel({ k }: { k: Tint }) {
   const size = (d: number) => setReader({ size: Math.min(READER_SIZE.max, Math.max(READER_SIZE.min, r.size + d * READER_SIZE.step)) });
   const step = (label: string, d: number, off: boolean) => (
     <Pressable
+      accessibilityRole="button"
       accessibilityLabel={d < 0 ? 'smaller text' : 'bigger text'}
       disabled={off}
       onPress={() => size(d)}
@@ -111,13 +113,13 @@ export function NoteSheet({ note, k, size, line, onClose }: { note: Note | null;
   const inset = useSafeAreaInsets();
   return (
     <Modal visible={!!note} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable accessibilityLabel="close the note" onPress={onClose} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' }}>
+      <Pressable accessibilityRole="button" accessibilityLabel="close the note" onPress={onClose} style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' }}>
         <Pressable onPress={() => {}} style={{ maxHeight: '60%', margin: 12, marginBottom: inset.bottom + 12, borderRadius: 18, backgroundColor: k.page, padding: 18, gap: 10 }}>
           <Text style={{ fontFamily: F.heavy, fontSize: 11, letterSpacing: 0.7, color: k.muted }}>NOTE</Text>
           <ScrollView>
             <Text style={{ fontFamily: F.sans, fontSize: size * 0.9, lineHeight: line * 0.9, color: k.ink }}>{note?.r?.length ? <Runs r={note.r} base={F.sans} size={size * 0.9} k={k} /> : note?.t}</Text>
           </ScrollView>
-          <Pressable onPress={onClose} hitSlop={8} style={{ alignSelf: 'flex-end' }}>
+          <Pressable accessibilityRole="button" onPress={onClose} hitSlop={8} style={{ alignSelf: 'flex-end' }}>
             <Text style={{ fontFamily: F.sansBold, fontSize: fs(14), color: k.text }}>close</Text>
           </Pressable>
         </Pressable>

@@ -17,11 +17,11 @@ export default function Queue() {
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingTop: 12 }}>
-        <Pressable accessibilityLabel="close" onPress={() => router.back()} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
+        <Pressable accessibilityRole="button" accessibilityLabel="close" onPress={() => router.back()} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
           <Icon name="down" size={22} color={c.text} />
         </Pressable>
         <Text style={{ fontFamily: F.heavy, fontSize: fs(16), color: c.text }}>up next</Text>
-        <Pressable onPress={clearUpNext} style={{ width: 54, height: 44, alignItems: 'center', justifyContent: 'center' }}>
+        <Pressable accessibilityRole="button" onPress={clearUpNext} style={{ width: 54, height: 44, alignItems: 'center', justifyContent: 'center' }}>
           <Text style={{ fontFamily: F.sansBold, fontSize: fs(14), color: c.accent }}>clear</Text>
         </Pressable>
       </View>
@@ -44,7 +44,7 @@ export default function Queue() {
         ) : null}
         {rest.length ? <Text style={eyebrow}>{book ? 'NEXT IN THIS BOOK' : s.label ? `NEXT FROM ${s.label.toUpperCase()}` : 'NEXT'}</Text> : null}
         {rest.map(({ x, i }) => (
-          <Pressable key={`${x.key}-${i}`} onPress={() => jump(i)} style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 6, opacity: pressed ? 0.6 : 1 })}>
+          <Pressable accessibilityRole="button" key={`${x.key}-${i}`} onPress={() => jump(i)} style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 6, opacity: pressed ? 0.6 : 1 })}>
             {book ? null : <TrackArt t={x} size={44} />}
             <View style={{ flex: 1 }}>
               <Text numberOfLines={1} style={{ fontFamily: F.sansBold, fontSize: fs(15), color: c.text }}>
@@ -55,7 +55,7 @@ export default function Queue() {
                 {book ? `${Math.round(x.duration / 60)} min` : x.artist}
               </Text>
             </View>
-            <Pressable accessibilityLabel="remove from queue" onPress={() => removeAt(i)} hitSlop={8} style={{ padding: 6 }}>
+            <Pressable accessibilityRole="button" accessibilityLabel="remove from queue" onPress={() => removeAt(i)} hitSlop={8} style={{ padding: 6 }}>
               <Icon name="close" size={18} color={c.muted} />
             </Pressable>
           </Pressable>

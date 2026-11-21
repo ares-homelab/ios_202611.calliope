@@ -28,7 +28,7 @@ export default function Downloads() {
                 {g.startsWith('r:') && !x.label.endsWith('pdf pages') ? (x.images ? `with ${x.images} ${x.images === 1 ? 'image' : 'images'}` : 'text only') : `${x.n} ${x.n === 1 ? 'file' : 'files'}`} · {size(x.bytes)}
               </Text>
             </View>
-            <Pressable accessibilityLabel={`remove ${x.label}`} onPress={() => removeGroup(g)} hitSlop={8}>
+            <Pressable accessibilityRole="button" accessibilityLabel={`remove ${x.label}`} onPress={() => removeGroup(g)} hitSlop={8}>
               <Icon name="close" size={18} color={c.muted} />
             </Pressable>
           </View>

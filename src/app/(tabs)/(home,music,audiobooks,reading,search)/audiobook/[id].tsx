@@ -69,16 +69,16 @@ export default function AudiobookScreen() {
               />
             </View>
             <View style={[u.row, { gap: 16 }]}>
-              <Pressable onPress={() => router.push({ pathname: '/book/[id]', params: { id } })} hitSlop={6}>
+              <Pressable accessibilityRole="button" onPress={() => router.push({ pathname: '/book/[id]', params: { id } })} hitSlop={6}>
                 <Text style={u.link}>book details</Text>
               </Pressable>
               {b.source === 'kokoro' && !b.complete ? (
-                <Pressable onPress={tonight} hitSlop={6}>
+                <Pressable accessibilityRole="button" onPress={tonight} hitSlop={6}>
                   <Text style={u.link}>voice the rest tonight</Text>
                 </Pressable>
               ) : null}
               {b.page ? (
-                <Pressable onPress={() => Linking.openURL(b.page!)} hitSlop={6}>
+                <Pressable accessibilityRole="button" onPress={() => Linking.openURL(b.page!)} hitSlop={6}>
                   <Text style={u.link}>recording page</Text>
                 </Pressable>
               ) : null}
@@ -87,7 +87,7 @@ export default function AudiobookScreen() {
               {(b.tracks ?? []).map((x) => {
                 const on = x.n === playingN;
                 return (
-                  <Pressable key={x.n} onPress={() => playBook(b.id, { track: x.n, seconds: 0 })} style={({ pressed }) => [u.row, u.line, { gap: 14, paddingVertical: 11, opacity: pressed ? 0.7 : 1 }]}>
+                  <Pressable accessibilityRole="button" key={x.n} onPress={() => playBook(b.id, { track: x.n, seconds: 0 })} style={({ pressed }) => [u.row, u.line, { gap: 14, paddingVertical: 11, opacity: pressed ? 0.7 : 1 }]}>
                     <Text style={{ width: 24, fontFamily: F.sans, fontSize: fs(14), color: on ? c.accent : c.muted }}>{x.n}</Text>
                     <View style={{ flex: 1 }}>
                       <Text style={{ fontFamily: on ? F.heavy : F.sansBold, fontSize: fs(15), color: on ? c.accent : c.text }}>{x.title}</Text>

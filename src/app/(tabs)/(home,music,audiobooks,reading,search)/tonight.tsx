@@ -36,7 +36,7 @@ export default function Tonight() {
         <Text style={u.soft}>kokoro reads books aloud between 01:00 and 07:00, ticked books first. books with a human recording skip the queue.</Text>
         <TextInput value={q} onChangeText={setQ} placeholder="find a book to tick" placeholderTextColor={c.muted} style={{ height: 44, borderRadius: 12, paddingHorizontal: 14, backgroundColor: c.panel, color: c.text, fontFamily: F.sans, fontSize: fs(15) }} />
         {found.map((b) => (
-          <Pressable key={b.id} onPress={() => tick(b.id, b.title)} style={[u.row, u.line, { gap: 12, paddingVertical: 8 }]}>
+          <Pressable accessibilityRole="button" accessibilityState={{ checked: ticked.has(b.id) }} key={b.id} onPress={() => tick(b.id, b.title)} style={[u.row, u.line, { gap: 12, paddingVertical: 8 }]}>
             <Cover id={b.id} title={b.title} hasCover={b.has_cover} width={36} height={52} radius={3} />
             <View style={{ flex: 1 }}>
               <Text style={{ fontFamily: F.sansBold, fontSize: fs(15), color: c.text }}>{b.title}</Text>

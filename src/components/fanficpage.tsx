@@ -58,7 +58,7 @@ export function FanficPage({ id }: { id: number }) {
           <Text style={u.muted}>{busy ? 'saving…' : 'saved to the fanfic library on ares'}</Text>
         </View>
         {about ? (
-          <Pressable onPress={() => setMore(!more)} style={{ gap: 10 }}>
+          <Pressable accessibilityRole="button" onPress={() => setMore(!more)} style={{ gap: 10 }}>
             <Eyebrow>summary</Eyebrow>
             <Text style={[u.soft, { fontSize: fs(14), lineHeight: fs(21) }]} numberOfLines={more ? undefined : 8}>
               {about}

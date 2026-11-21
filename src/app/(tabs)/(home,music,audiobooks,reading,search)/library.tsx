@@ -55,7 +55,7 @@ export default function Library() {
         refreshControl={<RefreshControl refreshing={lib.loading && !!lib.items.length} onRefresh={lib.refresh} tintColor={c.muted} />}
         ListEmptyComponent={<Empty>{lib.loading && !lib.items.length ? 'loading…' : 'no books match.'}</Empty>}
         renderItem={({ item: b }) => (
-          <Pressable onPress={() => openItem(b)} style={[u.row, { gap: 14, paddingVertical: 10 }, u.line]}>
+          <Pressable accessibilityRole="button" onPress={() => openItem(b)} style={[u.row, { gap: 14, paddingVertical: 10 }, u.line]}>
             <Cover id={b.id} lib={b.lib} title={b.title} hasCover={b.has_cover} width={34} height={50} radius={3} />
             <View style={{ flex: 1, gap: 3 }}>
               <Text style={{ fontFamily: F.sansMedium, fontSize: fs(15), color: c.text }} numberOfLines={2}>

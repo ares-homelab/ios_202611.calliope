@@ -94,6 +94,7 @@ export function RandomButton({ scope, lib, mode, label }: { scope: string; lib: 
   const { c } = useTheme();
   return (
     <Pressable
+      accessibilityRole="button"
       onPress={() => pickRandom(scope, lib, mode)}
       style={({ pressed }) => ({ height: 44, borderRadius: 22, backgroundColor: c.accent, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: pressed ? 0.85 : 1 })}
     >
@@ -108,7 +109,7 @@ export function BookTile({ b, lib, width, mode }: { b: Item; lib: Library; width
   const { c } = useTheme();
   const line = mode === 'listen' ? state(b, lib).line : readLine(b, lib);
   return (
-    <Pressable onPress={() => pressBook(b, lib, mode)} onLongPress={() => openItem(b)} style={({ pressed }) => ({ width, gap: 5, opacity: pressed ? 0.7 : 1 })}>
+    <Pressable accessibilityRole="button" onPress={() => pressBook(b, lib, mode)} onLongPress={() => openItem(b)} style={({ pressed }) => ({ width, gap: 5, opacity: pressed ? 0.7 : 1 })}>
       <Cover id={b.id} lib={b.lib} title={b.title} author={authors(b.authors)} hasCover={b.has_cover} width={width} height={Math.round(width * 1.5)} radius={5} />
       <Text style={{ fontFamily: F.sansBold, fontSize: fs(12), lineHeight: fs(15), color: c.text }} numberOfLines={2}>
         {b.title}
@@ -129,7 +130,7 @@ export function ShelfLink({ label, sub, n, onPress }: { label: string; sub?: str
   const u = useUi();
   const { c } = useTheme();
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [u.row, u.line, { gap: 12, paddingVertical: 11, opacity: pressed ? 0.7 : 1 }]}>
+    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [u.row, u.line, { gap: 12, paddingVertical: 11, opacity: pressed ? 0.7 : 1 }]}>
       <View style={{ flex: 1, gap: 2 }}>
         <Text style={{ fontFamily: F.sansBold, fontSize: fs(15), color: c.text }}>{label}</Text>
         {sub ? (

@@ -111,11 +111,11 @@ function Month({ s }: { s: Insights }) {
       <Tiles items={[[String(s.streak), 'day streak'], [String(s.best_streak), 'best streak'], [`${s.active_30}/30`, 'active days']]} />
       <Card title={`${MONTH_NAMES[shown.m]}${shown.y !== now.getFullYear() ? ` ${shown.y}` : ''}`} right="reading + listening a day">
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: -6 }}>
-          <Pressable onPress={() => move(-1)} hitSlop={10}>
+          <Pressable accessibilityRole="button" accessibilityLabel="earlier month" onPress={() => move(-1)} hitSlop={10}>
             <Text style={{ fontFamily: F.sansBold, fontSize: fs(13), color: c.accent }}>‹ earlier</Text>
           </Pressable>
           {!onCurrent ? (
-            <Pressable onPress={() => move(1)} hitSlop={10}>
+            <Pressable accessibilityRole="button" accessibilityLabel="later month" onPress={() => move(1)} hitSlop={10}>
               <Text style={{ fontFamily: F.sansBold, fontSize: fs(13), color: c.accent }}>later ›</Text>
             </Pressable>
           ) : null}
@@ -131,6 +131,9 @@ function Month({ s }: { s: Insights }) {
               <View key={i} style={{ width: `${100 / 7}%`, padding: 2.5 }}>
                 {d ? (
                   <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={d}
+                    accessibilityState={{ selected: picked === d, disabled: future }}
                     disabled={future}
                     onPress={() => setPicked(picked === d ? null : d)}
                     style={{ aspectRatio: 1, borderRadius: 6, backgroundColor: future ? c.bg : level(v ? v.read + v.heard : 0), borderWidth: picked === d ? 2 : 1, borderColor: picked === d ? c.text : c.line, alignItems: 'flex-end', justifyContent: 'flex-end', padding: 3 }}>
@@ -167,7 +170,7 @@ function DayDetail({ date }: { date: string }) {
         <Text style={{ fontFamily: F.sans, fontSize: fs(13), color: c.muted }}>nothing read or heard.</Text>
       ) : (
         day.data.map((b, i) => (
-          <Pressable key={i} disabled={!b.calibre_id} onPress={() => openBook(b.calibre_id)} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <Pressable accessibilityRole="button" key={i} disabled={!b.calibre_id} onPress={() => openBook(b.calibre_id)} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <Cover id={b.calibre_id} title={b.title} width={26} height={38} radius={3} />
             <View style={{ flex: 1 }}>
               <Text numberOfLines={1} style={{ fontFamily: F.sansBold, fontSize: fs(14), color: c.text }}>{b.title}</Text>
@@ -203,7 +206,7 @@ function Year({ year, setYear }: { year: number; setYear: (y: number) => void })
                 <View key={i} style={{ alignItems: 'center', gap: 4 }}>
                   <View style={{ height: 96, justifyContent: 'flex-end', gap: 2 }}>
                     {books.slice(0, 4).map((b, j) => (
-                      <Pressable key={j} onPress={() => openBook(b.calibre_id)} style={{ width: 22, height: 20, borderRadius: 2, backgroundColor: swatch(String(b.calibre_id ?? b.title)) }} />
+                      <Pressable key={j} accessibilityRole="button" accessibilityLabel={b.title} onPress={() => openBook(b.calibre_id)} style={{ width: 22, height: 20, borderRadius: 2, backgroundColor: swatch(String(b.calibre_id ?? b.title)) }} />
                     ))}
                   </View>
                   <Text style={{ fontFamily: F.sans, fontSize: 10, color: c.muted }}>{MONTHS[i]}</Text>
@@ -252,7 +255,7 @@ function Habits({ s }: { s: Insights }) {
       {s.pace.length ? (
         <Card title="pace per book">
           {s.pace.map((p, i) => (
-            <Pressable key={i} disabled={!p.calibre_id} onPress={() => openBook(p.calibre_id)} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 8, borderTopWidth: i ? 1 : 0, borderTopColor: c.line }}>
+            <Pressable accessibilityRole="button" key={i} disabled={!p.calibre_id} onPress={() => openBook(p.calibre_id)} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 8, borderTopWidth: i ? 1 : 0, borderTopColor: c.line }}>
               <Cover id={p.calibre_id} title={p.title} width={30} height={44} radius={4} />
               <View style={{ flex: 1, minWidth: 0 }}>
                 <Text numberOfLines={1} style={{ fontFamily: F.sansBold, fontSize: fs(15), color: c.text }}>{p.title}</Text>
@@ -292,7 +295,7 @@ export function StatsBody() {
   return (
     <>
       <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
-        <Pressable onPress={() => setEditing(!editing)} hitSlop={8} style={{ paddingVertical: 6 }}>
+        <Pressable accessibilityRole="button" onPress={() => setEditing(!editing)} hitSlop={8} style={{ paddingVertical: 6 }}>
           <Text style={{ fontFamily: F.sansBold, fontSize: fs(14), color: c.accent }}>{editing ? 'done' : 'edit sections'}</Text>
         </Pressable>
       </View>
@@ -303,12 +306,12 @@ export function StatsBody() {
             {editing ? (
               <View style={{ flexDirection: 'row', gap: 18 }}>
                 {i > 0 ? (
-                  <Pressable onPress={() => shift(i, -1)} hitSlop={8} accessibilityLabel={`move ${TITLES[sec]} up`}>
+                  <Pressable accessibilityRole="button" onPress={() => shift(i, -1)} hitSlop={8} accessibilityLabel={`move ${TITLES[sec]} up`}>
                     <Text style={{ fontFamily: F.heavy, fontSize: fs(16), color: c.accent }}>↑</Text>
                   </Pressable>
                 ) : null}
                 {i < order.length - 1 ? (
-                  <Pressable onPress={() => shift(i, 1)} hitSlop={8} accessibilityLabel={`move ${TITLES[sec]} down`}>
+                  <Pressable accessibilityRole="button" onPress={() => shift(i, 1)} hitSlop={8} accessibilityLabel={`move ${TITLES[sec]} down`}>
                     <Text style={{ fontFamily: F.heavy, fontSize: fs(16), color: c.accent }}>↓</Text>
                   </Pressable>
                 ) : null}

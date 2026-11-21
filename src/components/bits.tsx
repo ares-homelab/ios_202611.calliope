@@ -18,7 +18,7 @@ export function ReadingCards({ items, dim }: { items: Reading[]; dim?: boolean }
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -24, opacity: dim ? 0.85 : 1 }} contentContainerStyle={{ paddingHorizontal: 24, gap: 14 }}>
       {items.map((r) => (
-        <Pressable key={`${r.calibre_id}-${r.title}`} onPress={() => openBook(r.calibre_id)} style={{ width: 132, gap: 8 }}>
+        <Pressable accessibilityRole="button" accessibilityLabel={`${r.title}, ${percent(r.progress)}`} key={`${r.calibre_id}-${r.title}`} onPress={() => openBook(r.calibre_id)} style={{ width: 132, gap: 8 }}>
           <Cover id={r.calibre_id} title={r.title} author={r.authors ?? ''} width={132} height={198} />
           <Bar value={r.progress} />
           <Text style={u.muted}>
@@ -37,7 +37,7 @@ export function PathCard({ path }: { path: Path }) {
   const total = entries.length || path.books.length;
   const next = path.up_next;
   return (
-    <Pressable onPress={() => openPath(path.number)} style={({ pressed }) => [u.panel, { gap: 12, opacity: pressed ? 0.8 : 1 }]}>
+    <Pressable accessibilityRole="button" onPress={() => openPath(path.number)} style={({ pressed }) => [u.panel, { gap: 12, opacity: pressed ? 0.8 : 1 }]}>
       <View style={[u.row, { justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }]}>
         <Text style={[u.eyebrow, { flex: 1 }]}>{(path.sections ?? []).join(' · ').toUpperCase()}</Text>
         <Text style={[u.muted, { maxWidth: 110, textAlign: 'right' }]}>
