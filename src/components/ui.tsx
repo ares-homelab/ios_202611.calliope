@@ -21,12 +21,12 @@ const make = (c: Colors) => ({
   tile: { flex: 1, backgroundColor: c.panel, borderRadius: S.radius, paddingVertical: 14, paddingHorizontal: 12, gap: 4 },
   tileValue: { fontFamily: F.black, fontSize: fs(22), lineHeight: fs(26), color: c.text },
   seg: { flexDirection: 'row' as const, backgroundColor: c.panel, borderRadius: 12, padding: 4, gap: 4 },
-  segItem: { flex: 1, height: 38, borderRadius: 9, alignItems: 'center' as const, justifyContent: 'center' as const, flexDirection: 'row' as const, gap: 6 },
+  segItem: { flex: 1, minHeight: 38, borderRadius: 9, alignItems: 'center' as const, justifyContent: 'center' as const, flexDirection: 'row' as const, gap: 6 },
   segText: { fontFamily: F.sansMedium, fontSize: fs(14), color: c.muted },
   chip: { backgroundColor: c.raised, borderRadius: 14, paddingVertical: 6, paddingHorizontal: 12 },
   pill: { borderRadius: 10, borderWidth: 1, paddingVertical: 3, paddingHorizontal: 8 },
   error: { backgroundColor: c.warnBg, borderColor: c.warnLine, borderWidth: 1, borderRadius: S.radius, padding: 14, gap: 10 },
-  button: { height: 44, borderRadius: 12, alignItems: 'center' as const, justifyContent: 'center' as const, flexDirection: 'row' as const, gap: 10, paddingHorizontal: 16 },
+  button: { minHeight: 44, borderRadius: 12, alignItems: 'center' as const, justifyContent: 'center' as const, flexDirection: 'row' as const, gap: 10, paddingHorizontal: 16 },
   line: { borderBottomWidth: 1, borderBottomColor: c.line },
   row: { flexDirection: 'row' as const, alignItems: 'center' as const },
 });
@@ -239,7 +239,7 @@ export function Chip({ label, on, onPress }: { label: string; on?: boolean; onPr
       onPress={onPress}
       hitSlop={{ top: 5, bottom: 5 }}
       style={{
-        height: 34,
+        minHeight: 34,
         paddingHorizontal: 14,
         borderRadius: 17,
         justifyContent: 'center',
@@ -288,10 +288,11 @@ export function Button({ label, onPress, icon, kind = 'primary', busy, style }: 
       accessibilityState={{ busy: !!busy, disabled: !!busy }}
       disabled={busy}
       onPress={onPress}
+      hitSlop={kind === 'outline' ? 4 : undefined}
       style={({ pressed }) => [
         u.button,
         { backgroundColor: bg, opacity: busy ? 0.6 : pressed ? 0.85 : 1 },
-        kind === 'outline' && { borderWidth: 1, borderColor: c.trackOn, height: 36, borderRadius: 18, paddingHorizontal: 14 },
+        kind === 'outline' && { borderWidth: 1, borderColor: c.trackOn, minHeight: 36, borderRadius: 18, paddingHorizontal: 14 },
         style,
       ]}
     >

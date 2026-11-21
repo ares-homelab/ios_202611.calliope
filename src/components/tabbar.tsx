@@ -85,10 +85,11 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
                 const e = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
                 if (!on && !e.defaultPrevented) navigation.navigate(route.name);
               }}
+              hitSlop={{ top: 6, bottom: 6 }}
               style={{ width: 70, alignItems: 'center', gap: 4 }}
             >
-              <Icon name={tab[2]} size={24} color={color} />
-              <Text style={{ fontFamily: F.sansMedium, fontSize: 11, color }}>{tab[1]}</Text>
+              <Icon name={tab[2]} size={24} color={color} width={on ? 2.2 : undefined} />
+              <Text style={{ fontFamily: on ? F.sansBold : F.sansMedium, fontSize: 11, color }}>{tab[1]}</Text>
             </Pressable>
           );
         })}
