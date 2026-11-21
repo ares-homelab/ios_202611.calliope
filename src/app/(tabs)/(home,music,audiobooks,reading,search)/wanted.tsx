@@ -3,6 +3,7 @@ import { Text, TextInput, View } from 'react-native';
 import { BackBar, Empty, ErrorBox, Screen, useUi } from '../../../components/ui';
 import { useWanted } from '../../../data';
 import { F, fs, useTheme } from '../../../theme';
+import { count } from '../../../format';
 
 /** songs played on spotify / apple music and apple music library songs that aren't in navidrome yet (a list only; getting them is up to mars) */
 export default function Wanted() {
@@ -18,7 +19,7 @@ export default function Wanted() {
       <Screen top={false} gap={12} refreshing={res.loading && !!res.data} onRefresh={res.refresh}>
         <Text style={u.h1}>wanted</Text>
         <Text style={u.soft}>
-          {res.data ? `${res.data.total} songs from your apple music library and your spotify and apple music plays that aren't on ares yet, most played first.` : 'from your apple music library and play history.'}
+          {res.data ? `${count(res.data.total, 'song')} from your apple music library and your spotify and apple music plays that aren't on ares yet, most played first.` : 'from your apple music library and play history.'}
         </Text>
         <TextInput value={q} onChangeText={setQ} placeholder="filter" placeholderTextColor={c.muted} style={{ height: 44, borderRadius: 12, paddingHorizontal: 14, backgroundColor: c.panel, color: c.text, fontFamily: F.sans, fontSize: fs(15) }} />
         {res.error && !res.data ? <ErrorBox error={res.error} onRetry={res.refresh} /> : null}

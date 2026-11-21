@@ -4,6 +4,7 @@ import { api } from '../../../api';
 import { BackBar, Cover, Empty, ErrorBox, Screen, SectionHead, useUi } from '../../../components/ui';
 import { useAudiobooks, useAudioQueue, useBooks } from '../../../data';
 import { F, fs, useTheme } from '../../../theme';
+import { count } from '../../../format';
 
 const KIND: Record<string, string> = { listening: 'you are listening', tapped: 'ticked', ongoing: 'reading now', familiar: 'tarot', library: 'library' };
 
@@ -54,7 +55,7 @@ export default function Tonight() {
               <Text style={{ fontFamily: F.sansBold, fontSize: fs(15), color: c.text }}>{x.title}</Text>
               <Text style={u.muted}>
                 {KIND[x.kind] ?? x.kind}
-                {x.chapters_ready ? ` · ${x.chapters_ready} chapters voiced` : ''}
+                {x.chapters_ready ? ` · ${count(x.chapters_ready, 'chapter')} voiced` : ''}
               </Text>
             </View>
           </View>

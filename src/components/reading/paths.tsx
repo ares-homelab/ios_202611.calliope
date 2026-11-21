@@ -4,7 +4,7 @@ import { openBook, openPath, openSection } from '../bits';
 import { Cover, Empty, ErrorBox, Segmented, useUi } from '../ui';
 import { useAudiobooks, usePaths, useRecap, useSections } from '../../data';
 import type { Path } from '../../api';
-import { roman } from '../../format';
+import { count, roman } from '../../format';
 import { F, useTheme, fs } from '../../theme';
 
 function Row({ mark, title, about, counts, pinned, onPress, last }: { mark?: string; title: string; about?: string | null; counts: string; pinned?: boolean; onPress: () => void; last?: boolean }) {
@@ -73,7 +73,7 @@ function Pinned({ p }: { p: Path }) {
           <Text style={{ fontFamily: F.black, fontSize: 14, color: c.text }}>{Math.round(share * 100)}%</Text>
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={{ fontFamily: F.heavy, fontSize: fs(15), color: c.text }}>{eta ? `at your pace, done around ${eta}` : `${total - p.read} books to go`}</Text>
+          <Text style={{ fontFamily: F.heavy, fontSize: fs(15), color: c.text }}>{eta ? `at your pace, done around ${eta}` : `${count(total - p.read, 'book')} to go`}</Text>
           <Text style={u.muted}>reading and listening both count</Text>
         </View>
       </View>
@@ -124,7 +124,7 @@ export function PathsBody() {
                 mark={roman(p.number ?? i + 1)}
                 title={p.name}
                 about={p.description}
-                counts={`${p.entries?.length ?? p.books.length} books · ${p.in_library ?? p.books.length} in library · ${p.read} read`}
+                counts={`${count(p.entries?.length ?? p.books.length, 'book')} · ${p.in_library ?? p.books.length} in library · ${p.read} read`}
                 pinned={p.pinned}
                 last={i === cross.length - 1}
                 onPress={() => openPath(p.number)}
@@ -135,7 +135,7 @@ export function PathsBody() {
                 key={s.name}
                 title={s.title}
                 about={s.description}
-                counts={`${s.entries.length} books · ${s.in_library} in library · ${s.read} read`}
+                counts={`${count(s.entries.length, 'book')} · ${s.in_library} in library · ${s.read} read`}
                 pinned={s.pinned}
                 last={i === secs.length - 1}
                 onPress={() => openSection(s.name)}

@@ -8,7 +8,7 @@ import { ReadActions } from '../../components/readactions';
 import { Icon } from '../../components/icon';
 import { BackBar, Cover, Empty, ErrorBox, Eyebrow, IconButton, RowLink, Screen, Segmented, Tag, Tile, Tiles, useUi } from '../../components/ui';
 import { useAudiobooks, useBook, useBookHighlights, usePins } from '../../data';
-import { authors, dayMonth, LANGS, plainText, roman, seconds, statusOf } from '../../format';
+import { authors, count, dayMonth, LANGS, plainText, roman, seconds, statusOf } from '../../format';
 import { perform, useOutbox } from '../../store';
 import { F, useTheme, fs } from '../../theme';
 
@@ -91,7 +91,7 @@ function CalliopePage({ id }: { id: number }) {
             <Text style={{ fontFamily: F.serifBold, fontSize: fs(28), lineHeight: fs(30), color: c.text }}>{b.title}</Text>
             <Text style={[u.soft, { fontSize: fs(14) }]}>{[authors(b.authors), b.year].filter(Boolean).join(' · ')}</Text>
             <Text style={u.muted}>
-              {[pages ? `${pages} pages` : null, language, b.series ? `${b.series}${b.series_index ? ` ${b.series_index}` : ''}` : null, pinned ? 'pinned' : null]
+              {[pages ? count(pages, 'page') : null, language, b.series ? `${b.series}${b.series_index ? ` ${b.series_index}` : ''}` : null, pinned ? 'pinned' : null]
                 .filter(Boolean)
                 .join(' · ')}
             </Text>
@@ -146,7 +146,7 @@ function CalliopePage({ id }: { id: number }) {
               <View key={`${m.kind}-${m.name}`} style={{ backgroundColor: c.panel, borderRadius: 14, paddingHorizontal: 16 }}>
                 <RowLink
                   title={m.kind === 'section' ? (m.title ?? m.name) : m.name}
-                  sub={m.kind === 'path' ? `path ${roman(m.number ?? 0)} · ${m.books} books` : `section · ${m.books} books`}
+                  sub={m.kind === 'path' ? `path ${roman(m.number ?? 0)} · ${count(m.books, 'book')}` : `section · ${count(m.books, 'book')}`}
                   onPress={() => (m.kind === 'path' ? openPath(m.number) : openSection(m.name))}
                 />
               </View>

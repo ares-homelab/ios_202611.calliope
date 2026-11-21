@@ -6,6 +6,7 @@ import { openBook } from '../bits';
 import { Chips, Cover, Empty, ErrorBox, useUi } from '../ui';
 import { useDay, useInsights } from '../../data';
 import { readJson, writeJson } from '../../files';
+import { count, seconds } from '../../format';
 import { F, fs, mix, useTheme } from '../../theme';
 
 const SECTIONS = ['week', 'month', 'year', 'habits'] as const;
@@ -15,8 +16,7 @@ const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', '
 const MONTH_NAMES = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
 
 const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-const hours = (s: number) => (s >= 36000 ? Math.round(s / 3600) : Math.round(s / 360) / 10);
-const mins = (s: number) => (s >= 3600 ? `${Math.floor(s / 3600)} h ${Math.round((s % 3600) / 60)} min` : `${Math.round(s / 60)} min`);
+const DAY_NAMES = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
 function Tiles({ items }: { items: [string, string][] }) {
   const { c } = useTheme();
@@ -69,10 +69,15 @@ function Week({ s }: { s: Insights }) {
   const total = week.reduce((a, d) => a + (d ? d.read + d.heard : 0), 0);
   return (
     <>
-      <Card title="this week" right={`${hours(total)} h total`}>
+      <Card title="this week" right={`${seconds(total)} total`}>
         <View style={{ flexDirection: 'row', gap: 8 }}>
           {week.map((d, i) => (
-            <View key={i} style={{ flex: 1, alignItems: 'center', gap: 6 }}>
+            <View
+              key={i}
+              accessible
+              accessibilityLabel={`${DAY_NAMES[i]}: ${d?.read || d?.heard ? [d.read ? `${seconds(d.read)} reading` : '', d.heard ? `${seconds(d.heard)} listening` : ''].filter(Boolean).join(', ') : 'nothing'}`}
+              style={{ flex: 1, alignItems: 'center', gap: 6 }}
+            >
               <View style={{ width: '100%', height: 120, justifyContent: 'flex-end', gap: 2 }}>
                 {d?.read ? <View style={{ height: (d.read / max) * 116, borderTopLeftRadius: 4, borderTopRightRadius: 4, borderBottomLeftRadius: d.heard ? 0 : 4, borderBottomRightRadius: d.heard ? 0 : 4, backgroundColor: c.accent }} /> : null}
                 {d?.heard ? <View style={{ height: (d.heard / max) * 116, borderBottomLeftRadius: 4, borderBottomRightRadius: 4, borderTopLeftRadius: d.read ? 0 : 4, borderTopRightRadius: d.read ? 0 : 4, backgroundColor: c.warn }} /> : null}
@@ -174,7 +179,7 @@ function DayDetail({ date }: { date: string }) {
             <View style={{ flex: 1 }}>
               <Text numberOfLines={1} style={{ fontFamily: F.sansBold, fontSize: fs(14), color: c.text }}>{b.title}</Text>
               <Text style={{ fontFamily: F.sans, fontSize: fs(12), color: c.muted }}>
-                {[b.read ? `read ${mins(b.read)}${b.pages ? ` · ${b.pages} pages` : ''}` : '', b.heard ? `heard ${mins(b.heard)}` : ''].filter(Boolean).join(' · ')}
+                {[b.read ? `read ${seconds(b.read)}${b.pages ? ` · ${count(b.pages, 'page')}` : ''}` : '', b.heard ? `heard ${seconds(b.heard)}` : ''].filter(Boolean).join(' · ')}
               </Text>
             </View>
           </Pressable>

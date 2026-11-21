@@ -33,6 +33,9 @@ export const seconds = (s: number) => hm(s / 3600);
 
 export const percent = (p: number) => `${Math.round(p * 100)}%`;
 
+/** "1 book", "5 books"; a count that hasn't arrived is "—", never "0" */
+export const count = (n: number | null | undefined, one: string, many = `${one}s`) => (n == null ? `— ${many}` : `${n} ${n === 1 ? one : many}`);
+
 const ROMAN: [number, string][] = [
   [10, 'x'],
   [9, 'ix'],

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Text, View } from 'react-native';
 import { BackBar, Chips, Empty, ErrorBox, Screen, useUi } from '../../../components/ui';
 import { useRecap } from '../../../data';
-import { hm } from '../../../format';
+import { count, hm } from '../../../format';
 import { F, fs, useTheme } from '../../../theme';
 
 const MONTHS = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
@@ -42,7 +42,7 @@ export default function Recap() {
                 <Text style={{ width: 24, fontFamily: F.black, fontSize: fs(20), color: c.accent }}>{i + 1}</Text>
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontFamily: F.heavy, fontSize: fs(15), color: c.text }}>{x.name}</Text>
-                  <Text style={u.muted}>{x.kind === 'artist' ? `${hm(x.seconds / 3600)} listened · ${x.plays ?? 0} plays` : `${hm(x.seconds / 3600)} · ${x.books ?? 0} books`}</Text>
+                  <Text style={u.muted}>{x.kind === 'artist' ? `${hm(x.seconds / 3600)} listened · ${count(x.plays, 'play')}` : `${hm(x.seconds / 3600)} · ${count(x.books, 'book')}`}</Text>
                 </View>
               </View>
             ))}

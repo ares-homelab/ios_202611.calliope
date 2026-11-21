@@ -9,7 +9,7 @@ import { Avatar, BackBar, Screen, useUi } from '../../components/ui';
 import { useConfig } from '../../config';
 import { useAudioQueue, useHome, useMixes, useWanted } from '../../data';
 import { totalBytes, useDownloads } from '../../downloads';
-import { clock } from '../../format';
+import { clock, count } from '../../format';
 import { nd } from '../../navidrome';
 import { clearCache, refreshAll, useNet } from '../../store';
 import { F, fs, getPrefs, setPrefs, usePrefs, useTheme, type Mode, type Quality } from '../../theme';
@@ -111,8 +111,8 @@ export default function Settings() {
           { label: 'familiar', value: cotd ? 'card of the day on' : 'card of the day off', onPress: () => router.push({ pathname: '/mix/[id]', params: { id: 'cotd' } }) },
         ])}
         {section('library', [
-          { label: 'wanted from apple music & plays', value: wanted.data ? `${wanted.data.total} songs` : undefined, onPress: () => router.push('/wanted') },
-          { label: 'tonight on ares', value: tonight ? `${tonight} ${tonight === 1 ? 'book' : 'books'} ticked` : 'nothing ticked', onPress: () => router.push('/tonight') },
+          { label: 'wanted from apple music & plays', value: wanted.data ? count(wanted.data.total, 'song') : undefined, onPress: () => router.push('/wanted') },
+          { label: 'tonight on ares', value: tonight ? `${count(tonight, 'book')} ticked` : 'nothing ticked', onPress: () => router.push('/tonight') },
           { label: 'downloads', value: `${gb(totalBytes(dl))} on this iphone`, onPress: () => router.push('/settings/downloads') },
           {
             label: 'kindle sync',

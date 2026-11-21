@@ -1,7 +1,7 @@
 import { useLocalSearchParams } from 'expo-router';
 import { Collection } from '../../../../components/collection';
 import { usePlaylist, useStarred } from '../../../../data';
-import { hm } from '../../../../format';
+import { count, hm } from '../../../../format';
 
 export default function PlaylistScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -17,7 +17,7 @@ export default function PlaylistScreen() {
       ctx={{ kind: 'playlist', id, title, coverArt: pl.data?.coverArt }}
       title={title}
       sub={fav ? 'songs you hearted' : pl.data?.comment}
-      meta={`${songs.length} songs · ${hm(seconds / 3600)}`}
+      meta={`${count(songs.length, 'song')} · ${hm(seconds / 3600)}`}
       art={fav ? undefined : pl.data?.coverArt}
       songs={songs}
       loading={res.loading}

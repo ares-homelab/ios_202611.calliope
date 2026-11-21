@@ -10,6 +10,7 @@ import { useDownloads } from '../../../downloads';
 import { nd } from '../../../navidrome';
 import { playSongs } from '../../../play';
 import { COLORS, F, fs, S, useTheme } from '../../../theme';
+import { count } from '../../../format';
 
 type V = 'pinned' | 'playlists' | 'albums' | 'artists' | 'songs' | 'downloaded';
 
@@ -46,12 +47,12 @@ function Pinned() {
   return (
     <>
       <View>
-        <ListRow title="favorites" sub={`${starred.data?.song?.length ?? 0} songs`} color={COLORS.light.accent} icon="heart" onPress={() => router.push({ pathname: '/playlist/[id]', params: { id: 'favorites' } })} />
+        <ListRow title="favorites" sub={count(starred.data?.song?.length, 'song')} color={COLORS.light.accent} icon="heart" onPress={() => router.push({ pathname: '/playlist/[id]', params: { id: 'favorites' } })} />
         {(mixes.data ?? []).map((m) => (
           <ListRow key={m.id} title={m.title} sub={`made for you · ${m.sub}`} color={m.color} icon="sparkle" onPress={() => router.push({ pathname: '/mix/[id]', params: { id: m.id } })} />
         ))}
         {(playlists.data ?? []).map((p) => (
-          <ListRow key={p.id} title={p.name} sub={`yours · ${p.songCount ?? 0} songs`} art={p.coverArt} onPress={() => router.push({ pathname: '/playlist/[id]', params: { id: p.id } })} />
+          <ListRow key={p.id} title={p.name} sub={`yours · ${count(p.songCount, 'song')}`} art={p.coverArt} onPress={() => router.push({ pathname: '/playlist/[id]', params: { id: p.id } })} />
         ))}
       </View>
       {recent.data?.length ? (
