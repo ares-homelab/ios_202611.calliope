@@ -49,7 +49,7 @@ export function Collection({
         label=""
         right={
           songs.length ? (
-            <Pressable accessibilityLabel={dl.all ? 'downloaded' : 'download'} onPress={dl.run} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
+            <Pressable accessibilityRole="button" accessibilityLabel={dl.all ? 'downloaded' : 'download'} onPress={dl.run} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
               <Icon name={dl.all ? 'downloaded' : 'download'} size={22} color={dl.all || dl.busy ? c.accent : c.text} />
             </Pressable>
           ) : null
@@ -69,6 +69,7 @@ export function Collection({
             ['shuffle', true],
           ].map(([label, shuffle]) => (
             <Pressable
+              accessibilityRole="button"
               key={String(label)}
               onPress={() => playSongs(songs, 0, ctx, !!shuffle)}
               style={({ pressed }) => ({ flex: 1, height: 42, borderRadius: 21, backgroundColor: shuffle ? c.raised : c.accent, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.8 : 1 })}

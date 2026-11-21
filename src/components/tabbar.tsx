@@ -26,6 +26,7 @@ export function MiniPlayer() {
   const progress = s.duration ? s.time / s.duration : 0;
   return (
     <Pressable
+      accessibilityRole="button"
       onPress={() => router.push('/player')}
       accessibilityLabel={`now playing: ${t.title}`}
       style={{ marginHorizontal: 10, marginBottom: 8, height: 60, borderRadius: 14, backgroundColor: c.raised, overflow: 'hidden' }}
@@ -40,10 +41,11 @@ export function MiniPlayer() {
             {book ? t.album : t.artist}
           </Text>
         </View>
-        <Pressable accessibilityLabel={s.playing ? 'pause' : 'play'} onPress={toggle} hitSlop={4} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
+        <Pressable accessibilityRole="button" accessibilityLabel={s.playing ? 'pause' : 'play'} onPress={toggle} hitSlop={4} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
           <Icon name={s.playing ? 'pause' : 'play'} size={22} color={c.text} />
         </Pressable>
         <Pressable
+          accessibilityRole="button"
           accessibilityLabel={book ? 'forward 30 seconds' : 'next'}
           onPress={() => (book ? skip(30) : next())}
           hitSlop={4}

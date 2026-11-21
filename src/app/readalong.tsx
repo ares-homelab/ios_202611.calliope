@@ -83,14 +83,14 @@ export default function ReadAlong() {
   return (
     <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: c.bg, paddingTop: inset.top + 6 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 8 }}>
-        <Pressable accessibilityLabel="close" onPress={() => router.back()} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
+        <Pressable accessibilityRole="button" accessibilityLabel="close" onPress={() => router.back()} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
           <Icon name="close" size={22} color={c.text} />
         </Pressable>
         <Text numberOfLines={1} style={{ flex: 1, fontFamily: F.heavy, fontSize: fs(15), color: c.text }}>
           {t.title}
         </Text>
         {s.playing ? (
-          <Pressable onPress={pause} hitSlop={8}>
+          <Pressable accessibilityRole="button" onPress={pause} hitSlop={8}>
             <Text style={{ fontFamily: F.sansBold, fontSize: fs(14), color: c.accent }}>pause</Text>
           </Pressable>
         ) : null}
@@ -113,7 +113,7 @@ export default function ReadAlong() {
             <View style={{ gap: 10 }}>
               <Text style={{ fontFamily: F.sans, fontSize: fs(14), color: c.muted }}>{status}</Text>
               {heard.text ? <Text style={{ fontFamily: F.sans, fontSize: fs(15), lineHeight: fs(22), color: c.text }}>{heard.text}</Text> : null}
-              <Pressable onPress={() => router.back()} style={{ height: 44, borderRadius: 22, backgroundColor: c.accent, alignItems: 'center', justifyContent: 'center' }}>
+              <Pressable accessibilityRole="button" onPress={() => router.back()} style={{ height: 44, borderRadius: 22, backgroundColor: c.accent, alignItems: 'center', justifyContent: 'center' }}>
                 <Text style={{ fontFamily: F.heavy, fontSize: fs(14), color: c.onAccent }}>done</Text>
               </Pressable>
             </View>
@@ -129,6 +129,7 @@ export default function ReadAlong() {
               />
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                 <Pressable
+                  accessibilityRole="button"
                   accessibilityLabel={rec.isRecording ? 'stop recording' : 'record a voice note'}
                   onPress={record}
                   style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: rec.isRecording ? c.accent : c.bg, alignItems: 'center', justifyContent: 'center' }}>
@@ -138,12 +139,13 @@ export default function ReadAlong() {
                   {rec.isRecording ? `recording ${mmss(rec.durationMillis / 1000)} · tap to stop` : clip ? `voice note ${mmss(clip.ms / 1000)} · tap to record again` : 'record a voice note'}
                 </Text>
                 {clip && !rec.isRecording ? (
-                  <Pressable onPress={() => setClip(null)} hitSlop={8}>
+                  <Pressable accessibilityRole="button" onPress={() => setClip(null)} hitSlop={8}>
                     <Text style={{ fontFamily: F.sansBold, fontSize: fs(13), color: c.muted }}>remove</Text>
                   </Pressable>
                 ) : null}
               </View>
               <Pressable
+                accessibilityRole="button"
                 disabled={busy || (!note.trim() && !clip && !rec.isRecording)}
                 onPress={save}
                 style={{ height: 44, borderRadius: 22, backgroundColor: c.accent, alignItems: 'center', justifyContent: 'center', opacity: busy || (!note.trim() && !clip && !rec.isRecording) ? 0.6 : 1 }}>

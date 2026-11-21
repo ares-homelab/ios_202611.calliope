@@ -159,7 +159,7 @@ function CalliopePage({ id }: { id: number }) {
             <View style={[u.row, { justifyContent: 'space-between', alignItems: 'baseline' }]}>
               <Eyebrow>highlights · {highlights.length}</Eyebrow>
               {highlights.length > 2 ? (
-                <Pressable onPress={() => setAllHl(!allHl)} hitSlop={8}>
+                <Pressable accessibilityRole="button" onPress={() => setAllHl(!allHl)} hitSlop={8}>
                   <Text style={u.link}>{allHl ? 'show fewer' : 'see all'}</Text>
                 </Pressable>
               ) : null}
@@ -175,7 +175,7 @@ function CalliopePage({ id }: { id: number }) {
         ) : null}
 
         {about ? (
-          <Pressable onPress={() => setMore(!more)} style={{ gap: 10 }}>
+          <Pressable accessibilityRole="button" onPress={() => setMore(!more)} style={{ gap: 10 }}>
             <Eyebrow>about</Eyebrow>
             <Text style={[u.soft, { fontSize: fs(14), lineHeight: fs(21) }]} numberOfLines={more ? undefined : 6}>
               {about}

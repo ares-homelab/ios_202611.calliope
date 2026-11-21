@@ -16,13 +16,14 @@ function Item({ h, last, showBook }: { h: AnyHighlight; last: boolean; showBook:
   return (
     <View style={[{ gap: 10, paddingTop: 6, paddingBottom: 18 }, !last && u.line]}>
       {h.text ? (
-        <Pressable onPress={() => openBook(h.calibre_id)}>
+        <Pressable accessibilityRole="button" onPress={() => openBook(h.calibre_id)}>
           <Text style={{ fontFamily: F.serif, fontSize: fs(22), lineHeight: fs(29), color: c.text }}>“{h.text.trim()}”</Text>
         </Pressable>
       ) : null}
       <View style={[u.row, { justifyContent: 'space-between' }]}>
         <Text style={[u.muted, { flex: 1 }]}>{meta}</Text>
         <Pressable
+          accessibilityRole="button"
           accessibilityLabel="share highlight"
           hitSlop={8}
           style={{ width: 44, height: 32, alignItems: 'flex-end', justifyContent: 'center' }}

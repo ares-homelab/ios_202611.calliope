@@ -25,10 +25,10 @@ export default function ArticleScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: k.bg }}>
       <View style={{ paddingTop: inset.top + 6, paddingHorizontal: 12, paddingBottom: 6, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Pressable accessibilityLabel="back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} hitSlop={8} style={{ height: 44, paddingHorizontal: 12, justifyContent: 'center' }}>
+        <Pressable accessibilityRole="button" accessibilityLabel="back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} hitSlop={8} style={{ height: 44, paddingHorizontal: 12, justifyContent: 'center' }}>
           <Icon name="back" size={22} color={k.text} width={1.9} />
         </Pressable>
-        <Pressable accessibilityLabel="reading settings" onPress={() => setPanel(!panel)} style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: panel ? k.chip : undefined }}>
+        <Pressable accessibilityRole="button" accessibilityLabel="reading settings" onPress={() => setPanel(!panel)} style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: panel ? k.chip : undefined }}>
           <Text style={{ fontFamily: F.sans, fontSize: 17, color: k.text }}>Aa</Text>
         </Pressable>
       </View>

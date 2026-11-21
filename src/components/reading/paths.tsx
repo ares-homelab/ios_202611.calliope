@@ -12,6 +12,7 @@ function Row({ mark, title, about, counts, pinned, onPress, last }: { mark?: str
   const { c } = useTheme();
   return (
     <Pressable
+      accessibilityRole="button"
       onPress={onPress}
       style={({ pressed }) => [
         { flexDirection: 'row', gap: 14, paddingVertical: 14, borderBottomWidth: last ? 0 : 1, borderBottomColor: c.line, opacity: pressed ? 0.75 : 1 },
@@ -43,7 +44,7 @@ function Pinned({ p }: { p: Path }) {
   const rail = entries.slice(Math.max(0, nextAt - 1), Math.max(0, nextAt - 1) + 5);
   const eta = recap.data?.path?.name === p.name ? recap.data.path.eta : null;
   return (
-    <Pressable onPress={() => openPath(p.number)} style={{ gap: 14 }}>
+    <Pressable accessibilityRole="button" onPress={() => openPath(p.number)} style={{ gap: 14 }}>
       <View style={[u.row, { justifyContent: 'space-between', alignItems: 'baseline' }]}>
         <Text style={u.h2}>{p.name}</Text>
         <Text style={u.muted}>
@@ -56,7 +57,7 @@ function Pinned({ p }: { p: Path }) {
           const now = entries.indexOf(e) === nextAt;
           const w = now ? 92 : 56;
           return (
-            <Pressable key={e.n} onPress={() => openBook(e.calibre_id)} style={{ alignItems: 'center', gap: 8, opacity: e.calibre_id ? 1 : 0.55 }}>
+            <Pressable accessibilityRole="button" accessibilityLabel={e.title} key={e.n} onPress={() => openBook(e.calibre_id)} style={{ alignItems: 'center', gap: 8, opacity: e.calibre_id ? 1 : 0.55 }}>
               <View style={now ? { borderRadius: 8, borderWidth: 3, borderColor: c.accent } : undefined}>
                 <Cover id={e.calibre_id} title={e.title} hasCover={e.has_cover} width={w} height={w * 1.48} radius={6} plain={!now} />
               </View>
@@ -78,7 +79,7 @@ function Pinned({ p }: { p: Path }) {
       </View>
       <View>
         {entries.slice(Math.max(0, nextAt - 1), Math.max(0, nextAt - 1) + 4).map((e) => (
-          <Pressable key={e.n} disabled={!e.calibre_id} onPress={() => openBook(e.calibre_id)} style={[u.row, u.line, { gap: 12, paddingVertical: 8, alignItems: 'flex-start' }]}>
+          <Pressable accessibilityRole="button" key={e.n} disabled={!e.calibre_id} onPress={() => openBook(e.calibre_id)} style={[u.row, u.line, { gap: 12, paddingVertical: 8, alignItems: 'flex-start' }]}>
             <Text style={{ width: 54, fontFamily: F.heavy, fontSize: 12, color: e.status === 'read' || entries.indexOf(e) === nextAt ? c.accent : c.muted }}>
               {e.status === 'read' ? 'read' : entries.indexOf(e) === nextAt ? 'now' : 'next'}
             </Text>

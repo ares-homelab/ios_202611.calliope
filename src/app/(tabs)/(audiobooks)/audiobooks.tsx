@@ -40,7 +40,7 @@ function Current({ id }: { id: number }) {
   const kindle = b.resume?.progress ?? 0;
   const gap = Math.abs(listened - kindle);
   return (
-    <Pressable onPress={() => listen(id)} style={({ pressed }) => [{ borderRadius: 18, backgroundColor: c.panel, padding: 14, flexDirection: 'row', gap: 14, opacity: pressed ? 0.85 : 1 }]}>
+    <Pressable accessibilityRole="button" onPress={() => listen(id)} style={({ pressed }) => [{ borderRadius: 18, backgroundColor: c.panel, padding: 14, flexDirection: 'row', gap: 14, opacity: pressed ? 0.85 : 1 }]}>
       <Cover id={id} title={b.title} width={80} height={118} radius={6} />
       <View style={{ flex: 1, gap: 7 }}>
         <Text style={{ fontFamily: F.heavy, fontSize: fs(17), lineHeight: fs(20), color: c.text }}>{b.title}</Text>
@@ -72,7 +72,7 @@ export default function Audiobooks() {
         <ShelfLink label="ready to listen" sub="human voice and ares voice" n={lib.audio.size} onPress={() => openShelf('audio', 'listen')} />
       </View>
       <Shelves lib={lib} mode="listen" />
-      <Pressable onPress={() => router.push('/tonight')} style={({ pressed }) => [u.row, { borderRadius: 16, backgroundColor: c.panel, padding: 14, gap: 12, opacity: pressed ? 0.85 : 1 }]}>
+      <Pressable accessibilityRole="button" onPress={() => router.push('/tonight')} style={({ pressed }) => [u.row, { borderRadius: 16, backgroundColor: c.panel, padding: 14, gap: 12, opacity: pressed ? 0.85 : 1 }]}>
         <Icon name="moon" size={22} color={c.accent} />
         <View style={{ flex: 1 }}>
           <Text style={{ fontFamily: F.heavy, fontSize: fs(15), color: c.text }}>tonight on ares</Text>

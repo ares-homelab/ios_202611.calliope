@@ -32,6 +32,7 @@ export function SongRow({ s, n, art, sub, onPress }: { s: Song; n?: number; art?
   const on = current(p)?.song?.id === s.id;
   return (
     <Pressable
+      accessibilityRole="button"
       onPress={onPress}
       onLongPress={() => songMenu(s)}
       style={({ pressed }) => [u.row, { gap: 14, paddingVertical: 9, paddingHorizontal: on ? 8 : 0, marginHorizontal: on ? -8 : 0, borderRadius: 10, backgroundColor: on ? c.panel : 'transparent', borderBottomWidth: 1, borderBottomColor: c.line, opacity: pressed ? 0.7 : 1 }]}
@@ -49,7 +50,7 @@ export function SongRow({ s, n, art, sub, onPress }: { s: Song; n?: number; art?
         </Text>
       </View>
       {dl.saved[`s:${s.id}`] ? <Icon name="downloaded" size={16} color={c.muted} /> : null}
-      <Pressable accessibilityLabel="more" onPress={() => songMenu(s)} hitSlop={8}>
+      <Pressable accessibilityRole="button" accessibilityLabel="more" onPress={() => songMenu(s)} hitSlop={8}>
         <Icon name="more" size={20} color={c.muted} />
       </Pressable>
     </Pressable>
@@ -59,7 +60,7 @@ export function SongRow({ s, n, art, sub, onPress }: { s: Song; n?: number; art?
 export function AlbumTile({ a, size = 160 }: { a: Album; size?: number }) {
   const { c } = useTheme();
   return (
-    <Pressable onPress={() => openAlbum(a.id)} style={{ width: size, gap: 6 }}>
+    <Pressable accessibilityRole="button" onPress={() => openAlbum(a.id)} style={{ width: size, gap: 6 }}>
       <Art id={a.coverArt} seed={a.id} size={size} radius={10} />
       <View>
         <Text numberOfLines={1} style={{ fontFamily: F.sansBold, fontSize: fs(13), color: c.text }}>

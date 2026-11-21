@@ -31,7 +31,7 @@ export function IssuesBody() {
   if (!latest) return <Empty>{res.loading ? 'loading…' : 'no issues yet. the new yorker arrives mondays.'}</Empty>;
   return (
     <>
-      <Pressable onPress={() => openBook(latest.id)} style={{ borderRadius: 18, backgroundColor: c.panel, padding: 14, flexDirection: 'row', gap: 14 }}>
+      <Pressable accessibilityRole="button" onPress={() => openBook(latest.id)} style={{ borderRadius: 18, backgroundColor: c.panel, padding: 14, flexDirection: 'row', gap: 14 }}>
         <Cover id={latest.id} title="the new yorker" hasCover={latest.has_cover} width={110} height={146} radius={6} />
         <View style={{ flex: 1, gap: 6 }}>
           <Text style={{ fontFamily: F.heavy, fontSize: 12, letterSpacing: 0.7, color: c.muted }}>THIS WEEK</Text>
@@ -51,7 +51,7 @@ export function IssuesBody() {
           <Text style={{ fontFamily: F.heavy, fontSize: fs(20), color: c.text, marginTop: 4 }}>last {older.length} {older.length === 1 ? 'issue' : 'issues'}</Text>
           <View>
             {older.map((i, n) => (
-              <Pressable key={i.id} onPress={() => openBook(i.id)} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: c.line }}>
+              <Pressable accessibilityRole="button" key={i.id} onPress={() => openBook(i.id)} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: c.line }}>
                 <Cover id={i.id} title="the new yorker" hasCover={i.has_cover} width={40} height={54} radius={4} />
                 <View style={{ flex: 1, minWidth: 0 }}>
                   <Text style={{ fontFamily: F.sansBold, fontSize: fs(15), color: c.text }}>{longDate(i.date ?? i.added)}</Text>

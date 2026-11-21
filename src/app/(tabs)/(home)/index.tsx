@@ -23,7 +23,7 @@ const pendingLabel = (p: Pending) =>
 
 export function PickCard({ eyebrow, title, sub, color, onPress, width = 165 }: { eyebrow: string; title: string; sub: string; color: string; onPress: () => void; width?: number }) {
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => ({ width, height: 150, borderRadius: 14, backgroundColor: color, padding: 12, justifyContent: 'space-between', opacity: pressed ? 0.85 : 1 })}>
+    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => ({ width, height: 150, borderRadius: 14, backgroundColor: color, padding: 12, justifyContent: 'space-between', opacity: pressed ? 0.85 : 1 })}>
       <Text style={{ fontFamily: F.heavy, fontSize: 11, letterSpacing: 0.7, color: 'rgba(255,255,255,0.8)' }}>{eyebrow.toUpperCase()}</Text>
       <View>
         <Text numberOfLines={3} style={{ fontFamily: F.black, fontSize: fs(17), lineHeight: fs(19), color: '#FFFFFF' }}>
@@ -40,7 +40,7 @@ export function PickCard({ eyebrow, title, sub, color, onPress, width = 165 }: {
 function Recent({ h }: { h: Context }) {
   const { c } = useTheme();
   return (
-    <Pressable onPress={() => openContext(h)} style={{ width: 108, gap: 6 }}>
+    <Pressable accessibilityRole="button" onPress={() => openContext(h)} style={{ width: 108, gap: 6 }}>
       {h.kind === 'book' ? <Cover id={h.bookId} title={h.title} width={108} height={108} radius={10} plain /> : <Art id={h.coverArt} seed={h.id} size={108} radius={10} />}
       <Text numberOfLines={2} style={{ fontFamily: F.sansMedium, fontSize: fs(13), color: c.text }}>
         {h.title}
@@ -130,7 +130,7 @@ export default function Home() {
         <ErrorBox error={home.error} onRetry={() => refreshAll()} />
       ) : null}
 
-      <Pressable onPress={() => router.push('/recap')} style={({ pressed }) => [u.row, { borderRadius: 16, backgroundColor: c.panel, padding: 14, gap: 14, opacity: pressed ? 0.85 : 1 }]}>
+      <Pressable accessibilityRole="button" onPress={() => router.push('/recap')} style={({ pressed }) => [u.row, { borderRadius: 16, backgroundColor: c.panel, padding: 14, gap: 14, opacity: pressed ? 0.85 : 1 }]}>
         <View style={{ width: 46, height: 46, borderRadius: 12, backgroundColor: c.accent, alignItems: 'center', justifyContent: 'center' }}>
           <Text style={{ fontFamily: F.black, fontSize: 13, color: c.onAccent }}>{month.slice(0, 3)}</Text>
         </View>

@@ -17,7 +17,7 @@ function ListRow({ title, sub, color, art, onPress, icon }: { title: string; sub
   const u = useUi();
   const { c } = useTheme();
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [u.row, u.line, { gap: 14, paddingVertical: 9, opacity: pressed ? 0.7 : 1 }]}>
+    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [u.row, u.line, { gap: 14, paddingVertical: 9, opacity: pressed ? 0.7 : 1 }]}>
       {art ? (
         <Art id={art} seed={title} size={56} radius={8} />
       ) : (
@@ -89,7 +89,7 @@ function Artists() {
   return (
     <View>
       {(res.data ?? []).map((a) => (
-        <Pressable key={a.id} onPress={() => openArtist(a.id)} style={[u.row, u.line, { gap: 14, paddingVertical: 8 }]}>
+        <Pressable accessibilityRole="button" key={a.id} onPress={() => openArtist(a.id)} style={[u.row, u.line, { gap: 14, paddingVertical: 8 }]}>
           <Art id={a.coverArt ?? `ar-${a.id}`} seed={a.id} size={48} radius={24} />
           <View style={{ flex: 1 }}>
             <Text style={{ fontFamily: F.sansBold, fontSize: fs(15), color: c.text }}>{a.name}</Text>
@@ -140,7 +140,7 @@ export default function Music() {
     <Screen gap={16} refreshing={starred.loading && !!starred.data} onRefresh={starred.refresh}>
       <View style={[u.row, { justifyContent: 'space-between' }]}>
         <Text style={u.h1}>music</Text>
-        <Pressable accessibilityLabel="wanted songs" onPress={() => router.push('/wanted')} style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: c.raised, alignItems: 'center', justifyContent: 'center' }}>
+        <Pressable accessibilityRole="button" accessibilityLabel="wanted songs" onPress={() => router.push('/wanted')} style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: c.raised, alignItems: 'center', justifyContent: 'center' }}>
           <Icon name="plus" size={20} color={c.text} />
         </Pressable>
       </View>

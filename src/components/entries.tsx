@@ -13,6 +13,7 @@ function EntryRow({ e, next, last }: { e: Entry; next: boolean; last: boolean })
   const sub = [e.author, e.year, next ? 'up next' : e.calibre_id ? null : e.free ? 'free' : null, next ? null : (e.section ?? e.group)].filter(Boolean).join(' · ');
   return (
     <Pressable
+      accessibilityRole="button"
       disabled={!inLib}
       onPress={() => openBook(e.calibre_id)}
       style={({ pressed }) => [

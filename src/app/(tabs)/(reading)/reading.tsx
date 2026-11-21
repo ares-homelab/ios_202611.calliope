@@ -39,7 +39,7 @@ function Now() {
   const bg = swatch(String(first.calibre_id ?? first.title));
   return (
     <>
-      <Pressable onPress={() => openBook(first.calibre_id)} style={{ borderRadius: 22, backgroundColor: bg, padding: 18, flexDirection: 'row', gap: 16 }}>
+      <Pressable accessibilityRole="button" onPress={() => openBook(first.calibre_id)} style={{ borderRadius: 22, backgroundColor: bg, padding: 18, flexDirection: 'row', gap: 16 }}>
         <Cover id={first.calibre_id} title={first.title} width={110} height={162} radius={6} shadow />
         <View style={{ flex: 1, gap: 8 }}>
           <Text style={{ fontFamily: F.heavy, fontSize: 11, letterSpacing: 0.7, color: 'rgba(255,255,255,0.8)' }}>CONTINUE</Text>
@@ -52,11 +52,11 @@ function Now() {
           </View>
           <View style={{ flexDirection: 'row', gap: 8, marginTop: 'auto' }}>
             {first.calibre_id && audio.has(first.calibre_id) ? (
-              <Pressable onPress={() => listen(first.calibre_id!)} style={{ flex: 1, height: 36, borderRadius: 18, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' }}>
+              <Pressable accessibilityRole="button" onPress={() => listen(first.calibre_id!)} style={{ flex: 1, height: 36, borderRadius: 18, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' }}>
                 <Text style={{ fontFamily: F.heavy, fontSize: fs(13), color: bg }}>listen</Text>
               </Pressable>
             ) : null}
-            <Pressable onPress={() => openBook(first.calibre_id)} style={{ flex: 1, height: 36, borderRadius: 18, borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)', alignItems: 'center', justifyContent: 'center' }}>
+            <Pressable accessibilityRole="button" onPress={() => openBook(first.calibre_id)} style={{ flex: 1, height: 36, borderRadius: 18, borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)', alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ fontFamily: F.sansBold, fontSize: fs(13), color: '#FFFFFF' }}>details</Text>
             </Pressable>
           </View>
@@ -72,7 +72,7 @@ function Now() {
           <SectionHead title="also in progress" />
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -S.page }} contentContainerStyle={{ paddingHorizontal: S.page, gap: 12 }}>
             {rest.map((r) => (
-              <Pressable key={`${r.calibre_id}-${r.title}`} onPress={() => openBook(r.calibre_id)} style={{ width: 112, gap: 6 }}>
+              <Pressable accessibilityRole="button" key={`${r.calibre_id}-${r.title}`} onPress={() => openBook(r.calibre_id)} style={{ width: 112, gap: 6 }}>
                 <Cover id={r.calibre_id} title={r.title} width={112} height={160} radius={6} />
                 <Text numberOfLines={2} style={{ fontFamily: F.sansBold, fontSize: fs(13), color: c.text }}>
                   {r.title}

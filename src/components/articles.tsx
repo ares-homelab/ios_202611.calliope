@@ -17,6 +17,7 @@ export function RandomArticle({ items }: { items: Article[] }) {
   const { c } = useTheme();
   return (
     <Pressable
+      accessibilityRole="button"
       onPress={() => openRandomArticle(items)}
       style={({ pressed }) => ({ height: 44, borderRadius: 22, backgroundColor: c.accent, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: pressed ? 0.85 : 1 })}
     >
@@ -30,7 +31,7 @@ export function ArticleRow({ a }: { a: Article }) {
   const u = useUi();
   const { c } = useTheme();
   return (
-    <Pressable onPress={() => openArticle(a.id)} style={({ pressed }) => [u.row, u.line, { gap: 12, paddingVertical: 11, opacity: pressed ? 0.7 : 1 }]}>
+    <Pressable accessibilityRole="button" onPress={() => openArticle(a.id)} style={({ pressed }) => [u.row, u.line, { gap: 12, paddingVertical: 11, opacity: pressed ? 0.7 : 1 }]}>
       <View style={{ flex: 1, gap: 2 }}>
         <Text style={{ fontFamily: F.sansBold, fontSize: fs(15), lineHeight: fs(19), color: a.archived ? c.muted : c.text }} numberOfLines={2}>
           {a.title}

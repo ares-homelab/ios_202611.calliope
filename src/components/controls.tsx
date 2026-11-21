@@ -42,7 +42,7 @@ export function Scrubber({ value, onSeek, color, track, height = 6 }: { value: n
 const RATES = [0.8, 1, 1.1, 1.25, 1.5, 1.75, 2];
 export function RateButton({ rate, color }: { rate: number; color: string }) {
   return (
-    <Pressable accessibilityLabel={`speed ${rate}`} onPress={() => setRate(RATES[(RATES.indexOf(rate) + 1) % RATES.length] ?? 1)} style={{ width: 52, height: 44, alignItems: 'center', justifyContent: 'center' }}>
+    <Pressable accessibilityRole="button" accessibilityLabel={`speed ${rate}`} onPress={() => setRate(RATES[(RATES.indexOf(rate) + 1) % RATES.length] ?? 1)} style={{ width: 52, height: 44, alignItems: 'center', justifyContent: 'center' }}>
       <Text style={{ fontFamily: F.heavy, fontSize: fs(14), color }}>{rate % 1 ? String(rate) : rate.toFixed(1)}×</Text>
     </Pressable>
   );
@@ -67,7 +67,7 @@ export function SleepButton({ sleep, book, color, active }: { sleep: Sleep; book
   const { c } = useTheme();
   const label = sleepLabel(sleep);
   return (
-    <Pressable accessibilityLabel="sleep timer" onPress={() => pickSleep(book)} style={{ height: 44, minWidth: 44, flexDirection: 'row', gap: 4, alignItems: 'center', justifyContent: 'center' }}>
+    <Pressable accessibilityRole="button" accessibilityLabel="sleep timer" onPress={() => pickSleep(book)} style={{ height: 44, minWidth: 44, flexDirection: 'row', gap: 4, alignItems: 'center', justifyContent: 'center' }}>
       <Icon name="moon" size={22} color={label ? active : color} />
       {label ? <Text style={{ fontFamily: F.sansBold, fontSize: 11, color: label ? active : c.muted }}>{label}</Text> : null}
     </Pressable>
