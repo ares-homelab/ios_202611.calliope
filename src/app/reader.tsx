@@ -272,7 +272,7 @@ function Flow({ info, saved, k, size, line, start, onMark }: { info: ReadInfo; s
           <Text style={{ fontFamily: F.sans, fontSize: fs(14), color: k.muted }}>{got[start.n] ? 'this chapter has no text.' : 'loading…'}</Text>
         )}
         {got[start.n] && !got[start.n].blocks.length ? (
-          <Pressable accessibilityRole="button" onPress={next} style={{ marginTop: 16 }}>
+          <Pressable accessibilityRole="button" onPress={next} style={{ marginTop: 8, minHeight: 44, justifyContent: 'center', alignSelf: 'flex-start' }}>
             <Text style={{ fontFamily: F.sansBold, fontSize: fs(14), color: k.text }}>next chapter</Text>
           </Pressable>
         ) : null}
@@ -336,12 +336,12 @@ function Chapters({ visible, info, k, cur, onClose, onPick }: { visible: boolean
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
       <View style={{ flex: 1, backgroundColor: k.bg }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', padding: 16, gap: 8 }}>
-          <Text style={{ flex: 1, fontFamily: F.heavy, fontSize: fs(18), color: k.text }}>{info.format === 'pdf' ? 'pages' : 'chapters'}</Text>
+          <Text accessibilityRole="header" style={{ flex: 1, fontFamily: F.heavy, fontSize: fs(18), color: k.text }}>{info.format === 'pdf' ? 'pages' : 'chapters'}</Text>
           <Btn name="close" label="close" onPress={onClose} k={k} />
         </View>
         <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}>
           {entries.map((e, j) => (
-            <Pressable accessibilityRole="button" key={j} onPress={() => onPick(e.at)} style={({ pressed }) => ({ paddingVertical: 12, paddingLeft: (e.level - 1) * 16, borderBottomWidth: 1, borderBottomColor: k.chip, opacity: pressed ? 0.6 : 1 })}>
+            <Pressable accessibilityRole="button" accessibilityState={{ selected: e.on }} key={j} onPress={() => onPick(e.at)} style={({ pressed }) => ({ paddingVertical: 12, paddingLeft: (e.level - 1) * 16, borderBottomWidth: 1, borderBottomColor: k.chip, opacity: pressed ? 0.6 : 1 })}>
               <Text style={{ fontFamily: e.on ? F.heavy : F.sans, fontSize: fs(15), color: e.on ? k.text : k.ink }}>{e.title}</Text>
             </Pressable>
           ))}

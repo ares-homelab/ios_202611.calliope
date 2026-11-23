@@ -73,7 +73,7 @@ export function EntryScreen({
       <BackBar label={back} right={<IconButton name="bookmark" label={pinned ? 'unpin' : 'pin'} color={pinned ? c.link : c.muted} onPress={toggle} />} />
       <Screen top={false} gap={20} refreshing={loading && entries.length > 0} onRefresh={refresh}>
         <View style={{ gap: 8 }}>
-          <Text style={u.eyebrow}>{eyebrow.toUpperCase()}</Text>
+          <Text style={u.eyebrow}>{eyebrow}</Text>
           <Text style={{ fontFamily: F.serifBold, fontSize: fs(38), lineHeight: fs(40), color: c.text }}>{title}</Text>
           {description ? <Text style={[u.soft, { fontSize: fs(14), lineHeight: fs(20) }]}>{description}</Text> : null}
         </View>

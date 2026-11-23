@@ -8,6 +8,7 @@ import { useArtist } from '../../../../data';
 import { nd } from '../../../../navidrome';
 import { useResource } from '../../../../store';
 import { S } from '../../../../theme';
+import { count } from '../../../../format';
 
 export default function ArtistScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -21,7 +22,7 @@ export default function ArtistScreen() {
     <Collection
       ctx={{ kind: 'artist', id, title: a?.name ?? '', coverArt: a?.coverArt }}
       title={a?.name ?? ''}
-      meta={a ? `${albums.length} albums · ${songs.data?.length ?? '…'} songs on ares` : undefined}
+      meta={a ? `${count(albums.length, 'album')} · ${songs.data ? count(songs.data.length, 'song') : '… songs'} on ares` : undefined}
       hero={<Art id={a?.coverArt ?? `ar-${id}`} seed={id} size={200} radius={100} />}
       songs={songs.data ?? []}
       sections={[]}

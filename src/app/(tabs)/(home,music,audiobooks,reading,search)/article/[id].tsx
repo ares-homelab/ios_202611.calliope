@@ -28,7 +28,7 @@ export default function ArticleScreen() {
         <Pressable accessibilityRole="button" accessibilityLabel="back" onPress={() => (router.canGoBack() ? router.back() : router.replace('/'))} hitSlop={8} style={{ height: 44, paddingHorizontal: 12, justifyContent: 'center' }}>
           <Icon name="back" size={22} color={k.text} width={1.9} />
         </Pressable>
-        <Pressable accessibilityRole="button" accessibilityLabel="reading settings" onPress={() => setPanel(!panel)} style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: panel ? k.chip : undefined }}>
+        <Pressable accessibilityRole="button" accessibilityLabel="reading settings" accessibilityState={{ expanded: panel }} onPress={() => setPanel(!panel)} hitSlop={2} style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: panel ? k.chip : undefined }}>
           <Text style={{ fontFamily: F.sans, fontSize: 17, color: k.text }}>Aa</Text>
         </Pressable>
       </View>
@@ -40,9 +40,9 @@ export default function ArticleScreen() {
             <Text style={{ fontFamily: F.serifBold, fontSize: fs(28), lineHeight: fs(32), color: k.text }}>{a.title}</Text>
             <Text style={{ fontFamily: F.sans, fontSize: fs(13), color: k.muted }}>{[articleLine(a), ARTICLE_MODE].filter(Boolean).join(' · ')}</Text>
             {a.url ? (
-              <Text onPress={() => Linking.openURL(a.url!)} style={{ fontFamily: F.sansBold, fontSize: fs(13), color: k.text }}>
-                open the original
-              </Text>
+              <Pressable accessibilityRole="link" onPress={() => Linking.openURL(a.url!)} style={{ alignSelf: 'flex-start', minHeight: 44, justifyContent: 'center' }}>
+                <Text style={{ fontFamily: F.sansBold, fontSize: fs(13), color: k.text, textDecorationLine: 'underline' }}>open the original</Text>
+              </Pressable>
             ) : null}
           </View>
         ) : (

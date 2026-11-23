@@ -8,17 +8,17 @@ import { useLibrary } from '../../../components/shelf';
 import { IssuesBody } from '../../../components/reading/issues';
 import { PathsBody } from '../../../components/reading/paths';
 import { swatch } from '../../../components/art';
-import { Bar, Chips, Cover, Empty, ErrorBox, Screen, SectionHead, useUi } from '../../../components/ui';
+import { Bar, Button, Chips, Cover, Empty, ErrorBox, Screen, SectionHead, useUi } from '../../../components/ui';
 import { useAudiobooks, useHome, useRecap } from '../../../data';
 import { clock } from '../../../format';
 import { listen } from '../../../play';
 import { refreshAll } from '../../../store';
-import { F, fs, S, useTheme } from '../../../theme';
+import { F, fs, inkOn, S, useTheme } from '../../../theme';
 
 const VIEWS = ['now', 'library', 'paths', 'highlights', 'issues'] as const;
 type View_ = (typeof VIEWS)[number];
 
-function Now() {
+function Now({ onLibrary }: { onLibrary: () => void }) {
   const u = useUi();
   const { c } = useTheme();
   const home = useHome();
@@ -35,29 +35,38 @@ function Now() {
     </View>
   );
   if (home.error && !home.data) return <ErrorBox error={home.error} onRetry={home.refresh} />;
-  if (!first) return <Empty>{home.loading ? 'loading…' : 'nothing open on the kindle right now.'}</Empty>;
+  if (!first)
+    return home.loading ? (
+      <Empty>loading…</Empty>
+    ) : (
+      <View style={{ gap: 12 }}>
+        <Empty>nothing open on the kindle right now. pick a book in the library to read it here or on the kindle.</Empty>
+        <Button label="open the library" icon="book" onPress={onLibrary} />
+      </View>
+    );
   const bg = swatch(String(first.calibre_id ?? first.title));
+  const on = inkOn(bg);
   return (
     <>
       <Pressable accessibilityRole="button" onPress={() => openBook(first.calibre_id)} style={{ borderRadius: 22, backgroundColor: bg, padding: 18, flexDirection: 'row', gap: 16 }}>
         <Cover id={first.calibre_id} title={first.title} width={110} height={162} radius={6} shadow />
         <View style={{ flex: 1, gap: 8 }}>
-          <Text style={{ fontFamily: F.heavy, fontSize: 11, letterSpacing: 0.7, color: 'rgba(255,255,255,0.8)' }}>CONTINUE</Text>
-          <Text style={{ fontFamily: F.black, fontSize: fs(19), lineHeight: fs(22), color: '#FFFFFF' }}>{first.title}</Text>
-          <Text style={{ fontFamily: F.sans, fontSize: fs(12), color: 'rgba(255,255,255,0.8)' }}>
+          <Text style={{ fontFamily: F.sansBold, fontSize: fs(12), color: on.soft }}>continue</Text>
+          <Text style={{ fontFamily: F.black, fontSize: fs(19), lineHeight: fs(22), color: on.ink }}>{first.title}</Text>
+          <Text style={{ fontFamily: F.sans, fontSize: fs(12), color: on.soft }}>
             p. {first.page} of {first.pages}
           </Text>
-          <View style={{ height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.25)' }}>
-            <View style={{ width: `${first.progress * 100}%`, height: 4, borderRadius: 2, backgroundColor: '#FFFFFF' }} />
+          <View style={{ height: 4, borderRadius: 2, backgroundColor: on.line }}>
+            <View style={{ width: `${first.progress * 100}%`, height: 4, borderRadius: 2, backgroundColor: on.ink }} />
           </View>
           <View style={{ flexDirection: 'row', gap: 8, marginTop: 'auto' }}>
             {first.calibre_id && audio.has(first.calibre_id) ? (
-              <Pressable accessibilityRole="button" onPress={() => listen(first.calibre_id!)} style={{ flex: 1, height: 36, borderRadius: 18, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' }}>
+              <Pressable accessibilityRole="button" onPress={() => listen(first.calibre_id!)} hitSlop={4} style={{ flex: 1, height: 36, borderRadius: 18, backgroundColor: on.ink, alignItems: 'center', justifyContent: 'center' }}>
                 <Text style={{ fontFamily: F.heavy, fontSize: fs(13), color: bg }}>listen</Text>
               </Pressable>
             ) : null}
-            <Pressable accessibilityRole="button" onPress={() => openBook(first.calibre_id)} style={{ flex: 1, height: 36, borderRadius: 18, borderWidth: 1, borderColor: 'rgba(255,255,255,0.4)', alignItems: 'center', justifyContent: 'center' }}>
-              <Text style={{ fontFamily: F.sansBold, fontSize: fs(13), color: '#FFFFFF' }}>details</Text>
+            <Pressable accessibilityRole="button" accessibilityLabel={`details of ${first.title}`} onPress={() => openBook(first.calibre_id)} hitSlop={4} style={{ flex: 1, height: 36, borderRadius: 18, borderWidth: 1, borderColor: on.line, alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontFamily: F.sansBold, fontSize: fs(13), color: on.ink }}>details</Text>
             </Pressable>
           </View>
         </View>
@@ -96,11 +105,11 @@ export default function Reading() {
   return (
     <Screen refreshing={home.loading && !!home.data} onRefresh={() => refreshAll()} gap={16}>
       <View style={[u.row, { justifyContent: 'space-between' }]}>
-        <Text style={u.h1}>reading</Text>
+        <Text accessibilityRole="header" style={u.h1}>reading</Text>
         <Text style={u.muted}>{home.data?.last_sync ? `kindle synced ${clock(home.data.last_sync)}` : ''}</Text>
       </View>
       <Chips items={[...VIEWS]} value={view} onChange={(v) => setView(v as View_)} />
-      {view === 'now' ? <Now /> : view === 'library' ? <LibraryBody lib={lib} /> : view === 'paths' ? <PathsBody /> : view === 'highlights' ? <HighlightsBody /> : <IssuesBody />}
+      {view === 'now' ? <Now onLibrary={() => setView('library')} /> : view === 'library' ? <LibraryBody lib={lib} /> : view === 'paths' ? <PathsBody /> : view === 'highlights' ? <HighlightsBody /> : <IssuesBody />}
     </Screen>
   );
 }

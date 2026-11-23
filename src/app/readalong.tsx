@@ -101,8 +101,8 @@ export default function ReadAlong() {
           <Text style={{ color: c.text, fontFamily: F.sansBold }}>{sentence?.text ?? (text.loading ? 'loading…' : '')}</Text>
         </Text>
         <View style={{ borderRadius: 16, backgroundColor: c.panel, padding: 14, gap: 10 }}>
-          <Text style={{ fontFamily: F.heavy, fontSize: 11, letterSpacing: 0.7, color: c.accent }}>
-            NOTE AT {mmss(at)} · {t.title.toUpperCase()}
+          <Text style={{ fontFamily: F.sansBold, fontSize: fs(12), color: c.accent }}>
+            note at {mmss(at)} · {t.title}
           </Text>
           {sentence ? (
             <Text style={{ fontFamily: F.italic, fontSize: fs(14), color: c.soft }} numberOfLines={3}>
@@ -120,6 +120,7 @@ export default function ReadAlong() {
           ) : (
             <>
               <TextInput
+                accessibilityLabel="note"
                 value={note}
                 onChangeText={setNote}
                 placeholder={clip ? 'add to the voice note (optional)' : 'your note, or record one'}

@@ -6,9 +6,9 @@ import { openBook } from '../bits';
 import { Chips, Cover, Empty, ErrorBox, useUi } from '../ui';
 import { useDay, useInsights } from '../../data';
 import { readJson, writeJson } from '../../files';
+import { count, seconds } from '../../format';
 import { F, fs, mix, useTheme } from '../../theme';
 
-const LISTEN = '#E8A55C';
 const SECTIONS = ['week', 'month', 'year', 'habits'] as const;
 type Section = (typeof SECTIONS)[number];
 const TITLES: Record<Section, string> = { week: 'this week', month: 'this month', year: 'this year', habits: 'habits' };
@@ -16,8 +16,7 @@ const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', '
 const MONTH_NAMES = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
 
 const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-const hours = (s: number) => (s >= 36000 ? Math.round(s / 3600) : Math.round(s / 360) / 10);
-const mins = (s: number) => (s >= 3600 ? `${Math.floor(s / 3600)} h ${Math.round((s % 3600) / 60)} min` : `${Math.round(s / 60)} min`);
+const DAY_NAMES = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
 function Tiles({ items }: { items: [string, string][] }) {
   const { c } = useTheme();
@@ -38,7 +37,7 @@ function Card({ title, right, children }: { title: string; right?: string; child
   return (
     <View style={{ borderRadius: 18, backgroundColor: c.panel, padding: 16, gap: 12 }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-        <Text style={{ fontFamily: F.heavy, fontSize: fs(15), color: c.text }}>{title}</Text>
+        <Text accessibilityRole="header" style={{ fontFamily: F.heavy, fontSize: fs(15), color: c.text }}>{title}</Text>
         {right ? <Text style={{ fontFamily: F.sans, fontSize: fs(12), color: c.muted }}>{right}</Text> : null}
       </View>
       {children}
@@ -70,19 +69,24 @@ function Week({ s }: { s: Insights }) {
   const total = week.reduce((a, d) => a + (d ? d.read + d.heard : 0), 0);
   return (
     <>
-      <Card title="this week" right={`${hours(total)} h total`}>
+      <Card title="this week" right={`${seconds(total)} total`}>
         <View style={{ flexDirection: 'row', gap: 8 }}>
           {week.map((d, i) => (
-            <View key={i} style={{ flex: 1, alignItems: 'center', gap: 6 }}>
+            <View
+              key={i}
+              accessible
+              accessibilityLabel={`${DAY_NAMES[i]}: ${d?.read || d?.heard ? [d.read ? `${seconds(d.read)} reading` : '', d.heard ? `${seconds(d.heard)} listening` : ''].filter(Boolean).join(', ') : 'nothing'}`}
+              style={{ flex: 1, alignItems: 'center', gap: 6 }}
+            >
               <View style={{ width: '100%', height: 120, justifyContent: 'flex-end', gap: 2 }}>
                 {d?.read ? <View style={{ height: (d.read / max) * 116, borderTopLeftRadius: 4, borderTopRightRadius: 4, borderBottomLeftRadius: d.heard ? 0 : 4, borderBottomRightRadius: d.heard ? 0 : 4, backgroundColor: c.accent }} /> : null}
-                {d?.heard ? <View style={{ height: (d.heard / max) * 116, borderBottomLeftRadius: 4, borderBottomRightRadius: 4, borderTopLeftRadius: d.read ? 0 : 4, borderTopRightRadius: d.read ? 0 : 4, backgroundColor: LISTEN }} /> : null}
+                {d?.heard ? <View style={{ height: (d.heard / max) * 116, borderBottomLeftRadius: 4, borderBottomRightRadius: 4, borderTopLeftRadius: d.read ? 0 : 4, borderTopRightRadius: d.read ? 0 : 4, backgroundColor: c.warn }} /> : null}
               </View>
               <Text style={{ fontFamily: F.sans, fontSize: 11, color: c.muted }}>{'mtwtfss'[i]}</Text>
             </View>
           ))}
         </View>
-        <Legend items={[[c.accent, 'reading'], [LISTEN, 'listening']]} />
+        <Legend items={[[c.accent, 'reading'], [c.warn, 'listening']]} />
       </Card>
       <Tiles items={[[String(s.streak), 'day streak'], [String(s.books), 'books this year'], [String(Math.round(s.pages_per_day)), 'pages a day']]} />
     </>
@@ -122,7 +126,7 @@ function Month({ s }: { s: Insights }) {
         </View>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
           {'smtwtfs'.split('').map((d, i) => (
-            <Text key={`h${i}`} style={{ width: `${100 / 7}%`, textAlign: 'center', fontFamily: F.sans, fontSize: 10, color: c.muted, marginBottom: 4 }}>{d}</Text>
+            <Text key={`h${i}`} style={{ width: `${100 / 7}%`, textAlign: 'center', fontFamily: F.sans, fontSize: 11, color: c.muted, marginBottom: 4 }}>{d}</Text>
           ))}
           {cells.map((d, i) => {
             const v = d ? byDate.get(d) : undefined;
@@ -137,7 +141,7 @@ function Month({ s }: { s: Insights }) {
                     disabled={future}
                     onPress={() => setPicked(picked === d ? null : d)}
                     style={{ aspectRatio: 1, borderRadius: 6, backgroundColor: future ? c.bg : level(v ? v.read + v.heard : 0), borderWidth: picked === d ? 2 : 1, borderColor: picked === d ? c.text : c.line, alignItems: 'flex-end', justifyContent: 'flex-end', padding: 3 }}>
-                    <Text style={{ fontFamily: F.sans, fontSize: 9, color: c.muted }}>{Number(d.slice(8))}</Text>
+                    <Text style={{ fontFamily: F.sans, fontSize: 11, color: c.muted }}>{Number(d.slice(8))}</Text>
                   </Pressable>
                 ) : null}
               </View>
@@ -175,7 +179,7 @@ function DayDetail({ date }: { date: string }) {
             <View style={{ flex: 1 }}>
               <Text numberOfLines={1} style={{ fontFamily: F.sansBold, fontSize: fs(14), color: c.text }}>{b.title}</Text>
               <Text style={{ fontFamily: F.sans, fontSize: fs(12), color: c.muted }}>
-                {[b.read ? `read ${mins(b.read)}${b.pages ? ` · ${b.pages} pages` : ''}` : '', b.heard ? `heard ${mins(b.heard)}` : ''].filter(Boolean).join(' · ')}
+                {[b.read ? `read ${seconds(b.read)}${b.pages ? ` · ${count(b.pages, 'page')}` : ''}` : '', b.heard ? `heard ${seconds(b.heard)}` : ''].filter(Boolean).join(' · ')}
               </Text>
             </View>
           </Pressable>
@@ -209,7 +213,7 @@ function Year({ year, setYear }: { year: number; setYear: (y: number) => void })
                       <Pressable key={j} accessibilityRole="button" accessibilityLabel={b.title} onPress={() => openBook(b.calibre_id)} style={{ width: 22, height: 20, borderRadius: 2, backgroundColor: swatch(String(b.calibre_id ?? b.title)) }} />
                     ))}
                   </View>
-                  <Text style={{ fontFamily: F.sans, fontSize: 10, color: c.muted }}>{MONTHS[i]}</Text>
+                  <Text style={{ fontFamily: F.sans, fontSize: 11, color: c.muted }}>{MONTHS[i]}</Text>
                 </View>
               ))}
             </View>
@@ -241,15 +245,15 @@ function Habits({ s }: { s: Insights }) {
       <Card title="when you read and listen" right="last 30 days">
         <View style={{ flexDirection: 'row', gap: 2, alignItems: 'flex-end', height: 80 }}>
           {s.hours_of_day.map((h, i) => (
-            <View key={i} style={{ flex: 1, height: Math.max(0, ((h.read + h.heard) / max) * 80), borderTopLeftRadius: 3, borderTopRightRadius: 3, backgroundColor: h.heard > h.read ? LISTEN : c.accent }} />
+            <View key={i} style={{ flex: 1, height: Math.max(0, ((h.read + h.heard) / max) * 80), borderTopLeftRadius: 3, borderTopRightRadius: 3, backgroundColor: h.heard > h.read ? c.warn : c.accent }} />
           ))}
         </View>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
           {['00', '06', '12', '18', '23'].map((x) => (
-            <Text key={x} style={{ fontFamily: F.sans, fontSize: 10, color: c.muted }}>{x}</Text>
+            <Text key={x} style={{ fontFamily: F.sans, fontSize: 11, color: c.muted }}>{x}</Text>
           ))}
         </View>
-        <Legend items={[[c.accent, 'kindle'], [LISTEN, 'listening']]} />
+        <Legend items={[[c.accent, 'kindle'], [c.warn, 'listening']]} />
       </Card>
       <Tiles items={[[`${Math.round(s.avg_session_min)} min`, 'avg session'], [String(Math.round(s.pages_per_hour)), 'pages an hour'], [`${Math.round(s.heard_share * 100)}%`, 'heard vs read']]} />
       {s.pace.length ? (

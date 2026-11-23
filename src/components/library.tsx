@@ -69,12 +69,12 @@ function Continue({ lib }: { lib: Library }) {
     <Pressable accessibilityRole="button" onPress={() => openBook(id, which)} style={({ pressed }) => [{ borderRadius: 18, backgroundColor: c.panel, padding: 14, flexDirection: 'row', gap: 14, opacity: pressed ? 0.85 : 1 }]}>
       <Cover id={id} lib={which} title={t} hasCover={item?.has_cover ?? true} width={80} height={118} radius={6} />
       <View style={{ flex: 1, gap: 7 }}>
-        <Text style={{ fontFamily: F.heavy, fontSize: 11, letterSpacing: 0.7, color: c.accent }}>{usePhone ? 'CONTINUE ON THE IPHONE' : 'CONTINUE · FROM THE KINDLE'}</Text>
+        <Text style={{ fontFamily: F.sansBold, fontSize: fs(12), color: c.accent }}>{usePhone ? 'continue on the iphone' : 'continue · from the kindle'}</Text>
         <Text style={{ fontFamily: F.heavy, fontSize: fs(17), lineHeight: fs(20), color: c.text }} numberOfLines={2}>
           {t}
         </Text>
         <Text style={u.muted}>{percent(share)}</Text>
-        <Pressable accessibilityRole="button" onPress={() => openReader(which, id)} style={{ marginTop: 'auto', alignSelf: 'flex-start', height: 34, paddingHorizontal: 18, borderRadius: 17, backgroundColor: c.accent, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+        <Pressable accessibilityRole="button" accessibilityLabel={`read ${t}`} onPress={() => openReader(which, id)} hitSlop={5} style={{ marginTop: 'auto', alignSelf: 'flex-start', height: 34, paddingHorizontal: 18, borderRadius: 17, backgroundColor: c.accent, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           <Icon name="book" size={16} color={c.onAccent} />
           <Text style={{ fontFamily: F.heavy, fontSize: fs(13), color: c.onAccent }}>read</Text>
         </Pressable>
