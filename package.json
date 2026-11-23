@@ -6,7 +6,7 @@
     "start": "expo start",
     "ios": "expo start --ios",
     "lint": "expo lint",
-    "test": "node --test tests/"
+    "test": "node --test tests/*.test.mjs"
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.2",
