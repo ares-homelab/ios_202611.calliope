@@ -25,6 +25,7 @@ export const useAudioQueue = () => useResource('audioqueue', api.audioQueue);
 export const useRecap = (month?: string) => useResource(`recap/${month ?? ''}`, () => api.recap(month));
 export const useMixes = () => useResource('mixes', api.mixes);
 export const useMix = (id: string) => useResource(`mix/${id}`, () => api.mix(id));
+export const useFindRequests = () => useResource('search/requests', api.findRequests);
 export const useWanted = () => useResource('wanted', api.wanted);
 export const useAlbums = (type: Parameters<typeof nd.albums>[0], size = 40) => useResource(`nd/albums/${type}/${size}`, () => nd.albums(type, size));
 export const useAlbum = (id: string) => useResource(`nd/album/${id}`, () => nd.album(id));

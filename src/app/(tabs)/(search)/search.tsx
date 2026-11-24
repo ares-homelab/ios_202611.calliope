@@ -4,14 +4,16 @@ import { Pressable, Text, TextInput, View } from 'react-native';
 import { api, type Highlights } from '../../../api';
 import { Art } from '../../../components/art';
 import { openAudiobook, openBook, openPath } from '../../../components/bits';
+import { FindNew, useFind } from '../../../components/findnew';
 import { Icon } from '../../../components/icon';
 import { openAlbum, openArtist, SongRow } from '../../../components/music';
 import { StatsBody } from '../../../components/reading/stats';
-import { Chips, Cover, Empty, Screen, SectionHead, useUi } from '../../../components/ui';
+import { Chips, Cover, Empty, Screen, SectionHead, Segmented, useUi } from '../../../components/ui';
 import { useAudiobooks, useBooks, usePaths } from '../../../data';
 import { count, statusOf } from '../../../format';
 import { nd } from '../../../navidrome';
 import { playSongs } from '../../../play';
+import { refreshKeys } from '../../../store';
 import { F, fs, useTheme } from '../../../theme';
 
 type K = 'all' | 'music' | 'audiobooks' | 'books' | 'highlights';
@@ -41,16 +43,15 @@ function Row({ title, sub, left, onPress }: { title: string; sub: string; left: 
   );
 }
 
-export default function Search() {
+function LibraryResults({ q }: { q: string }) {
   const u = useUi();
   const { c } = useTheme();
-  const [q, setQ] = useState('');
+  const term = norm(q.trim());
   const [k, setK] = useState<K>('all');
   const [found, setFound] = useState<{ q: string; music?: Music | null; hl?: Highlights | null }>({ q: '' });
   const books = useBooks();
   const audio = useAudiobooks();
   const paths = usePaths();
-  const term = norm(q.trim());
 
   useEffect(() => {
     if (term.length < 2) return;
@@ -79,22 +80,7 @@ export default function Search() {
   const audioIds = new Set((audio.data ?? []).map((b) => b.id));
 
   return (
-    <Screen gap={14}>
-      <Text accessibilityRole="header" style={u.h1}>search</Text>
-      <View style={[u.row, { gap: 10, height: 46, paddingHorizontal: 14, backgroundColor: c.panel, borderRadius: 12 }]}>
-        <Icon name="search" size={18} color={c.muted} />
-        <TextInput
-          accessibilityLabel="search"
-          value={q}
-          onChangeText={setQ}
-          placeholder="songs, books, highlights"
-          placeholderTextColor={c.muted}
-          autoCorrect={false}
-          clearButtonMode="while-editing"
-          returnKeyType="search"
-          style={{ flex: 1, color: c.text, fontFamily: F.sans, fontSize: fs(15) }}
-        />
-      </View>
+    <>
       {term.length < 2 ? <StatsBody /> : <Chips<K> items={['all', 'music', 'audiobooks', 'books', 'highlights']} value={k} onChange={setK} />}
 
       {show('music') && music ? (
@@ -167,6 +153,63 @@ export default function Search() {
           <Text style={u.link}>browse the whole library</Text>
         </Pressable>
       ) : null}
+    </>
+  );
+}
+
+export default function Search() {
+  const u = useUi();
+  const { c } = useTheme();
+  const [q, setQ] = useState('');
+  const [mode, setMode] = useState<'library' | 'new'>('library');
+  const [refreshing, setRefreshing] = useState(false);
+  const find = useFind();
+  const finding = mode === 'new';
+
+  return (
+    <Screen
+      gap={14}
+      refreshing={refreshing}
+      onRefresh={
+        finding
+          ? () => {
+              setRefreshing(true);
+              refreshKeys('search/requests').finally(() => setRefreshing(false));
+            }
+          : undefined
+      }
+    >
+      <Text accessibilityRole="header" style={u.h1}>search</Text>
+      <View style={[u.row, { gap: 10, height: 46, paddingHorizontal: 14, backgroundColor: c.panel, borderRadius: 12 }]}>
+        <Icon name="search" size={18} color={c.muted} />
+        <TextInput
+          accessibilityLabel="search"
+          value={q}
+          onChangeText={(t) => {
+            setQ(t);
+            if (!t) find.run('');
+          }}
+          onSubmitEditing={() => finding && find.run(q)}
+          placeholder={finding ? 'tv, movies, music, books' : 'songs, books, highlights'}
+          placeholderTextColor={c.muted}
+          autoCorrect={false}
+          clearButtonMode="while-editing"
+          returnKeyType="search"
+          style={{ flex: 1, color: c.text, fontFamily: F.sans, fontSize: fs(15) }}
+        />
+      </View>
+      <Segmented
+        value={mode}
+        onChange={(m) => {
+          setMode(m);
+          if (m === 'new' && q.trim() !== find.q) find.run(q);
+        }}
+        options={[
+          { value: 'library', label: 'your library' },
+          { value: 'new', label: 'find new' },
+        ]}
+      />
+      {finding ? <FindNew find={find} /> : <LibraryResults q={q} />}
     </Screen>
   );
 }
