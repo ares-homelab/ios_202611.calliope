@@ -249,7 +249,7 @@ export type MixCard = { id?: string | null; name: string; numeral: string; how: 
 export type Mix = { id: string; kind: string; title: string; sub: string; color?: string; sections: MixSection[]; cards?: MixCard[]; interpretation?: string | null };
 export type Wanted = { total: number; items: { title: string; artist: string; album?: string | null; duration?: number | null; plays: number; source: string; sources?: string[] }[] };
 
-export type FindKind = 'tv' | 'movies' | 'music' | 'books' | 'comics';
+export type FindKind = 'tv' | 'movies' | 'music' | 'books' | 'comics' | 'manga';
 export type FindStatus = 'new' | 'wanted' | 'downloading' | 'partial' | 'done' | 'failed' | 'removed' | 'unknown';
 export type Found = { kind: FindKind; id: string; title: string; creator?: string | null; type?: string | null; source?: string | null; year?: number | null; overview?: string | null; detail?: string | null; poster?: string | null; in_library: boolean; status: FindStatus };
 export type FoundResults = { results: Found[]; errors?: Partial<Record<FindKind, string>>; pending?: FindKind[]; needs?: Partial<Record<FindKind, string>> };
