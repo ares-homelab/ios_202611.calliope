@@ -11,7 +11,7 @@ import { Icon, type IconName } from './icon';
 import { PickRelease } from './releases';
 import { Bar, Button, Chips, Empty, ErrorBox, SectionHead, StatusPill, useUi } from './ui';
 
-const ICON: Record<FindKind, IconName> = { tv: 'play', movies: 'play', music: 'music', books: 'book', comics: 'book' };
+const ICON: Record<FindKind, IconName> = { tv: 'play', movies: 'play', music: 'music', books: 'book', comics: 'book', manga: 'book' };
 const key = (f: { kind: string; id: string }) => `${f.kind}/${f.id}`;
 
 function Poster({ kind, uri }: { kind: FindKind; uri?: string | null }) {
@@ -147,7 +147,7 @@ export function useFind() {
   return { ...state, run, added, back: () => run(typed.current) };
 }
 
-/** tv, movies, music, books and comics that aren't on ares yet: results of the last search, or what was added from here */
+/** tv, movies, music, books, comics and manga that aren't on ares yet: results of the last search, or what was added from here */
 export function FindNew({ find }: { find: ReturnType<typeof useFind> }) {
   const u = useUi();
   const { c } = useTheme();
