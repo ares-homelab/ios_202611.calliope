@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { addNote, foundLine, isWork, mergeFound, requestLine, requestSource, sourceLine } from '../src/found.ts';
+import { addNote, bytes, canPick, foundLine, isWork, langBadge, mergeFound, partOf, pickedLine, releaseLine, releaseSource, requestLine, requestSource, sourceLine } from '../src/found.ts';
 
 test('foundLine leaves out what is missing and says what music is', () => {
   assert.equal(foundLine({ kind: 'tv', year: 2017, creator: 'Netflix' }), 'Netflix · 2017');
@@ -58,4 +58,34 @@ test('works are added by picking an edition, editions are not', () => {
 test('a late music answer keeps what comics need', () => {
   const now = mergeFound({ results: [], pending: ['music'], needs: { comics: 'needs comicvine key' } }, 'music', { results: [], pending: ['music'] });
   assert.deepEqual([now.pending, now.needs], [['music'], { comics: 'needs comicvine key' }]);
+});
+
+test('a release says its size, peers and quality', () => {
+  assert.equal(releaseLine({ size: 4_200_000_000, seeders: 12, leechers: 3, quality: 'web 1080p' }), '4.2 GB · 12 seeding · 3 leeching · web 1080p');
+  assert.equal(releaseLine({ size: 350_000_000, seeders: 0, leechers: 0, quality: null }), '350 MB · 0 seeding · 0 leeching');
+  assert.equal(bytes(null), 'size unknown');
+  assert.equal(releaseSource({ indexer: 'x', age_days: 0 }), 'x · today');
+  assert.equal(releaseSource({ indexer: 'x', age_days: 800 }), 'x · 2 years');
+});
+
+test('the badge is only for portuguese', () => {
+  assert.deepEqual([null, undefined, 'pt-br', 'dublado', 'legendado'].map(langBadge), [null, null, 'pt-br', 'pt-br dublado', 'pt-br legendado']);
+});
+
+test('an episode needs its season', () => {
+  assert.deepEqual(partOf('', ''), {});
+  assert.deepEqual(partOf('', '2'), {});
+  assert.deepEqual(partOf('0', ''), { season: 0 });
+  assert.deepEqual(partOf(' 1 ', '2'), { season: 1, episode: 2 });
+  assert.deepEqual(partOf('1a', '2'), {});
+});
+
+test('only tv, movies and music have releases to pick', () => {
+  assert.deepEqual(['tv', 'movies', 'music', 'books', 'comics'].filter((kind) => canPick({ kind })), ['tv', 'movies', 'music']);
+});
+
+test('a picked release shows how the import queue is doing', () => {
+  assert.equal(pickedLine({ status: 'queued' }), 'release queued');
+  assert.equal(pickedLine({ status: 'add_failed', error: 'add_failed' }), 'release failed: add failed');
+  assert.equal(pickedLine({ status: 'failed' }), 'release failed: failed');
 });

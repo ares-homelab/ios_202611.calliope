@@ -253,7 +253,13 @@ export type FindKind = 'tv' | 'movies' | 'music' | 'books' | 'comics' | 'manga';
 export type FindStatus = 'new' | 'wanted' | 'downloading' | 'partial' | 'done' | 'failed' | 'removed' | 'unknown';
 export type Found = { kind: FindKind; id: string; title: string; creator?: string | null; type?: string | null; source?: string | null; year?: number | null; overview?: string | null; detail?: string | null; poster?: string | null; in_library: boolean; status: FindStatus };
 export type FoundResults = { results: Found[]; errors?: Partial<Record<FindKind, string>>; pending?: FindKind[]; needs?: Partial<Record<FindKind, string>> };
-export type FoundRequest = Pick<Found, 'kind' | 'id' | 'title' | 'creator' | 'type' | 'year' | 'poster' | 'status'> & { added: string; progress?: number | null; detail?: string | null };
+export type FoundRequest = Pick<Found, 'kind' | 'id' | 'title' | 'creator' | 'type' | 'year' | 'poster' | 'status'> & { added: string; progress?: number | null; detail?: string | null; releases?: PickedRelease[] };
+/** a release sent to the import queue */
+export type PickedRelease = { id: string; title?: string | null; status: string; error?: string | null };
+export type ReleaseKind = 'tv' | 'movies' | 'music';
+export type Release = { guid: string; title: string; size?: number | null; seeders: number; leechers: number; indexer: string; age_days?: number | null; quality?: string | null; resolution?: string | null; language?: string | null; score: number };
+export type Releases = { title?: string | null; results: Release[]; pending?: boolean };
+export type Part = { season?: number; episode?: number };
 
 export class ApiError extends Error {
   constructor(
@@ -377,6 +383,8 @@ export const api = {
   played: (songs: { id: string; at: string; seconds: number; title?: string; artist?: string; album?: string }[]) => request<{ ok: boolean }>('/plays', { method: 'POST', body: JSON.stringify(songs) }),
   find: (text: string, kind?: FindKind, editions?: boolean) => request<FoundResults>(`/search${q({ q: text, kind, editions })}`, {}, undefined, 60000),
   findAdd: ({ kind, id, title, creator }: Found) => request<Found>('/search/add', { method: 'POST', body: JSON.stringify({ kind, id, title, creator }) }, undefined, 60000),
+  releases: (f: Pick<Found, 'kind' | 'id'>, part: Part) => request<Releases>(`/search/releases${q({ kind: f.kind, id: f.id, ...part })}`, {}, undefined, 60000),
+  grabRelease: (f: Pick<Found, 'kind' | 'id'>, guid: string, part: Part) => request<FoundRequest>('/search/releases/grab', { method: 'POST', body: JSON.stringify({ kind: f.kind, id: f.id, guid, ...part }) }, undefined, 200000),
   findRequests: () => request<FoundRequest[]>('/search/requests', {}, undefined, 30000),
   wanted: () => request<Wanted>('/wanted'),
   note: (n: { book_id: number; track: number; seconds: number; text: string; quote: string; voice?: boolean }) => request<{ id: string }>('/notes', { method: 'POST', body: JSON.stringify(n) }),
