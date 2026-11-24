@@ -50,6 +50,8 @@ test('works are added by picking an edition, editions are not', () => {
   assert.match(addNote({ kind: 'books', type: 'hardcover' }), /free edition/);
   assert.match(addNote({ kind: 'music', type: 'song' }), /album this song is on/);
   assert.match(addNote({ kind: 'comics' }), /kapowarr/);
+  assert.match(addNote({ kind: 'manga' }), /suwayomi/);
+  assert.equal(requestLine({ kind: 'manga', status: 'wanted' }), 'waiting for chapters');
   assert.equal(requestLine({ kind: 'books', status: 'wanted', detail: 'looking for an edition' }), 'looking for an edition');
 });
 
