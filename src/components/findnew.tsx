@@ -4,10 +4,11 @@ import { ActivityIndicator, Alert, Text, View } from 'react-native';
 import { api, type FindKind, type Found, type FoundResults } from '../api';
 import { useFindRequests } from '../data';
 import { dayMonth } from '../format';
-import { addNote, FIND_KINDS, foundLine, isWork, mergeFound, requestLine, requestSource, sourceLine } from '../found';
+import { addNote, canPick, FIND_KINDS, foundLine, isWork, mergeFound, pickedLine, requestLine, requestSource, sourceLine } from '../found';
 import { refreshKeys } from '../store';
 import { F, fs, useTheme } from '../theme';
 import { Icon, type IconName } from './icon';
+import { PickRelease } from './releases';
 import { Bar, Button, Chips, Empty, ErrorBox, SectionHead, StatusPill, useUi } from './ui';
 
 const ICON: Record<FindKind, IconName> = { tv: 'play', movies: 'play', music: 'music', books: 'book', comics: 'book' };
@@ -36,7 +37,7 @@ function Title({ children }: { children: string }) {
   );
 }
 
-function FoundRow({ f, busy, onAdd }: { f: Found; busy: boolean; onAdd: () => void }) {
+function FoundRow({ f, busy, onAdd, onPick }: { f: Found; busy: boolean; onAdd: () => void; onPick?: () => void }) {
   const u = useUi();
   return (
     <View style={[u.row, u.line, { gap: 14, paddingVertical: 10 }]}>
@@ -54,6 +55,7 @@ function FoundRow({ f, busy, onAdd }: { f: Found; busy: boolean; onAdd: () => vo
             {f.overview}
           </Text>
         ) : null}
+        {onPick ? <Button label="pick release" kind="outline" onPress={onPick} style={{ alignSelf: 'flex-start', marginTop: 6 }} /> : null}
       </View>
       {f.in_library ? <StatusPill status={f.status === 'wanted' ? 'added' : 'in library'} /> : <Button label="add" kind="outline" busy={busy} onPress={onAdd} />}
     </View>
@@ -81,6 +83,11 @@ function Requests() {
                 {r.detail}
               </Text>
             ) : null}
+            {r.releases?.slice(0, 3).map((p) => (
+              <Text key={p.id} numberOfLines={2} style={u.soft}>
+                {[pickedLine(p), p.title].filter(Boolean).join(' · ')}
+              </Text>
+            ))}
           </View>
         </View>
       ))}
@@ -146,6 +153,7 @@ export function FindNew({ find }: { find: ReturnType<typeof useFind> }) {
   const { c } = useTheme();
   const [kind, setKind] = useState<'all' | FindKind>('all');
   const [busy, setBusy] = useState<string | null>(null);
+  const [picking, setPicking] = useState<{ q: string; f: Found } | null>(null);
 
   const add = async (f: Found) => {
     setBusy(key(f));
@@ -166,6 +174,7 @@ export function FindNew({ find }: { find: ReturnType<typeof useFind> }) {
     ]);
 
   if (!find.q) return <Requests />;
+  if (picking && picking.q === find.q) return <PickRelease key={key(picking.f)} f={picking.f} onBack={() => setPicking(null)} onGrabbed={find.added} />;
   const kinds = FIND_KINDS.filter((k) => (find.editions ? k === 'books' : kind === 'all' || k === kind));
   const all = find.results?.results ?? [];
   const errors = kinds.filter((k) => find.results?.errors?.[k]);
@@ -189,7 +198,7 @@ export function FindNew({ find }: { find: ReturnType<typeof useFind> }) {
           <View key={k}>
             {find.editions ? null : <SectionHead title={k} right={of.length > shown.length ? `all ${of.length}` : undefined} onPress={() => setKind(k)} />}
             {shown.map((f) => (
-              <FoundRow key={key(f)} f={f} busy={busy === key(f)} onAdd={() => confirm(f)} />
+              <FoundRow key={key(f)} f={f} busy={busy === key(f)} onAdd={() => confirm(f)} onPick={canPick(f) ? () => setPicking({ q: find.q, f }) : undefined} />
             ))}
           </View>
         );

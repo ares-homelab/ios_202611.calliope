@@ -1,4 +1,4 @@
-import type { FindKind, FindStatus, Found, FoundRequest, FoundResults } from './api';
+import type { FindKind, FindStatus, Found, FoundRequest, FoundResults, Part, PickedRelease, Release } from './api';
 
 export const FIND_KINDS: FindKind[] = ['tv', 'movies', 'music', 'books', 'comics'];
 
@@ -42,6 +42,29 @@ export const addNote = (f: Pick<Found, 'kind' | 'type'>) => {
   if (f.type === 'song') return 'lidarr follows the album this song is on and looks for it.';
   return f.type === 'artist' ? 'lidarr follows the artist and looks for every album.' : 'lidarr follows only this album and looks for it.';
 };
+
+/** tv, movies and music can be had by picking a release */
+export const canPick = (f: Pick<Found, 'kind'>) => f.kind === 'tv' || f.kind === 'movies' || f.kind === 'music';
+
+export const bytes = (n?: number | null) => (n ? (n >= 1e9 ? `${(n / 1e9).toFixed(1)} GB` : `${Math.max(1, Math.round(n / 1e6))} MB`) : 'size unknown');
+
+const age = (days?: number | null) => (days == null ? null : days < 1 ? 'today' : days < 60 ? `${days}d` : days < 730 ? `${Math.round(days / 30)} months` : `${Math.floor(days / 365)} years`);
+
+export const releaseLine = (r: Pick<Release, 'size' | 'seeders' | 'leechers' | 'quality'>) =>
+  [bytes(r.size), `${r.seeders} seeding`, `${r.leechers} leeching`, r.quality].filter(Boolean).join(' · ');
+export const releaseSource = (r: Pick<Release, 'indexer' | 'age_days'>) => [r.indexer, age(r.age_days)].filter(Boolean).join(' · ');
+
+/** the badge says portuguese first, then how */
+export const langBadge = (l?: string | null) => (!l ? null : l === 'pt-br' ? l : `pt-br ${l}`);
+
+const numeral = (s: string) => (/^\d{1,4}$/.test(s.trim()) ? Number(s) : undefined);
+export const partOf = (season: string, episode: string): Part => {
+  const s = numeral(season);
+  return s == null || s > 999 ? {} : { season: s, ...(numeral(episode) == null ? {} : { episode: numeral(episode) }) };
+};
+
+const QUEUE: Record<string, string> = { queued: 'release queued', working: 'release sent to qbittorrent', done: 'release finished' };
+export const pickedLine = (p: Pick<PickedRelease, 'status' | 'error'>) => QUEUE[p.status] ?? `release failed: ${(p.error ?? p.status).replaceAll('_', ' ')}`;
 
 /** where a request came from: the book source, else its kind */
 export const requestSource = (r: Pick<FoundRequest, 'kind' | 'type'>) => (r.kind === 'books' ? (typeName(r.type) ?? r.kind) : r.kind);
