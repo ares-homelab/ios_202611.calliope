@@ -104,15 +104,28 @@ export function useFind() {
       .catch((e: Error) => latest.current === n && setState({ q, loading: false, error: e.message }));
   };
   const { q, results } = state;
-  // shelfmark takes up to a few minutes: ask again for the books until they're in
+  // shelfmark takes up to a few minutes: ask again for the books until they're in, through an api restart too
+  const misses = useRef(0);
   useEffect(() => {
     if (!results?.pending?.includes('books')) return;
     const n = latest.current;
     const timer = setTimeout(() => {
       api
         .find(q, 'books')
-        .then((next) => latest.current === n && setState((s) => (s.results ? { ...s, results: mergeFound(s.results, 'books', next) } : s)))
-        .catch((e: Error) => latest.current === n && setState((s) => (s.results ? { ...s, results: mergeFound(s.results, 'books', { results: s.results.results.filter((f) => f.kind === 'books'), errors: { books: e.message } }) } : s)));
+        .then((next) => {
+          misses.current = 0;
+          if (latest.current === n) setState((s) => (s.results ? { ...s, results: mergeFound(s.results, 'books', next) } : s));
+        })
+        .catch((e: Error) => {
+          const again = ++misses.current < 8;
+          if (!again) misses.current = 0;
+          if (latest.current === n)
+            setState((s) => {
+              if (!s.results) return s;
+              const kept = s.results.results.filter((f) => f.kind === 'books');
+              return { ...s, results: mergeFound(s.results, 'books', again ? { results: kept, errors: s.results.errors, pending: ['books'] } : { results: kept, errors: { books: e.message } }) };
+            });
+        });
     }, 4000);
     return () => clearTimeout(timer);
   }, [q, results]);
@@ -131,7 +144,7 @@ export function FindNew({ find }: { find: ReturnType<typeof useFind> }) {
   const add = async (f: Found) => {
     setBusy(key(f));
     try {
-      find.added(await api.findAdd(f.kind, f.id));
+      find.added(await api.findAdd(f));
       refreshKeys('search/requests');
     } catch (e) {
       Alert.alert('not added', (e as Error).message);
