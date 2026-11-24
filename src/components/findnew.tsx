@@ -4,13 +4,13 @@ import { ActivityIndicator, Alert, Text, View } from 'react-native';
 import { api, type FindKind, type Found, type FoundResults } from '../api';
 import { useFindRequests } from '../data';
 import { dayMonth } from '../format';
-import { addNote, FIND_KINDS, foundLine, mergeFound, requestLine, requestSource } from '../found';
+import { addNote, FIND_KINDS, foundLine, isWork, mergeFound, requestLine, requestSource, sourceLine } from '../found';
 import { refreshKeys } from '../store';
 import { F, fs, useTheme } from '../theme';
 import { Icon, type IconName } from './icon';
 import { Bar, Button, Chips, Empty, ErrorBox, SectionHead, StatusPill, useUi } from './ui';
 
-const ICON: Record<FindKind, IconName> = { tv: 'play', movies: 'play', music: 'music', books: 'book' };
+const ICON: Record<FindKind, IconName> = { tv: 'play', movies: 'play', music: 'music', books: 'book', comics: 'book' };
 const key = (f: { kind: string; id: string }) => `${f.kind}/${f.id}`;
 
 function Poster({ kind, uri }: { kind: FindKind; uri?: string | null }) {
@@ -46,7 +46,9 @@ function FoundRow({ f, busy, onAdd }: { f: Found; busy: boolean; onAdd: () => vo
         <Text numberOfLines={1} style={u.muted}>
           {foundLine(f)}
         </Text>
-        {f.detail ? <Text style={u.muted}>{f.detail}</Text> : null}
+        <Text numberOfLines={1} style={u.muted}>
+          {sourceLine(f)}
+        </Text>
         {f.overview ? (
           <Text numberOfLines={2} style={u.soft}>
             {f.overview}
@@ -74,7 +76,7 @@ function Requests() {
               {[requestLine(r), requestSource(r), dayMonth(r.added)].join(' · ')}
             </Text>
             {r.status === 'downloading' && r.progress != null ? <Bar value={r.progress} /> : null}
-            {r.detail ? (
+            {r.detail && r.detail !== requestLine(r) ? (
               <Text numberOfLines={2} style={u.soft}>
                 {r.detail}
               </Text>
@@ -87,34 +89,38 @@ function Requests() {
   );
 }
 
-export type Finding = { q: string; loading: boolean; results?: FoundResults; error?: string };
+export type Finding = { q: string; loading: boolean; editions?: boolean; results?: FoundResults; error?: string };
 
-/** one search at a time, run on return: lidarr's metadata server turns away a search per letter */
+/** one search at a time, run on return: the metadata servers turn away a search per letter */
 export function useFind() {
   const [state, setState] = useState<Finding>({ q: '', loading: false });
   const latest = useRef(0);
-  const run = (text: string) => {
+  const typed = useRef('');
+  /** `editions` lists what can be downloaded of one book, to choose by hand */
+  const run = (text: string, editions = false) => {
     const q = text.trim();
     const n = ++latest.current;
+    if (!editions) typed.current = q;
     if (!q) return setState({ q: '', loading: false });
-    setState({ q, loading: true });
+    setState({ q, loading: true, editions });
     api
-      .find(q)
-      .then((results) => latest.current === n && setState({ q, loading: false, results }))
-      .catch((e: Error) => latest.current === n && setState({ q, loading: false, error: e.message }));
+      .find(q, editions ? 'books' : undefined, editions)
+      .then((results) => latest.current === n && setState({ q, loading: false, editions, results }))
+      .catch((e: Error) => latest.current === n && setState({ q, loading: false, editions, error: e.message }));
   };
-  const { q, results } = state;
-  // shelfmark takes up to a few minutes: ask again for the books until they're in, through an api restart too
+  const { q, results, editions } = state;
+  const asking = results?.pending?.[0];
+  // musicbrainz takes seconds and shelfmark up to minutes: ask again until they're in, through an api restart too
   const misses = useRef(0);
   useEffect(() => {
-    if (!results?.pending?.includes('books')) return;
+    if (!asking) return;
     const n = latest.current;
     const timer = setTimeout(() => {
       api
-        .find(q, 'books')
+        .find(q, asking, editions)
         .then((next) => {
           misses.current = 0;
-          if (latest.current === n) setState((s) => (s.results ? { ...s, results: mergeFound(s.results, 'books', next) } : s));
+          if (latest.current === n) setState((s) => (s.results ? { ...s, results: mergeFound(s.results, asking, next) } : s));
         })
         .catch((e: Error) => {
           const again = ++misses.current < 8;
@@ -122,19 +128,19 @@ export function useFind() {
           if (latest.current === n)
             setState((s) => {
               if (!s.results) return s;
-              const kept = s.results.results.filter((f) => f.kind === 'books');
-              return { ...s, results: mergeFound(s.results, 'books', again ? { results: kept, errors: s.results.errors, pending: ['books'] } : { results: kept, errors: { books: e.message } }) };
+              const kept = s.results.results.filter((f) => f.kind === asking);
+              return { ...s, results: mergeFound(s.results, asking, again ? { results: kept, errors: s.results.errors, pending: [asking] } : { results: kept, errors: { [asking]: e.message } }) };
             });
         });
-    }, 4000);
+    }, 3000);
     return () => clearTimeout(timer);
-  }, [q, results]);
+  }, [q, results, asking, editions]);
   const added = (f: Found) =>
     setState((s) => (s.results ? { ...s, results: { ...s.results, results: s.results.results.map((x) => (key(x) === key(f) ? { ...x, in_library: true, status: f.status } : x)) } } : s));
-  return { ...state, run, added };
+  return { ...state, run, added, back: () => run(typed.current) };
 }
 
-/** tv, movies, music and books that aren't on ares yet: results of the last search, or what was added from here */
+/** tv, movies, music, books and comics that aren't on ares yet: results of the last search, or what was added from here */
 export function FindNew({ find }: { find: ReturnType<typeof useFind> }) {
   const u = useUi();
   const { c } = useTheme();
@@ -154,20 +160,22 @@ export function FindNew({ find }: { find: ReturnType<typeof useFind> }) {
   };
   const confirm = (f: Found) =>
     Alert.alert(`add ${f.title}?`, addNote(f), [
-      { text: 'cancel', style: 'cancel' },
       { text: 'add', onPress: () => add(f) },
+      ...(isWork(f) ? [{ text: 'choose an edition', onPress: () => find.run([f.title, f.creator?.split(', ')[0]].filter(Boolean).join(' '), true) }] : []),
+      { text: 'cancel', style: 'cancel' as const },
     ]);
 
   if (!find.q) return <Requests />;
-  const kinds = FIND_KINDS.filter((k) => kind === 'all' || k === kind);
+  const kinds = FIND_KINDS.filter((k) => (find.editions ? k === 'books' : kind === 'all' || k === kind));
   const all = find.results?.results ?? [];
   const errors = kinds.filter((k) => find.results?.errors?.[k]);
-  const waiting = kinds.includes('books') && find.results?.pending?.includes('books');
+  const waiting = kinds.filter((k) => find.results?.pending?.includes(k));
+  const needs = kind !== 'all' && !find.editions ? find.results?.needs?.[kind] : undefined;
   return (
     <>
-      <Chips<'all' | FindKind> items={['all', ...FIND_KINDS]} value={kind} onChange={setKind} />
+      {find.editions ? <SectionHead title={`editions of ${find.q}`} right="all results" onPress={find.back} /> : <Chips<'all' | FindKind> items={['all', ...FIND_KINDS]} value={kind} onChange={setKind} />}
       {find.loading ? <ActivityIndicator accessibilityLabel="searching" color={c.muted} style={{ paddingVertical: 24 }} /> : null}
-      {find.error ? <ErrorBox error={find.error} onRetry={() => find.run(find.q)} /> : null}
+      {find.error ? <ErrorBox error={find.error} onRetry={() => find.run(find.q, find.editions)} /> : null}
       {errors.map((k) => (
         <Text key={k} style={[u.soft, { color: c.warn }]}>
           {k}: {find.results!.errors![k]}
@@ -175,24 +183,25 @@ export function FindNew({ find }: { find: ReturnType<typeof useFind> }) {
       ))}
       {kinds.map((k) => {
         const of = all.filter((f) => f.kind === k);
-        const shown = kind === 'all' ? of.slice(0, 5) : of;
+        const shown = kind === 'all' && !find.editions ? of.slice(0, 5) : of;
         if (!of.length) return null;
         return (
           <View key={k}>
-            <SectionHead title={k} right={of.length > shown.length ? `all ${of.length}` : undefined} onPress={() => setKind(k)} />
+            {find.editions ? null : <SectionHead title={k} right={of.length > shown.length ? `all ${of.length}` : undefined} onPress={() => setKind(k)} />}
             {shown.map((f) => (
               <FoundRow key={key(f)} f={f} busy={busy === key(f)} onAdd={() => confirm(f)} />
             ))}
           </View>
         );
       })}
-      {waiting ? (
+      {needs ? <Empty>{needs}</Empty> : null}
+      {waiting.length && !find.loading ? (
         <View style={[u.row, { gap: 10, paddingVertical: 8 }]}>
           <ActivityIndicator color={c.muted} />
-          <Text style={u.soft}>asking shelfmark for books, up to a few minutes…</Text>
+          <Text style={u.soft}>{waiting.includes('books') ? 'asking shelfmark for books, up to a few minutes…' : 'asking musicbrainz…'}</Text>
         </View>
       ) : null}
-      {find.results && !waiting && !errors.length && !all.some((f) => kinds.includes(f.kind)) ? <Empty>nothing found for “{find.q}”.</Empty> : null}
+      {find.results && !waiting.length && !needs && !errors.length && !all.some((f) => kinds.includes(f.kind)) ? <Empty>nothing found for “{find.q}”.</Empty> : null}
     </>
   );
 }

@@ -190,7 +190,7 @@ export default function Search() {
             if (!t) find.run('');
           }}
           onSubmitEditing={() => finding && find.run(q)}
-          placeholder={finding ? 'tv, movies, music, books' : 'songs, books, highlights'}
+          placeholder={finding ? 'tv, movies, music, books, comics' : 'songs, books, highlights'}
           placeholderTextColor={c.muted}
           autoCorrect={false}
           clearButtonMode="while-editing"
