@@ -249,6 +249,12 @@ export type MixCard = { id?: string | null; name: string; numeral: string; how: 
 export type Mix = { id: string; kind: string; title: string; sub: string; color?: string; sections: MixSection[]; cards?: MixCard[]; interpretation?: string | null };
 export type Wanted = { total: number; items: { title: string; artist: string; album?: string | null; duration?: number | null; plays: number; source: string; sources?: string[] }[] };
 
+export type FindKind = 'tv' | 'movies' | 'music' | 'books';
+export type FindStatus = 'new' | 'wanted' | 'downloading' | 'partial' | 'done' | 'failed' | 'removed' | 'unknown';
+export type Found = { kind: FindKind; id: string; title: string; creator?: string | null; type?: string | null; year?: number | null; overview?: string | null; poster?: string | null; in_library: boolean; status: FindStatus };
+export type FoundResults = { results: Found[]; errors?: Partial<Record<FindKind, string>> };
+export type FoundRequest = Pick<Found, 'kind' | 'id' | 'title' | 'creator' | 'type' | 'year' | 'poster' | 'status'> & { added: string; progress?: number | null; detail?: string | null };
+
 export class ApiError extends Error {
   constructor(
     public status: number,
@@ -298,9 +304,9 @@ export type Insights = {
 
 export const authHeaders = (): Record<string, string> => ({ Authorization: `Bearer ${getConfig().token}` });
 
-async function request<T>(path: string, init: RequestInit = {}, cfg: { url: string; token: string } = getConfig()): Promise<T> {
+async function request<T>(path: string, init: RequestInit = {}, cfg: { url: string; token: string } = getConfig(), wait = 10000): Promise<T> {
   const ctl = new AbortController();
-  const timer = setTimeout(() => ctl.abort(), 10000);
+  const timer = setTimeout(() => ctl.abort(), wait);
   let res: Response;
   try {
     res = await fetch(cfg.url + path, {
@@ -369,6 +375,9 @@ export const api = {
   mixes: () => request<Mix[]>('/mixes'),
   mix: (id: string) => request<Mix>(`/mixes/${encodeURIComponent(id)}`),
   played: (songs: { id: string; at: string; seconds: number; title?: string; artist?: string; album?: string }[]) => request<{ ok: boolean }>('/plays', { method: 'POST', body: JSON.stringify(songs) }),
+  find: (text: string) => request<FoundResults>(`/search${q({ q: text })}`, {}, undefined, 60000),
+  findAdd: (kind: FindKind, id: string) => request<Found>('/search/add', { method: 'POST', body: JSON.stringify({ kind, id }) }, undefined, 60000),
+  findRequests: () => request<FoundRequest[]>('/search/requests', {}, undefined, 30000),
   wanted: () => request<Wanted>('/wanted'),
   note: (n: { book_id: number; track: number; seconds: number; text: string; quote: string; voice?: boolean }) => request<{ id: string }>('/notes', { method: 'POST', body: JSON.stringify(n) }),
   voiceState: (id: string) => request<{ state: 'pending' | 'done' | 'failed'; text: string; language?: string }>(`/notes/${id}/voice`),
