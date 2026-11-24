@@ -1,10 +1,10 @@
 import { Image } from 'expo-image';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Text, View } from 'react-native';
 import { api, type FindKind, type Found, type FoundResults } from '../api';
 import { useFindRequests } from '../data';
 import { dayMonth } from '../format';
-import { addNote, FIND_KINDS, foundLine, requestLine } from '../found';
+import { addNote, FIND_KINDS, foundLine, mergeFound, requestLine, requestSource } from '../found';
 import { refreshKeys } from '../store';
 import { F, fs, useTheme } from '../theme';
 import { Icon, type IconName } from './icon';
@@ -46,6 +46,7 @@ function FoundRow({ f, busy, onAdd }: { f: Found; busy: boolean; onAdd: () => vo
         <Text numberOfLines={1} style={u.muted}>
           {foundLine(f)}
         </Text>
+        {f.detail ? <Text style={u.muted}>{f.detail}</Text> : null}
         {f.overview ? (
           <Text numberOfLines={2} style={u.soft}>
             {f.overview}
@@ -70,7 +71,7 @@ function Requests() {
           <View style={{ flex: 1, gap: 3 }}>
             <Title>{r.title}</Title>
             <Text numberOfLines={1} style={u.muted}>
-              {[requestLine(r), r.kind, dayMonth(r.added)].join(' · ')}
+              {[requestLine(r), requestSource(r), dayMonth(r.added)].join(' · ')}
             </Text>
             {r.status === 'downloading' && r.progress != null ? <Bar value={r.progress} /> : null}
             {r.detail ? (
@@ -102,6 +103,19 @@ export function useFind() {
       .then((results) => latest.current === n && setState({ q, loading: false, results }))
       .catch((e: Error) => latest.current === n && setState({ q, loading: false, error: e.message }));
   };
+  const { q, results } = state;
+  // shelfmark takes up to a few minutes: ask again for the books until they're in
+  useEffect(() => {
+    if (!results?.pending?.includes('books')) return;
+    const n = latest.current;
+    const timer = setTimeout(() => {
+      api
+        .find(q, 'books')
+        .then((next) => latest.current === n && setState((s) => (s.results ? { ...s, results: mergeFound(s.results, 'books', next) } : s)))
+        .catch((e: Error) => latest.current === n && setState((s) => (s.results ? { ...s, results: mergeFound(s.results, 'books', { results: s.results.results.filter((f) => f.kind === 'books'), errors: { books: e.message } }) } : s)));
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, [q, results]);
   const added = (f: Found) =>
     setState((s) => (s.results ? { ...s, results: { ...s.results, results: s.results.results.map((x) => (key(x) === key(f) ? { ...x, in_library: true, status: f.status } : x)) } } : s));
   return { ...state, run, added };
@@ -135,6 +149,7 @@ export function FindNew({ find }: { find: ReturnType<typeof useFind> }) {
   const kinds = FIND_KINDS.filter((k) => kind === 'all' || k === kind);
   const all = find.results?.results ?? [];
   const errors = kinds.filter((k) => find.results?.errors?.[k]);
+  const waiting = kinds.includes('books') && find.results?.pending?.includes('books');
   return (
     <>
       <Chips<'all' | FindKind> items={['all', ...FIND_KINDS]} value={kind} onChange={setKind} />
@@ -158,7 +173,13 @@ export function FindNew({ find }: { find: ReturnType<typeof useFind> }) {
           </View>
         );
       })}
-      {find.results && !errors.length && !all.some((f) => kinds.includes(f.kind)) ? <Empty>nothing found for “{find.q}”.</Empty> : null}
+      {waiting ? (
+        <View style={[u.row, { gap: 10, paddingVertical: 8 }]}>
+          <ActivityIndicator color={c.muted} />
+          <Text style={u.soft}>asking shelfmark for books, up to a few minutes…</Text>
+        </View>
+      ) : null}
+      {find.results && !waiting && !errors.length && !all.some((f) => kinds.includes(f.kind)) ? <Empty>nothing found for “{find.q}”.</Empty> : null}
     </>
   );
 }
