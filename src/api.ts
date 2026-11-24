@@ -249,10 +249,10 @@ export type MixCard = { id?: string | null; name: string; numeral: string; how: 
 export type Mix = { id: string; kind: string; title: string; sub: string; color?: string; sections: MixSection[]; cards?: MixCard[]; interpretation?: string | null };
 export type Wanted = { total: number; items: { title: string; artist: string; album?: string | null; duration?: number | null; plays: number; source: string; sources?: string[] }[] };
 
-export type FindKind = 'tv' | 'movies' | 'music' | 'books';
+export type FindKind = 'tv' | 'movies' | 'music' | 'books' | 'comics';
 export type FindStatus = 'new' | 'wanted' | 'downloading' | 'partial' | 'done' | 'failed' | 'removed' | 'unknown';
-export type Found = { kind: FindKind; id: string; title: string; creator?: string | null; type?: string | null; year?: number | null; overview?: string | null; detail?: string | null; poster?: string | null; in_library: boolean; status: FindStatus };
-export type FoundResults = { results: Found[]; errors?: Partial<Record<FindKind, string>>; pending?: FindKind[] };
+export type Found = { kind: FindKind; id: string; title: string; creator?: string | null; type?: string | null; source?: string | null; year?: number | null; overview?: string | null; detail?: string | null; poster?: string | null; in_library: boolean; status: FindStatus };
+export type FoundResults = { results: Found[]; errors?: Partial<Record<FindKind, string>>; pending?: FindKind[]; needs?: Partial<Record<FindKind, string>> };
 export type FoundRequest = Pick<Found, 'kind' | 'id' | 'title' | 'creator' | 'type' | 'year' | 'poster' | 'status'> & { added: string; progress?: number | null; detail?: string | null };
 
 export class ApiError extends Error {
@@ -375,7 +375,7 @@ export const api = {
   mixes: () => request<Mix[]>('/mixes'),
   mix: (id: string) => request<Mix>(`/mixes/${encodeURIComponent(id)}`),
   played: (songs: { id: string; at: string; seconds: number; title?: string; artist?: string; album?: string }[]) => request<{ ok: boolean }>('/plays', { method: 'POST', body: JSON.stringify(songs) }),
-  find: (text: string, kind?: FindKind) => request<FoundResults>(`/search${q({ q: text, kind })}`, {}, undefined, 60000),
+  find: (text: string, kind?: FindKind, editions?: boolean) => request<FoundResults>(`/search${q({ q: text, kind, editions })}`, {}, undefined, 60000),
   findAdd: ({ kind, id, title, creator }: Found) => request<Found>('/search/add', { method: 'POST', body: JSON.stringify({ kind, id, title, creator }) }, undefined, 60000),
   findRequests: () => request<FoundRequest[]>('/search/requests', {}, undefined, 30000),
   wanted: () => request<Wanted>('/wanted'),

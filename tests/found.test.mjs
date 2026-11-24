@@ -1,11 +1,18 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { addNote, foundLine, mergeFound, requestLine, requestSource } from '../src/found.ts';
+import { addNote, foundLine, isWork, mergeFound, requestLine, requestSource, sourceLine } from '../src/found.ts';
 
-test('foundLine leaves out what is missing and names book sources', () => {
-  assert.equal(foundLine({ kind: 'tv', year: 2017, creator: 'Netflix' }), '2017 · Netflix');
-  assert.equal(foundLine({ kind: 'music', type: 'album', year: null, creator: 'Portishead' }), 'Portishead · album');
-  assert.equal(foundLine({ kind: 'books', type: 'standardebooks', creator: 'Mary Shelley' }), 'Mary Shelley · standard ebooks');
+test('foundLine leaves out what is missing and says what music is', () => {
+  assert.equal(foundLine({ kind: 'tv', year: 2017, creator: 'Netflix' }), 'Netflix · 2017');
+  assert.equal(foundLine({ kind: 'music', type: 'album', year: 2020, creator: 'Taylor Swift' }), 'album · Taylor Swift · 2020');
+  assert.equal(foundLine({ kind: 'music', type: 'artist', creator: null }), 'artist');
+  assert.equal(foundLine({ kind: 'books', type: 'openlibrary', creator: 'Mary Shelley' }), 'Mary Shelley');
+});
+
+test('every result names its source', () => {
+  assert.equal(sourceLine({ source: 'musicbrainz', type: 'song', detail: 'on folklore' }), 'on folklore · musicbrainz');
+  assert.equal(sourceLine({ source: 'shelfmark', type: 'shelfmark', detail: 'epub · en' }), 'epub · en · shelfmark');
+  assert.equal(sourceLine({ type: 'standardebooks' }), 'standard ebooks');
 });
 
 test('requestLine shows progress only when there is one', () => {
@@ -22,7 +29,6 @@ test('the confirm says how much of the music is followed', () => {
 });
 
 test('a book says where it comes from', () => {
-  assert.equal(foundLine({ kind: 'books', type: 'shelfmark', year: 2021, creator: 'Andy Weir' }), '2021 · Andy Weir · shelfmark');
   assert.match(addNote({ kind: 'books', type: 'shelfmark' }), /shelfmark/);
   assert.equal(requestSource({ kind: 'books', type: 'standardebooks' }), 'standard ebooks');
   assert.equal(requestSource({ kind: 'music', type: 'album' }), 'music');
@@ -36,4 +42,18 @@ test('a late book answer replaces only the books', () => {
   assert.deepEqual(now.pending, []);
   assert.equal(now.errors.books, undefined);
   assert.equal(now.errors.music, 'lidarr down');
+});
+
+test('works are added by picking an edition, editions are not', () => {
+  assert.ok(isWork({ kind: 'books', type: 'openlibrary' }) && isWork({ kind: 'books', type: 'hardcover' }));
+  assert.ok(!isWork({ kind: 'books', type: 'shelfmark' }) && !isWork({ kind: 'music', type: 'album' }));
+  assert.match(addNote({ kind: 'books', type: 'hardcover' }), /free edition/);
+  assert.match(addNote({ kind: 'music', type: 'song' }), /album this song is on/);
+  assert.match(addNote({ kind: 'comics' }), /kapowarr/);
+  assert.equal(requestLine({ kind: 'books', status: 'wanted', detail: 'looking for an edition' }), 'looking for an edition');
+});
+
+test('a late music answer keeps what comics need', () => {
+  const now = mergeFound({ results: [], pending: ['music'], needs: { comics: 'needs comicvine key' } }, 'music', { results: [], pending: ['music'] });
+  assert.deepEqual([now.pending, now.needs], [['music'], { comics: 'needs comicvine key' }]);
 });
