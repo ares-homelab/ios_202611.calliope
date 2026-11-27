@@ -1,8 +1,10 @@
 import { router } from 'expo-router';
 import { Alert } from 'react-native';
 import { api, type Audiobook, type Mix } from './api';
+import { download, removeKeys, savedDownloads } from './downloads';
+import { staleDownloads } from './fresh';
 import { nd, type Album, type Song } from './navidrome';
-import { bookTracks, current, getPlayer, play, playQueue, songTrack, type Context } from './player';
+import { bookTracks, current, getPlayer, play, playQueue, refreshSongs, songTrack, type Context } from './player';
 
 export function playSongs(songs: Song[], index = 0, ctx?: Context, shuffle = false) {
   if (!songs.length) return;
@@ -33,6 +35,33 @@ export async function songsById(ids: string[]): Promise<Song[]> {
     all.forEach((s) => songCache.set(s.id, s));
   }
   return ids.map((id) => songCache.get(id)).filter((s): s is Song => !!s);
+}
+
+let checkedAt = 0;
+/** re-reads navidrome's songs (at most every 6 h): queued songs take the current length, and downloads whose file lidarr
+ * replaced in place are fetched again */
+export async function checkLibrary(force = false) {
+  if (!nd.ready() || (!force && Date.now() - checkedAt < 6 * 3600e3)) return;
+  checkedAt = Date.now();
+  let all: Song[];
+  try {
+    all = await nd.songs(5000);
+  } catch {
+    checkedAt = 0;
+    return;
+  }
+  cachedAt = Date.now();
+  all.forEach((s) => songCache.set(s.id, s));
+  refreshSongs(all);
+  const saved = savedDownloads();
+  const stale = staleDownloads(saved, all);
+  if (!stale.length) return;
+  const keep = stale.map((k) => saved[k]);
+  removeKeys(stale);
+  for (const d of keep) {
+    const s = songCache.get(d.key.slice(2))!;
+    await download(d.key, nd.downloadUrl(s.id), s.suffix ?? 'mp3', d.group, d.label).catch(() => {});
+  }
 }
 
 /** plays a book from where it stands: this iphone's own position when it is the loaded book, else kosync's (the kindle's) */
