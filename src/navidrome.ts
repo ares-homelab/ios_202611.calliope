@@ -16,6 +16,7 @@ export type Song = {
   starred?: string;
   suffix?: string;
   bitRate?: number;
+  size?: number;
 };
 export type Album = {
   id: string;

@@ -7,6 +7,7 @@ import { api, authHeaders } from './api';
 import { localFile } from './downloads';
 import { readJson, writeJson } from './files';
 import { nd, type Song } from './navidrome';
+import { refreshQueue } from './fresh';
 import { afterEnd, nextIndex as nextAt, shuffleRest, startShuffled, unshuffle, type Repeat } from './queue';
 import { perform } from './store';
 import { getPrefs } from './theme';
@@ -115,6 +116,7 @@ let listened = 0;
 let lastTick = 0;
 let lastSave = 0;
 let scrobbled = false;
+let warmed = false;
 let heard = 0;
 let startedAt = '';
 
@@ -146,7 +148,16 @@ function source(t: Track) {
   if (local) return { uri: local };
   if (t.kind === 'book') return { uri: api.trackUrl(t.bookId!, t.n!), headers: authHeaders() };
   const q = getPrefs()[cellular ? 'cellular' : 'wifi'];
-  return { uri: nd.streamUrl(t.song!.id, q === 'original' ? undefined : Number(q)) };
+  return q === 'original' ? { uri: nd.streamUrl(t.song!.id) } : { uri: api.musicStreamUrl(t.song!.id, Number(q)), headers: authHeaders() };
+}
+
+/** asks ares to transcode the next song ahead of time, so it starts without a wait */
+function warmNext() {
+  const i = nextIndex();
+  const t = i == null ? undefined : state.queue[i];
+  if (!t || t.kind !== 'song' || localFile(t.key)) return;
+  const src = source(t);
+  if (src.headers) fetch(src.uri, { method: 'HEAD', headers: src.headers }).catch(() => {});
 }
 
 let cellular = false;
@@ -203,6 +214,7 @@ function crossfade(index: number, seconds: number) {
   startedAt = new Date().toISOString();
   set({ index, time: 0, duration: t.duration, buffering: true });
   loadedKey = t.key;
+  warmed = false;
   pendingSeek = null;
   scrobbled = false;
   to.volume = 0;
@@ -236,6 +248,7 @@ function load(index: number, at: number, play: boolean) {
   startedAt = new Date().toISOString();
   set({ index, time: at, duration: t.duration, buffering: true });
   loadedKey = t.key;
+  warmed = false;
   pendingSeek = at > 0 ? at : null;
   playWhenReady = play;
   scrobbled = false;
@@ -257,6 +270,15 @@ function onStatus(s: AudioStatus) {
     else heard += d;
   }
   lastTick = s.playing ? now : 0;
+  if (s.isLoaded && s.duration > 0 && Math.abs(s.duration - t.duration) > 1) {
+    const queue = [...state.queue];
+    queue[state.index] = { ...t, duration: s.duration };
+    set({ queue });
+  }
+  if (s.isLoaded && !warmed) {
+    warmed = true;
+    warmNext();
+  }
   if (s.isLoaded && pendingSeek != null) {
     const at = pendingSeek;
     pendingSeek = null;
@@ -436,6 +458,16 @@ export async function setSmart(on: boolean) {
   });
   while (mixed.length < 10 && pool.length) mixed.push({ ...songTrack(pool.shift()!), smart: true });
   set({ queue: [...state.queue.slice(0, state.index + 1), ...mixed] });
+  persist();
+}
+
+/** navidrome's current songs, after a refresh: queued songs take their new length */
+export function refreshSongs(songs: Song[]) {
+  const byId = new Map(songs.map((s) => [s.id, s]));
+  const queue = refreshQueue(state.queue, byId);
+  const order = state.order.length ? refreshQueue(state.order, byId) : null;
+  if (!queue && !order) return;
+  set({ ...(queue ? { queue } : {}), ...(order ? { order } : {}) });
   persist();
 }
 

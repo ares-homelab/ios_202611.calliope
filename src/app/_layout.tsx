@@ -18,6 +18,7 @@ import { reschedule, startNotifications } from '../notify';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { getConfig } from '../config';
 import '../player';
+import { checkLibrary } from '../play';
 import { flush } from '../store';
 import { useTheme } from '../theme';
 
@@ -43,12 +44,14 @@ export default function RootLayout() {
       } catch {}
     };
     fetchUpdate();
+    checkLibrary();
     const sub = AppState.addEventListener('change', (s) => {
       if (s === 'active') {
         flush();
         flushVoice();
         reschedule().catch(() => {});
         fetchUpdate();
+        checkLibrary();
       }
       if (s === 'background' && pending) Updates.reloadAsync().catch(() => {});
     });

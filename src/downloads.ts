@@ -17,6 +17,8 @@ const emit = () => {
 
 const fileName = (key: string, ext: string) => `${key.replace(/[^a-z0-9]+/gi, '_')}.${ext}`;
 
+export const savedDownloads = () => saved;
+
 export function localFile(key: string) {
   const s = saved[key];
   if (!s) return null;

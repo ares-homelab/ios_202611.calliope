@@ -375,6 +375,8 @@ export const api = {
   audiobook: (id: number) => request<Audiobook>(`/audiobooks/${id}`),
   audioText: (id: number, n: number) => request<AudioText>(`/audiobooks/${id}/text/${n}`),
   trackUrl: (id: number, n: number) => `${getConfig().url}/audiobooks/${id}/tracks/${n}`,
+  /** a song as a cached m4a with byte ranges, so length and seeking are exact (navidrome's own transcodes aren't) */
+  musicStreamUrl: (id: string, kbps: number) => `${getConfig().url}/music/stream/${encodeURIComponent(id)}?kbps=${kbps}`,
   position: (id: number, p: Position) => put<{ xpointer: string | null; progress: number | null }>(`/audiobooks/${id}/position`, p),
   audioQueue: () => request<QueueItem[]>('/audioqueue'),
   recap: (month?: string) => request<Recap>(`/recap${q({ month })}`),
