@@ -82,6 +82,8 @@ export const nd = {
   random: (size = 50, genre?: string) => call<{ randomSongs: { song?: Song[] } }>('getRandomSongs', { size, genre }).then((r) => r.randomSongs.song ?? []),
   similar: (id: string, count = 20) =>
     call<{ similarSongs2: { song?: Song[] } }>('getSimilarSongs2', { id, count }).then((r) => r.similarSongs2.song ?? []).catch(() => [] as Song[]),
+  addToPlaylist: (playlistId: string, songId: string) => call('updatePlaylist', { playlistId, songIdToAdd: songId }),
+  createPlaylist: (name: string, songId: string) => call('createPlaylist', { name, songId }),
   star: (id: string, on: boolean) => call(on ? 'star' : 'unstar', { id }),
   scrobble: (id: string, submission: boolean) => call('scrobble', { id, submission, time: Date.now() }).catch(() => {}),
   lyrics: async (id: string): Promise<Lyrics | null> => {

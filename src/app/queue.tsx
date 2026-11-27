@@ -1,10 +1,10 @@
 import { router } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { TrackArt } from '../components/art';
-import { mmss, pickSleep, sleepLabel } from '../components/controls';
+import { ModeButtons, mmss, pickSleep, sleepLabel } from '../components/controls';
 import { Icon } from '../components/icon';
 import { Chip } from '../components/ui';
-import { clearUpNext, current, jump, removeAt, setRepeat, setSmart, usePlayer } from '../player';
+import { clearUpNext, current, jump, removeAt, usePlayer } from '../player';
 import { F, fs, useTheme } from '../theme';
 
 export default function Queue() {
@@ -21,11 +21,12 @@ export default function Queue() {
           <Icon name="down" size={22} color={c.text} />
         </Pressable>
         <Text style={{ fontFamily: F.heavy, fontSize: fs(16), color: c.text }}>up next</Text>
-        <Pressable accessibilityRole="button" onPress={clearUpNext} style={{ width: 54, height: 44, alignItems: 'center', justifyContent: 'center' }}>
+        <Pressable accessibilityRole="button" accessibilityLabel="clear up next" onPress={clearUpNext} style={{ width: 54, height: 44, alignItems: 'center', justifyContent: 'center' }}>
           <Text style={{ fontFamily: F.sansBold, fontSize: fs(14), color: c.accent }}>clear</Text>
         </Pressable>
       </View>
       <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40, gap: 6 }}>
+        {t ? <View style={{ marginTop: 8 }}><ModeButtons book={!!book} /></View> : null}
         {t ? (
           <>
             <Text style={eyebrow}>now playing</Text>
@@ -62,8 +63,6 @@ export default function Queue() {
         ))}
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 16 }}>
           <Chip label={`sleep · ${sleepLabel(s.sleep) ?? 'off'}`} on={!!s.sleep} onPress={() => pickSleep(!!book)} />
-          {book ? null : <Chip label="smart shuffle" on={s.smart} onPress={() => setSmart(!s.smart)} />}
-          <Chip label={s.repeat ? 'repeat on' : 'repeat off'} on={s.repeat} onPress={() => setRepeat(!s.repeat)} />
         </View>
       </ScrollView>
     </View>

@@ -4,19 +4,10 @@ import { api, type Audiobook, type Mix } from './api';
 import { nd, type Album, type Song } from './navidrome';
 import { bookTracks, current, getPlayer, play, playQueue, songTrack, type Context } from './player';
 
-const shuffled = <T,>(xs: T[]) => {
-  const a = [...xs];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-};
-
 export function playSongs(songs: Song[], index = 0, ctx?: Context, shuffle = false) {
   if (!songs.length) return;
-  const list = shuffle ? shuffled(songs) : songs;
-  playQueue(list.map(songTrack), shuffle ? 0 : index, 0, ctx);
+  const start = shuffle ? Math.floor(Math.random() * songs.length) : index;
+  playQueue(songs.map(songTrack), start, 0, ctx, shuffle || undefined);
 }
 
 export const albumContext = (a: Album): Context => ({ kind: 'album', id: a.id, title: a.name, sub: a.artist, coverArt: a.coverArt });
