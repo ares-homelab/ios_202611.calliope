@@ -169,6 +169,15 @@ const ICONS = {
   list: <Path d="M4 6h16M4 12h16M4 18h10" />,
   plus: <Path d="M12 5v14M5 12h14" />,
   pin: <Path d="M9 4h6l-1 6 4 4H6l4-4zM12 14v7" />,
+  album: (
+    <>
+      <Circle cx="12" cy="12" r="9" />
+      <Circle cx="12" cy="12" r="2.5" />
+    </>
+  ),
+  artist: <Path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4.5 21a7.5 7.5 0 0 1 15 0" />,
+  playNext: <Path d="M4 6h10M4 12h10M4 18h6M17 14l3 3-3 3M14 17h6" />,
+  playLast: <Path d="M4 6h16M4 12h16M4 18h8M17 15v6M14 18h6" />,
   repeat: <Path d="M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3" />,
   sync: (
     <>

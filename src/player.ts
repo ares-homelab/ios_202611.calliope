@@ -7,6 +7,7 @@ import { api, authHeaders } from './api';
 import { localFile } from './downloads';
 import { readJson, writeJson } from './files';
 import { nd, type Song } from './navidrome';
+import { afterEnd, nextIndex as nextAt, shuffleRest, startShuffled, unshuffle, type Repeat } from './queue';
 import { perform } from './store';
 import { getPrefs } from './theme';
 
@@ -57,7 +58,10 @@ export type PlayerState = {
   sleep: Sleep;
   label: string;
   smart: boolean;
-  repeat: boolean;
+  repeat: Repeat;
+  shuffle: boolean;
+  /** the queue in its original order while shuffle is on */
+  order: Track[];
 };
 
 const saved = readJson<Partial<PlayerState>>('player.json', {});
@@ -72,7 +76,9 @@ let state: PlayerState = {
   sleep: null,
   label: saved.label ?? '',
   smart: saved.smart ?? false,
-  repeat: false,
+  repeat: saved.repeat === 'all' || saved.repeat === 'one' ? saved.repeat : 'off',
+  shuffle: saved.shuffle ?? false,
+  order: saved.order ?? [],
 };
 
 const listeners = new Set<() => void>();
@@ -81,8 +87,8 @@ const set = (next: Partial<PlayerState>) => {
   listeners.forEach((fn) => fn());
 };
 const persist = () => {
-  const { queue, index, time, rate, label, smart } = state;
-  writeJson('player.json', { queue, index, time, rate, label, smart });
+  const { queue, index, time, rate, label, smart, repeat, shuffle, order } = state;
+  writeJson('player.json', { queue, index, time, rate, label, smart, repeat, shuffle, order });
 };
 
 export const getPlayer = () => state;
@@ -219,10 +225,7 @@ function crossfade(index: number, seconds: number) {
   };
 }
 
-function nextIndex() {
-  if (state.index + 1 < state.queue.length) return state.index + 1;
-  return state.repeat && state.queue.length ? 0 : null;
-}
+const nextIndex = () => nextAt(state.index, state.queue.length, state.repeat);
 
 function load(index: number, at: number, play: boolean) {
   const t = state.queue[index];
@@ -269,7 +272,7 @@ function onStatus(s: AudioStatus) {
   const cf = getPrefs().crossfade;
   const ni = nextIndex();
   const dur = s.duration || t.duration;
-  if (cf && !fade && s.playing && t.kind === 'song' && ni != null && state.queue[ni]?.kind === 'song' && !(sl && 'endOfTrack' in sl) && dur > cf * 2 && dur - s.currentTime <= cf) {
+  if (cf && !fade && s.playing && t.kind === 'song' && state.repeat !== 'one' && ni != null && state.queue[ni]?.kind === 'song' && !(sl && 'endOfTrack' in sl) && dur > cf * 2 && dur - s.currentTime <= cf) {
     crossfade(ni, cf);
     return;
   }
@@ -284,7 +287,11 @@ function onStatus(s: AudioStatus) {
       if (state.index + 1 < state.queue.length) load(state.index + 1, 0, false);
       return;
     }
-    next(true);
+    const after = afterEnd(state.index, state.queue.length, state.repeat);
+    if (after == null) {
+      set({ playing: false });
+      saveBook(true);
+    } else load(after, 0, true);
   }
 }
 for (const p of players) p.addListener('playbackStatusUpdate', (s: AudioStatus) => p === player && onStatus(s));
@@ -296,10 +303,13 @@ AppState.addEventListener('change', (a) => {
   }
 });
 
-export function playQueue(queue: Track[], index = 0, at = 0, ctx?: Context) {
+/** starts a new queue; songs follow the shuffle setting (`shuffle` turns it on or off first) */
+export function playQueue(queue: Track[], index = 0, at = 0, ctx?: Context, shuffle?: boolean) {
   if (ctx) remember(ctx);
-  set({ queue, label: ctx?.title ?? '' });
-  load(index, at, true);
+  const mix = queue[index]?.kind === 'song' && (shuffle ?? state.shuffle);
+  if (mix) set({ queue: startShuffled(queue, index), order: queue, label: ctx?.title ?? '', shuffle: true });
+  else set({ queue, order: [], label: ctx?.title ?? '', shuffle: shuffle === false ? false : state.shuffle });
+  load(mix ? 0 : index, at, true);
 }
 
 export function play() {
@@ -318,13 +328,9 @@ export function pause() {
 
 export const toggle = () => (state.playing ? pause() : play());
 
-export function next(auto = false) {
-  if (state.index + 1 < state.queue.length) return load(state.index + 1, 0, true);
-  if (state.repeat && state.queue.length) return load(0, 0, true);
-  if (auto) {
-    set({ playing: false });
-    saveBook(true);
-  }
+export function next() {
+  const i = nextIndex();
+  if (i != null) load(i, 0, true);
 }
 
 export function prev() {
@@ -360,31 +366,53 @@ export function setSleep(sleep: Sleep) {
   set({ sleep });
 }
 
-export function setRepeat(repeat: boolean) {
+export function setRepeat(repeat: Repeat) {
   set({ repeat });
+  persist();
 }
+
+/** shuffles the up-next part; turning it off goes back to the original order at the current song */
+export function setShuffle(on: boolean) {
+  const t = current();
+  if (on === state.shuffle && (!on || state.order.length)) return;
+  if (on) set({ shuffle: true, order: state.queue, queue: shuffleRest(state.queue, state.index) });
+  else if (state.order.length) set({ shuffle: false, order: [], ...unshuffle(state.order, t) });
+  else set({ shuffle: false });
+  persist();
+  if (!on && state.smart) setSmart(true);
+}
+
+const orderAt = () => {
+  const t = current();
+  const i = t ? state.order.findIndex((x) => x.key === t.key) : -1;
+  return i < 0 ? state.order.length - 1 : i;
+};
 
 export function addNext(tracks: Track[]) {
   const q = [...state.queue];
   q.splice(state.index + 1, 0, ...tracks);
-  set({ queue: q });
+  const order = [...state.order];
+  if (order.length) order.splice(orderAt() + 1, 0, ...tracks);
+  set({ queue: q, order });
   persist();
 }
 
 export function addLast(tracks: Track[]) {
-  set({ queue: [...state.queue, ...tracks] });
+  set({ queue: [...state.queue, ...tracks], order: state.order.length ? [...state.order, ...tracks] : [] });
   persist();
 }
 
 export function removeAt(i: number) {
   if (i === state.index) return;
+  const gone = state.queue[i];
   const q = state.queue.filter((_, j) => j !== i);
-  set({ queue: q, index: i < state.index ? state.index - 1 : state.index });
+  const k = state.order.findIndex((x) => x.key === gone?.key);
+  set({ queue: q, index: i < state.index ? state.index - 1 : state.index, order: k < 0 ? state.order : state.order.filter((_, j) => j !== k) });
   persist();
 }
 
 export function clearUpNext() {
-  set({ queue: state.queue.slice(0, state.index + 1) });
+  set({ queue: state.queue.slice(0, state.index + 1), order: state.order.length ? state.order.slice(0, orderAt() + 1) : [] });
   persist();
 }
 

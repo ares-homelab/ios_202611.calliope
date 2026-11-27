@@ -1,15 +1,18 @@
 import { router } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, FlatList, Pressable, Text, View, type ViewProps } from 'react-native';
+import { Alert, FlatList, Pressable, Share, Text, View, type ViewProps } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { api, authHeaders, type Para } from '../api';
 import { Art, swatch } from '../components/art';
-import { mmss, pickSleep, RateButton, Scrubber, SleepButton } from '../components/controls';
+import { mmss, ModeBadges, pickSleep, RateButton, Scrubber, sleepLabel, SleepButton } from '../components/controls';
 import { Icon, type IconName } from '../components/icon';
+import { Sheet, type SheetItem } from '../components/sheet';
 import { Cover } from '../components/ui';
-import { download } from '../downloads';
+import { usePlaylists } from '../data';
+import { download, removeKeys, useDownloads } from '../downloads';
 import { nd } from '../navidrome';
-import { current, getPlayer, getVolume, next, pause, prev, seek, setSmart, setVolume, skip, toggle, usePlayer, type Track } from '../player';
+import { addLast, addNext, current, getPlayer, getVolume, next, pause, prev, seek, setVolume, skip, songTrack, toggle, usePlayer, type Track } from '../player';
+import { refreshKeys } from '../store';
 import { atTime, useBookText } from '../booktext';
 import { readAt } from '../read';
 import { F, fs, LINE, usePrefs, useTheme } from '../theme';
@@ -243,13 +246,7 @@ function MusicPlayer({ t }: { t: Track }) {
     setFavs({ ...favs, [t.key]: !fav });
     nd.star(t.song!.id, !fav).catch(() => setFavs({ ...favs, [t.key]: fav }));
   };
-  const more = () =>
-    Alert.alert(t.title, t.artist, [
-      ...(t.song?.albumId ? [{ text: 'go to album', onPress: () => (router.back(), router.push({ pathname: '/album/[id]', params: { id: t.song!.albumId! } })) }] : []),
-      ...(t.song?.artistId ? [{ text: 'go to artist', onPress: () => (router.back(), router.push({ pathname: '/artist/[id]', params: { id: t.song!.artistId! } })) }] : []),
-      { text: 'download', onPress: () => download(t.key, nd.downloadUrl(t.song!.id), t.song?.suffix ?? 'mp3', `song:${t.song!.id}`, t.title).catch(() => {}) },
-      { text: 'cancel', style: 'cancel' as const },
-    ]);
+  const [menu, setMenu] = useState<'main' | 'playlists' | null>(null);
   const vol = getVolume();
   return (
     <View style={{ flex: 1, backgroundColor: k.bg, paddingHorizontal: 28, paddingTop: 10, paddingBottom: inset.bottom + 10, gap: 20 }}>
@@ -271,7 +268,7 @@ function MusicPlayer({ t }: { t: Track }) {
         <Pressable accessibilityRole="button" accessibilityLabel={fav ? 'remove from favorites' : 'favorite'} onPress={star} hitSlop={4} style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: k.chip, alignItems: 'center', justifyContent: 'center' }}>
           <Icon name="heart" size={18} color={fav ? c.accent : k.text} filled={fav} />
         </Pressable>
-        <Pressable accessibilityRole="button" accessibilityLabel="more" onPress={more} hitSlop={4} style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: k.chip, alignItems: 'center', justifyContent: 'center' }}>
+        <Pressable accessibilityRole="button" accessibilityLabel="more options" onPress={() => setMenu('main')} hitSlop={4} style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: k.chip, alignItems: 'center', justifyContent: 'center' }}>
           <Icon name="more" size={18} color={k.text} />
         </Pressable>
       </View>
@@ -296,14 +293,76 @@ function MusicPlayer({ t }: { t: Track }) {
       </View>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         <Btn name="lyrics" label="lyrics" onPress={() => router.push('/lyrics')} color={k.muted} size={22} />
-        <Pressable accessibilityRole="switch" accessibilityLabel="smart shuffle" accessibilityState={{ checked: s.smart }} onPress={() => setSmart(!s.smart)} style={{ flexDirection: 'row', gap: 6, alignItems: 'center', height: 44, paddingHorizontal: 12, borderRadius: 22, backgroundColor: s.smart ? k.chip : undefined }}>
-          <Icon name="sparkle" size={22} color={s.smart ? c.accent : k.muted} />
-          <Text style={{ fontFamily: F.heavy, fontSize: 13, color: s.smart ? c.accent : k.muted }}>smart shuffle</Text>
-        </Pressable>
-        <SleepButton sleep={s.sleep} book={false} color={k.muted} active={c.accent} />
-        <Btn name="list" label="queue" onPress={() => router.push('/queue')} color={k.muted} size={22} />
+        <ModeBadges color={k.text} onPress={() => router.push('/queue')} />
+        <Btn name="list" label="queue, shuffle and repeat" onPress={() => router.push('/queue')} color={k.muted} size={22} />
+      </View>
+      <SongMenu t={t} fav={fav} star={star} menu={menu} setMenu={setMenu} />
+    </View>
+  );
+}
+
+function SongMenu({ t, fav, star, menu, setMenu }: { t: Track; fav: boolean; star: () => void; menu: 'main' | 'playlists' | null; setMenu: (m: 'main' | 'playlists' | null) => void }) {
+  const { c } = useTheme();
+  const s = usePlayer();
+  const dl = useDownloads();
+  const lists = usePlaylists();
+  const song = t.song!;
+  const go = (pathname: '/album/[id]' | '/artist/[id]', id: string) => (router.back(), router.push({ pathname, params: { id } }));
+  const addTo = (id: string, name: string) =>
+    nd
+      .addToPlaylist(id, song.id)
+      .then(() => refreshKeys('nd/playlists', `nd/playlist/${id}`))
+      .catch((e) => Alert.alert(`couldn't add to ${name}`, (e as Error).message));
+  const newList = () =>
+    Alert.prompt('new playlist', `with ${t.title}`, (name) => {
+      if (!name?.trim()) return;
+      nd
+        .createPlaylist(name.trim(), song.id)
+        .then(() => refreshKeys('nd/playlists'))
+        .catch((e) => Alert.alert("couldn't make the playlist", (e as Error).message));
+    });
+  const saved = !!dl.saved[t.key];
+  const all: SheetItem[][] = [
+    [
+      { icon: 'heart', label: fav ? 'remove from favorites' : 'favorite', on: fav, onPress: star },
+      { icon: 'plus', label: 'add to a playlist', onPress: () => setMenu('playlists') },
+    ],
+    [
+      { icon: 'playNext', label: 'play next', onPress: () => addNext([songTrack(song)]) },
+      { icon: 'playLast', label: 'play last', onPress: () => addLast([songTrack(song)]) },
+    ],
+    [
+      ...(song.albumId ? [{ icon: 'album' as const, label: 'go to album', onPress: () => go('/album/[id]', song.albumId!) }] : []),
+      ...(song.artistId ? [{ icon: 'artist' as const, label: 'go to artist', onPress: () => go('/artist/[id]', song.artistId!) }] : []),
+    ],
+    [
+      saved
+        ? { icon: 'downloaded', label: 'remove download', onPress: () => removeKeys([t.key]) }
+        : { icon: 'download', label: dl.busy.has(t.key) ? 'downloading…' : 'download', onPress: () => download(t.key, nd.downloadUrl(song.id), song.suffix ?? 'mp3', `song:${song.id}`, t.title).catch(() => {}) },
+      { icon: 'share', label: 'share', onPress: () => Share.share({ message: [t.title, t.artist, t.album].filter(Boolean).join(' · ') }).catch(() => {}) },
+      { icon: 'moon', label: 'sleep timer', detail: sleepLabel(s.sleep) ?? 'off', on: !!s.sleep, onPress: () => pickSleep(false) },
+    ],
+  ];
+  const groups = all.filter((g) => g.length);
+  const head = (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+      <Art id={song.coverArt} seed={song.albumId ?? t.key} size={48} radius={6} />
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text numberOfLines={1} style={{ fontFamily: F.heavy, fontSize: fs(16), color: c.text }}>
+          {menu === 'playlists' ? 'add to a playlist' : t.title}
+        </Text>
+        <Text numberOfLines={1} style={{ fontFamily: F.sans, fontSize: fs(13), color: c.muted }}>
+          {menu === 'playlists' ? t.title : [t.artist, t.album].filter(Boolean).join(' · ')}
+        </Text>
       </View>
     </View>
+  );
+  const playlists: SheetItem[] = [{ icon: 'plus', label: 'new playlist…', onPress: newList }, ...(lists.data ?? []).map((p) => ({ icon: 'list' as const, label: p.name, onPress: () => addTo(p.id, p.name) }))];
+  return (
+    <>
+      <Sheet open={menu === 'main'} onClose={() => setMenu(null)} head={head} groups={groups} />
+      <Sheet open={menu === 'playlists'} onClose={() => setMenu(null)} head={head} items={playlists} />
+    </>
   );
 }
 

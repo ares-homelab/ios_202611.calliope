@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
-import { setRate, setSleep, type Sleep } from '../player';
+import { setRate, setRepeat, setShuffle, setSleep, setSmart, usePlayer, type Sleep } from '../player';
+import { nextRepeat, type Repeat } from '../queue';
 import { F, fs, useTheme } from '../theme';
 import { Icon } from './icon';
 
@@ -76,6 +77,67 @@ export function SleepButton({ sleep, book, color, active }: { sleep: Sleep; book
     <Pressable accessibilityRole="button" accessibilityLabel={label ? `sleep timer, ${label}` : 'sleep timer, off'} onPress={() => pickSleep(book)} style={{ height: 44, minWidth: 44, flexDirection: 'row', gap: 4, alignItems: 'center', justifyContent: 'center' }}>
       <Icon name="moon" size={22} color={label ? active : color} />
       {label ? <Text style={{ fontFamily: F.sansBold, fontSize: 11, color: label ? active : c.muted }}>{label}</Text> : null}
+    </Pressable>
+  );
+}
+
+const REPEAT_LABEL = { off: 'repeat off', all: 'repeat all', one: 'repeat one' } as const;
+
+export function RepeatIcon({ repeat, size, color }: { repeat: Repeat; size: number; color: string }) {
+  return (
+    <View>
+      <Icon name="repeat" size={size} color={color} />
+      {repeat === 'one' ? <Text style={{ position: 'absolute', right: -5, top: -6, fontFamily: F.heavy, fontSize: size * 0.5, color }}>1</Text> : null}
+    </View>
+  );
+}
+
+/** apple music's three queue toggles: shuffle, repeat (off → all → one) and smart shuffle */
+export function ModeButtons({ book }: { book: boolean }) {
+  const { c } = useTheme();
+  const s = usePlayer();
+  const box = (on: boolean) => ({ flex: 1, height: 40, borderRadius: 10, alignItems: 'center' as const, justifyContent: 'center' as const, flexDirection: 'row' as const, gap: 6, backgroundColor: on ? c.accent : c.raised });
+  const fg = (on: boolean) => (on ? c.onAccent : c.text);
+  const label = (on: boolean) => ({ fontFamily: F.sansBold, fontSize: fs(13), color: fg(on) });
+  const rep = s.repeat !== 'off';
+  return (
+    <View style={{ flexDirection: 'row', gap: 8 }}>
+      {book ? null : (
+        <Pressable accessibilityRole="switch" accessibilityLabel="shuffle" accessibilityState={{ checked: s.shuffle }} onPress={() => setShuffle(!s.shuffle)} style={box(s.shuffle)}>
+          <Icon name="shuffle" size={18} color={fg(s.shuffle)} />
+          <Text style={label(s.shuffle)}>shuffle</Text>
+        </Pressable>
+      )}
+      <Pressable accessibilityRole="button" accessibilityLabel="repeat" accessibilityValue={{ text: s.repeat }} onPress={() => setRepeat(nextRepeat(s.repeat))} style={box(rep)}>
+        <RepeatIcon repeat={s.repeat} size={18} color={fg(rep)} />
+        <Text style={label(rep)}>{REPEAT_LABEL[s.repeat].replace('repeat off', 'repeat')}</Text>
+      </Pressable>
+      {book ? null : (
+        <Pressable accessibilityRole="switch" accessibilityLabel="smart shuffle" accessibilityState={{ checked: s.smart }} onPress={() => setSmart(!s.smart)} style={box(s.smart)}>
+          <Icon name="sparkle" size={18} color={fg(s.smart)} />
+          <Text style={label(s.smart)}>smart</Text>
+        </Pressable>
+      )}
+    </View>
+  );
+}
+
+/** small icons on the player for the modes that are on; tapping opens the queue where they're changed */
+export function ModeBadges({ color, onPress }: { color: string; onPress: () => void }) {
+  const s = usePlayer();
+  const on = [s.shuffle && 'shuffle', s.repeat !== 'off' && REPEAT_LABEL[s.repeat], s.smart && 'smart shuffle', s.sleep && `sleep timer ${sleepLabel(s.sleep)}`].filter(Boolean) as string[];
+  if (!on.length) return <View style={{ flex: 1 }} />;
+  return (
+    <Pressable accessibilityRole="button" accessibilityLabel={`${on.join(', ')}. open the queue`} onPress={onPress} hitSlop={6} style={{ flex: 1, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 14, height: 44 }}>
+      {s.shuffle ? <Icon name="shuffle" size={16} color={color} /> : null}
+      {s.repeat !== 'off' ? <RepeatIcon repeat={s.repeat} size={16} color={color} /> : null}
+      {s.smart ? <Icon name="sparkle" size={16} color={color} /> : null}
+      {s.sleep ? (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+          <Icon name="moon" size={16} color={color} />
+          <Text style={{ fontFamily: F.sansBold, fontSize: 11, color }}>{sleepLabel(s.sleep)}</Text>
+        </View>
+      ) : null}
     </Pressable>
   );
 }
