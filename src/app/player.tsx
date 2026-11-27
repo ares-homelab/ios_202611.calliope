@@ -6,6 +6,7 @@ import { api, authHeaders, type Para } from '../api';
 import { Art, swatch } from '../components/art';
 import { mmss, ModeBadges, pickSleep, RateButton, Scrubber, sleepLabel, SleepButton } from '../components/controls';
 import { Icon, type IconName } from '../components/icon';
+import { LyricsView } from '../components/lyrics';
 import { Sheet, type SheetItem } from '../components/sheet';
 import { Cover } from '../components/ui';
 import { usePlaylists } from '../data';
@@ -247,16 +248,22 @@ function MusicPlayer({ t }: { t: Track }) {
     nd.star(t.song!.id, !fav).catch(() => setFavs({ ...favs, [t.key]: fav }));
   };
   const [menu, setMenu] = useState<'main' | 'playlists' | null>(null);
+  const [lyrics, setLyrics] = useState(false);
   const vol = getVolume();
   return (
     <View style={{ flex: 1, backgroundColor: k.bg, paddingHorizontal: 28, paddingTop: 10, paddingBottom: inset.bottom + 10, gap: 20 }}>
       <Pressable accessibilityRole="button" onPress={() => router.back()} accessibilityLabel="close" hitSlop={{ top: 12, bottom: 12 }} style={{ alignItems: 'center', paddingVertical: 6 }}>
         <View style={{ width: 40, height: 5, borderRadius: 3, backgroundColor: k.track }} />
       </Pressable>
-      <View style={{ alignItems: 'center', flex: 1, justifyContent: 'center' }}>
-        <Art id={t.song?.coverArt} seed={t.song?.albumId ?? t.key} size={340} radius={14} />
-      </View>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+      {lyrics ? (
+        <LyricsView t={t} k={k} />
+      ) : (
+        <View style={{ alignItems: 'center', flex: 1, justifyContent: 'center' }}>
+          <Art id={t.song?.coverArt} seed={t.song?.albumId ?? t.key} size={340} radius={14} />
+        </View>
+      )}
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: lyrics ? 12 : 8 }}>
+        {lyrics ? <Art id={t.song?.coverArt} seed={t.song?.albumId ?? t.key} size={52} radius={6} /> : null}
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text numberOfLines={1} style={{ fontFamily: F.heavy, fontSize: fs(22), color: k.text }}>
             {t.title}
@@ -292,7 +299,16 @@ function MusicPlayer({ t }: { t: Track }) {
         <Icon name="volHigh" size={16} color={k.muted} />
       </View>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Btn name="lyrics" label="lyrics" onPress={() => router.push('/lyrics')} color={k.muted} size={22} />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="lyrics"
+          accessibilityState={{ selected: lyrics }}
+          onPress={() => setLyrics(!lyrics)}
+          hitSlop={6}
+          style={({ pressed }) => ({ width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: lyrics ? k.text : undefined, opacity: pressed ? 0.6 : 1 })}
+        >
+          <Icon name="lyrics" size={22} color={lyrics ? k.bg : k.muted} />
+        </Pressable>
         <ModeBadges color={k.text} onPress={() => router.push('/queue')} />
         <Btn name="list" label="queue, shuffle and repeat" onPress={() => router.push('/queue')} color={k.muted} size={22} />
       </View>
